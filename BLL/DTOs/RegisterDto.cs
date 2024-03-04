@@ -24,6 +24,7 @@ namespace BLL.DTOs
         public IEnumerable<string> Role { get; set; }
         [Required]
         public string PhoneNumber { get; set; }
+        public DateTime BirthDate { get; set; }
         
     }
 }

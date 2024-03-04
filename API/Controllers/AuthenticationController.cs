@@ -8,6 +8,7 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    
     public class AuthenticationController : ControllerBase
     {
         private IAuthService _authService { get; }
@@ -18,7 +19,7 @@ namespace API.Controllers
         [HttpPost("Register")]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterDto model)
         {
-
+            
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -28,9 +29,17 @@ namespace API.Controllers
             {
                 return BadRequest(JsonSerializer.Serialize(result.Message));
             }
-
+           
 
             return Ok(result);
+        }
+        [HttpPost("AddPatients/{username}/{Relationility}/{dateTime}")]
+        public async Task<IActionResult> AddPatients([FromBody] RegisterDto model,string username,string Relationility,DateTime dateTime)
+        {
+           var result = await _authService.AddPatients(model, username, Relationility, dateTime);
+            if (result.Message=="Done")
+                return Ok(result);
+            return BadRequest(result);
         }
     }
 }

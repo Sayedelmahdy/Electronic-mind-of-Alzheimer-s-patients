@@ -4,6 +4,7 @@ using DAL.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(DBContext))]
-    partial class DBContextModelSnapshot : ModelSnapshot
+    [Migration("20240226141328_forth")]
+    partial class forth
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -144,22 +147,22 @@ namespace DAL.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "70c5701f-0bb0-422d-965c-68eb1a371979",
-                            ConcurrencyStamp = "08fb01b0-2d72-48e9-90e8-bf028de7396b",
+                            Id = "1893492f-6fd3-4500-81a4-2cceeedd4e52",
+                            ConcurrencyStamp = "1f2db763-e202-4bc8-9148-14080bad93d9",
                             Name = "Family",
                             NormalizedName = "FAMILY"
                         },
                         new
                         {
-                            Id = "e1dc1812-bb9a-42c6-b2e8-5267ddf63383",
-                            ConcurrencyStamp = "a8123c14-ccad-4e87-98a2-23cf7021728d",
+                            Id = "17b731b0-e3ee-4122-8b8c-5ddab5f50a2a",
+                            ConcurrencyStamp = "78807915-e339-43c5-ab71-e262592818d3",
                             Name = "Patient",
                             NormalizedName = "PATIENT"
                         },
                         new
                         {
-                            Id = "f3713832-fd17-4d47-816a-ae32e6e090ae",
-                            ConcurrencyStamp = "da78b88f-6a32-4146-8db5-998841236555",
+                            Id = "2c388155-d37f-46b2-bb2e-545be91b28f7",
+                            ConcurrencyStamp = "740af42c-1937-4212-9044-ce2066ffa076",
                             Name = "Caregiver",
                             NormalizedName = "CAREGIVER"
                         });

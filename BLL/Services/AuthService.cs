@@ -2,8 +2,10 @@
 using BLL.Helper;
 using BLL.Interfaces;
 using DAL.Dto;
+using DAL.Interfaces;
 using DAL.Model;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -22,11 +24,16 @@ namespace BLL.Services
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IBaseRepository<FamilyPatient> _familyPatient;
+       
         private readonly JWT _jwt;
-        public AuthService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IOptions<JWT> jwt)
+        public AuthService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IOptions<JWT> jwt,
+            IBaseRepository<FamilyPatient> familyPatient
+            )
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _familyPatient = familyPatient;
             _jwt = jwt.Value;
 
         }
@@ -52,7 +59,7 @@ namespace BLL.Services
                             Email=model.Email,
                             PhoneNumber=model.PhoneNumber,
                             FullName=model.FullName,
-                            
+                            BirthDate=model.BirthDate,
                         };
                    
                              result = await _userManager.CreateAsync(family, model.Password);
@@ -71,7 +78,7 @@ namespace BLL.Services
                     }
                     else if (model.Role.FirstOrDefault().ToLower() == "patient")
                     {
-
+                             /*
                         Patient patient = new Patient
                         {
                             UserName = model.Username,
@@ -96,7 +103,9 @@ namespace BLL.Services
 
                          refreshToken = GenerateRefreshToken();
                         patient.RefreshTokens?.Add(refreshToken);
-                        await _userManager.UpdateAsync(patient);
+                        await _userManager.UpdateAsync(patient);*/
+
+                   /* return new AuthDto { Message = "You need to add patient from family dashboard" };*/
                 }
                     else if (model.Role.FirstOrDefault().ToLower() == "caregiver")
                     {
@@ -106,6 +115,7 @@ namespace BLL.Services
                             Email = model.Email,
                             PhoneNumber = model.PhoneNumber,
                             FullName = model.FullName,
+                            BirthDate = model.BirthDate,
 
                         };
                         result = await _userManager.CreateAsync(caregiver, model.Password);
@@ -124,11 +134,13 @@ namespace BLL.Services
                         caregiver.RefreshTokens?.Add(refreshToken);
                         await _userManager.UpdateAsync(caregiver);
                     }
-                
+                    else
+                    return new AuthDto { Message = "Invalid Role" };
+
 
 
             }
-            else return new AuthDto { Message = "Invalid Role" };
+            else return new AuthDto { Message = "Error,You need to add role" };
 
             
 
@@ -158,7 +170,7 @@ namespace BLL.Services
 
             if (user is null || !await _userManager.CheckPasswordAsync(user, model.Password))
             {
-                AuthDto.Message = "PhoneNumber or Password is incorrect!";
+                AuthDto.Message = "Email or Password is incorrect!";
                 return AuthDto;
             }
             if (user.LockoutEnabled == true && user.LockoutEnd > DateTime.Now)
@@ -267,6 +279,45 @@ namespace BLL.Services
             user.RefreshTokens.Add(NewRefreshToken);
             await _userManager.UpdateAsync(user);
             return AuthDto;
+        }
+       //test
+        public async Task<AuthDto> AddPatients( RegisterDto model, string username, string Relationility,DateTime DiagnosisDate)
+        {
+            Patient patient = new Patient
+            {
+                UserName = model.Username,
+                Email = model.Email,
+                PhoneNumber = model.PhoneNumber,
+                FullName = model.FullName,
+                BirthDate = model.BirthDate,
+                DiagnosisDate = DiagnosisDate
+                
+
+            };
+           var result = await _userManager.CreateAsync(patient, model.Password);
+            if (result == null || !result.Succeeded)
+            {
+                var errors = string.Empty;
+
+                foreach (var error in result.Errors)
+                    errors += $"{error.Description},";
+
+                return new AuthDto { Message = errors };
+            }
+            await _userManager.AddToRoleAsync(patient, "Patient"); 
+            var family = await _userManager.FindByNameAsync(username);
+            FamilyPatient familyPatient = new FamilyPatient
+            {
+               
+                Family = (Family)family,
+                Patient = patient,
+                Relationility = Relationility,  
+
+            };
+            _familyPatient.Add(familyPatient);
+            return new AuthDto { IsAuthenticated = true ,Message="Done",Token=null,RefreshToken=null};
+
+
         }
         //Logout
         public async Task<bool> RevokeTokenAsync(string Token)

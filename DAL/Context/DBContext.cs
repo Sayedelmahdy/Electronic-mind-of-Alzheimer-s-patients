@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,7 +22,7 @@ namespace DAL.Context
             this.ChangeTracker.LazyLoadingEnabled = false;
         }
        
-      public virtual DbSet<Patient> Patients { get; set; }
+        public virtual DbSet<Patient> Patients { get; set; }
         public virtual DbSet<Family> Families { get; set; }
         public virtual DbSet<Caregiver> Caregivers { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -37,6 +38,20 @@ namespace DAL.Context
             builder.Entity<Patient>(entity => { entity.ToTable("Patients"); });
             builder.Entity<Family>(entity => { entity.ToTable("Familys"); });
             builder.Entity<Caregiver>(entity => { entity.ToTable("Caregivers"); });
+
+
+            builder.Entity<FamilyPatient>()
+            .HasKey(fp => new { fp.FamilyId, fp.PatientId });
+
+            builder.Entity<FamilyPatient>()
+                .HasOne(fp => fp.Family)
+                .WithMany(f => f.FamilyPatients)
+                .HasForeignKey(fp => fp.FamilyId);
+         
+            builder.Entity<FamilyPatient>()
+                .HasOne(fp => fp.Patient)
+                .WithMany(p => p.FamilyPatients)
+                .HasForeignKey(fp => fp.PatientId);
             List<IdentityRole> roles = new List<IdentityRole>
             {
                 new IdentityRole
@@ -59,7 +74,6 @@ namespace DAL.Context
                  },
             };
             builder.Entity<IdentityRole>().HasData(roles);
-
 
         }
     }

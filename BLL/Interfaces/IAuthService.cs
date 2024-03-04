@@ -14,5 +14,6 @@ namespace BLL.Interfaces
         Task<AuthDto> GetTokenAsync(TokenRequestDto model);
         Task<AuthDto> RefreshTokenAsync(string Token);
         Task<bool> RevokeTokenAsync(string Token);
+        Task<AuthDto> AddPatients(RegisterDto model, string username, string Relationility, DateTime DiagnosisDate);
     }
 }

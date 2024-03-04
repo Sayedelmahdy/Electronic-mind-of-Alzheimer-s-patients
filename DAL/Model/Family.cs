@@ -8,7 +8,7 @@ namespace DAL.Model
 {
     public class Family:User
     {
-        public string? Relationility {  get; set; }
-        public virtual ICollection<Patient> Patients { get; set; }  
+
+        public virtual ICollection<FamilyPatient> FamilyPatients { get; set; }
     }
 }

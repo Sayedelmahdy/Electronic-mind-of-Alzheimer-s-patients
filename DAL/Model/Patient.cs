@@ -12,6 +12,6 @@ namespace DAL.Model
         public DateTime? DiagnosisDate {  get; set; }
         [ForeignKey(nameof(Caregiver))]
         public string? CaregiverID { get; set; }
-        public virtual ICollection<Family> Familys { get; set; }
+        public virtual ICollection<FamilyPatient> FamilyPatients { get; set; }
     }
 }
