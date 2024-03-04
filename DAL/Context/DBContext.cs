@@ -25,6 +25,14 @@ namespace DAL.Context
         public virtual DbSet<Patient> Patients { get; set; }
         public virtual DbSet<Family> Families { get; set; }
         public virtual DbSet<Caregiver> Caregivers { get; set; }
+        public virtual DbSet<Appointment> Appointments { get; set; }
+        public virtual DbSet<User_Appointment> User_Appointments { get; set; }
+        public virtual DbSet<Location> Locations { get; set; }
+        public virtual DbSet<Mark_Medicine_Reminder> Mark_Medicine_Reminders { get; set; }
+        public virtual DbSet<Medication_Reminders> Medication_Reminders { get; set; }
+        public virtual DbSet<Note> Notes { get; set; }
+        public virtual DbSet<Picture> Pictures { get; set; }
+        public virtual DbSet<SecretAndImportantFile> SecretAndImportantFiles { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
