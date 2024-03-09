@@ -67,7 +67,7 @@ namespace API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            var result = await _authService.ResetPasswordASync(model);
+            var result = await _authService.ResetPasswordAsync(model);
             if (result.IsConfirm)
             {
                 return Ok(result.Message);
