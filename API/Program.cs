@@ -21,7 +21,6 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("./Log/LoggingFile-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 // Add services to the container.
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -54,17 +53,31 @@ builder.Services.AddSwaggerGen(option =>
     });
 });
 builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
+builder.Services.Configure<Mail>(builder.Configuration.GetSection("Mail"));
 builder.Services.AddDbContext<DBContext>(option =>
 {
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 
 });
-builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<DBContext>();
-builder.Services.AddIdentityCore<Patient>().AddEntityFrameworkStores<DBContext>();
-builder.Services.AddIdentityCore<Family>().AddEntityFrameworkStores<DBContext>();
-builder.Services.AddIdentityCore<Caregiver>().AddEntityFrameworkStores<DBContext>();
+builder.Services.AddIdentity<User, IdentityRole>(option=>
+{
+    option.SignIn.RequireConfirmedEmail= true;
+}).AddEntityFrameworkStores<DBContext>().AddDefaultTokenProviders();
+builder.Services.AddIdentityCore<Patient>(option =>
+{
+    option.SignIn.RequireConfirmedEmail = true;
+}).AddEntityFrameworkStores<DBContext>();
+builder.Services.AddIdentityCore<Family>(option =>
+{
+    option.SignIn.RequireConfirmedEmail = true;
+}).AddEntityFrameworkStores<DBContext>();
+builder.Services.AddIdentityCore<Caregiver>(option =>
+{
+    option.SignIn.RequireConfirmedEmail = true;
+}).AddEntityFrameworkStores<DBContext>();
 builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddSingleton<IMailService, MailService>();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -88,7 +101,6 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddRateLimiter(option =>
 {
     option.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-
     option.AddPolicy("Fixed", Context => RateLimitPartition.GetFixedWindowLimiter(
         partitionKey: Context.User.Identity?.ToString(),
         factory: op => new FixedWindowRateLimiterOptions
@@ -108,6 +120,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+
+app.UseRouting();
 
 app.UseAuthorization();
 app.UseAuthorization();

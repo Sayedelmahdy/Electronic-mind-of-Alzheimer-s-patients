@@ -6,6 +6,7 @@ using DAL.Interfaces;
 using DAL.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -24,33 +25,143 @@ namespace BLL.Services
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IMailService _mailService;
         private readonly IBaseRepository<FamilyPatient> _familyPatient;
        
         private readonly JWT _jwt;
+        private readonly Mail _mail;
         public AuthService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IOptions<JWT> jwt,
-            IBaseRepository<FamilyPatient> familyPatient
+            IOptions<Mail> Mail
+            ,IMailService mailService
+            ,IBaseRepository<FamilyPatient> familyPatient
             )
         {
             _userManager = userManager;
             _roleManager = roleManager;
+           _mailService = mailService;
+            _mail = Mail.Value;
             _familyPatient = familyPatient;
             _jwt = jwt.Value;
 
         }
-        public async Task<AuthDto> RegisterAsync(RegisterDto model)
+        public async Task<RegisterAuthDto> RegisterAsync(RegisterDto model)
         {
             if (await _userManager.FindByEmailAsync(model.Email) is not null)
-                return new AuthDto { Message = "Email is already registered!" };
+                return new RegisterAuthDto { Message = "Email is already registered!" };
 
             if (await _userManager.FindByNameAsync(model.Username) is not null)
-                return new AuthDto { Message = "Username is already registered!" };
+                return new RegisterAuthDto { Message = "Username is already registered!" };
 
             IdentityResult? result = null;
-            JwtSecurityToken? jwtSecurityToken=null;
-            RefreshToken? refreshToken = null;
+       
             if (model.Role.Count() > 0)
             {
-               
+
+                string htmlContent = @"<!DOCTYPE html>
+<html lang=""en"">
+
+<head>
+    <meta charset=""utf-8"" />
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+    <title>Email Confirmation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            position: relative;
+            width: 80%;
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ddd; /* Add border for an elegant frame */
+            overflow: hidden; /* Clear the float */
+        }
+
+        h1 {
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+            background-color: #3498db;
+            color: #fff;
+            border-radius: 5px;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+
+        /* Emotes on the side */
+        .emotes {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 10px;
+        }
+
+        .emotes img {
+            width: 30px;
+            height: 30px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class=""container"">
+        <div class=""emotes"">
+            <img src=""https://drive.google.com/uc?export=view&id=1j1q86kEhug5VC18WGIrL1U_m9vlPAjxU"" alt=""Congratulations Emote 1"">
+            <img src=""https://drive.google.com/uc?export=view&id=1dn-moFQyJ_hlehjv4-9Mc5I6L6VhAe7Q"" alt=""Congratulations Emote 2"">
+        </div>
+        <h1>Welcome to the Electronic Mind of Alzheimer Patient</h1>
+        <p>Dear {FullName},</p>
+        <p>We are thrilled to have you on board! To ensure the security of your account, please confirm your email address by clicking the link below:</p>
+        <p><a class=""button"" href='{url}'>Confirm Your Email</a></p>
+        <p>If you did not create an account or need further assistance, please disregard this email.</p>
+        <div class=""footer"">
+            <p>Best regards,</p>
+            <p>The Electronic Mind Team</p>
+        </div>
+    </div>
+</body>
+
+</html>
+
+
+";
                     if (model.Role.FirstOrDefault().ToLower() == "family")
                     {
                         Family family = new Family
@@ -68,44 +179,25 @@ namespace BLL.Services
                                 var errors = string.Empty;
                                 foreach (var error in result.Errors)
                                     errors += $"{error.Description},";
-                                return new AuthDto { Message = errors };
+                                return new RegisterAuthDto { Message = errors };
                             }
                             await _userManager.AddToRoleAsync(family, "Family");
-                             jwtSecurityToken = await CreateJwtToken(family);
-                             refreshToken = GenerateRefreshToken();
-                            family.RefreshTokens?.Add(refreshToken);
                             await _userManager.UpdateAsync(family);
-                    }
-                    else if (model.Role.FirstOrDefault().ToLower() == "patient")
-                    {
-                             /*
-                        Patient patient = new Patient
-                        {
-                            UserName = model.Username,
-                            Email = model.Email,
-                            PhoneNumber = model.PhoneNumber,
-                            FullName = model.FullName,
+                            
+                            var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(family);
+                            
+                            var encodedEmailToken = Encoding.UTF8.GetBytes(confirmEmailToken);
+                            var validEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
+                    
+                            string url = $"{_mail.ServerLink}/api/Authentication/confirmemail?userid={family.Id}&token={validEmailToken}";
+                           htmlContent = htmlContent.Replace("{FullName}", family.FullName).Replace("{url}", url);
+                            await _mailService.SendEmailAsync(family.Email, _mail.FromMail, _mail.Password,"Confirm your email", htmlContent);
 
-                        };
-                        result = await _userManager.CreateAsync(patient, model.Password);
-                        if (result == null || !result.Succeeded)
-                        {
-                            var errors = string.Empty;
-
-                            foreach (var error in result.Errors)
-                                errors += $"{error.Description},";
-
-                            return new AuthDto { Message = errors };
-                        }
-                        await _userManager.AddToRoleAsync(patient, "Family");
-
-                         jwtSecurityToken = await CreateJwtToken(patient);
-
-                         refreshToken = GenerateRefreshToken();
-                        patient.RefreshTokens?.Add(refreshToken);
-                        await _userManager.UpdateAsync(patient);*/
-
-                   /* return new AuthDto { Message = "You need to add patient from family dashboard" };*/
+                   
+                }
+                else if (model.Role.FirstOrDefault().ToLower() == "patient")
+                {
+                        
                 }
                     else if (model.Role.FirstOrDefault().ToLower() == "caregiver")
                     {
@@ -126,33 +218,35 @@ namespace BLL.Services
                             foreach (var error in result.Errors)
                                 errors += $"{error.Description},";
 
-                            return new AuthDto { Message = errors };
+                            return new RegisterAuthDto { Message = errors };
                         }
-                        await _userManager.AddToRoleAsync(caregiver, "Family");
-                        jwtSecurityToken = await CreateJwtToken(caregiver);
-                        refreshToken = GenerateRefreshToken();
-                        caregiver.RefreshTokens?.Add(refreshToken);
-                        await _userManager.UpdateAsync(caregiver);
-                    }
+                        await _userManager.AddToRoleAsync(caregiver, "caregiver");
+                        var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(caregiver);
+                    
+                        var encodedEmailToken = Encoding.UTF8.GetBytes(confirmEmailToken);
+                        var validEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
+
+                        string url = $"{_mail.ServerLink}/api/Authentication/confirmemail?userid={caregiver.Id}&token={validEmailToken}";
+                    htmlContent = htmlContent.Replace("{FullName}", caregiver.FullName).Replace("{url}", url);
+                    await _mailService.SendEmailAsync(caregiver.Email, _mail.FromMail, _mail.Password, "Confirm your email", htmlContent);
+            
+                }
                     else
-                    return new AuthDto { Message = "Invalid Role" };
+                    return new RegisterAuthDto { Message = "Invalid Role" };
 
 
 
             }
-            else return new AuthDto { Message = "Error,You need to add role" };
+            else return new RegisterAuthDto { Message = "Error,You need to add role" };
 
             
 
             
 
-            return new AuthDto
+            return new RegisterAuthDto
             {
                 Message = $"User Created Successfully",               
-                IsAuthenticated = true,             
-                Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),           
-                RefreshToken = refreshToken.Token,
-                RefreshTokenExpiration = refreshToken.ExpiresOn,
+                NeedToConfirm = true ,
                 
             };
 
@@ -178,6 +272,10 @@ namespace BLL.Services
                 AuthDto.Message = "This User is Banned";
                 return AuthDto;
             }
+            if (user.EmailConfirmed == false)
+            {
+                AuthDto.Message = "This User Need To Confirm Before Login ";
+            }
 
             var jwtSecurityToken = await CreateJwtToken(user);
             var rolesList = await _userManager.GetRolesAsync(user);
@@ -192,6 +290,36 @@ namespace BLL.Services
 
             return AuthDto;
         }
+        public async Task<EmailConfirmation> ConfirmEmailAsync(string userId, string token)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return new EmailConfirmation
+                {
+                    IsConfirm = false,
+                    Message = "User not found"
+                };
+
+            var decodedToken = WebEncoders.Base64UrlDecode(token);
+            string normalToken = Encoding.UTF8.GetString(decodedToken);
+
+            var result = await _userManager.ConfirmEmailAsync(user, normalToken);
+
+            if (result.Succeeded)
+                return new EmailConfirmation
+                {
+                    Message = "Email confirmed successfully!",
+                    IsConfirm = true,
+                };
+
+            return new EmailConfirmation
+            {
+                IsConfirm = false,
+                Message = "Email did not confirm",
+            };
+        }
+        
+
 
 
         private async Task<JwtSecurityToken> CreateJwtToken(User user)

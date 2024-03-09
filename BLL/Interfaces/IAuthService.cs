@@ -10,10 +10,14 @@ namespace BLL.Interfaces
 {
     public interface IAuthService
     {
-        Task<AuthDto> RegisterAsync(RegisterDto model);
+        Task<RegisterAuthDto> RegisterAsync(RegisterDto model);
         Task<AuthDto> GetTokenAsync(TokenRequestDto model);
         Task<AuthDto> RefreshTokenAsync(string Token);
         Task<bool> RevokeTokenAsync(string Token);
+
         Task<AuthDto> AddPatients(RegisterDto model, string username, string Relationility, DateTime DiagnosisDate);
+        Task<EmailConfirmation> ConfirmEmailAsync(string UserId, string Token);
     }
+
+
 }

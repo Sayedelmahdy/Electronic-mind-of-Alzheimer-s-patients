@@ -12,9 +12,12 @@ namespace API.Controllers
     public class AuthenticationController : ControllerBase
     {
         private IAuthService _authService { get; }
-        public AuthenticationController(IAuthService authService)
+        public IConfiguration _configuration { get; }
+
+        public AuthenticationController(IAuthService authService, IConfiguration configuration)
         {
             _authService = authService;
+            _configuration = configuration;
         }
         [HttpPost("Register")]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterDto model)
@@ -39,6 +42,21 @@ namespace API.Controllers
            var result = await _authService.AddPatients(model, username, Relationility, dateTime);
             if (result.Message=="Done")
                 return Ok(result);
+            return BadRequest(result);
+        }
+        [HttpGet("ConfirmEmail")]
+        public async Task <IActionResult> ConfirmEmail(string userId, string token)
+        {
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(token))
+                return NotFound();
+            
+            var result = await _authService.ConfirmEmailAsync(userId, token);
+
+            if (result.IsConfirm)
+            {
+                return Redirect($"{_configuration["Mail:ServerLink"]}/confirmemail.html");
+            }
+            
             return BadRequest(result);
         }
     }
