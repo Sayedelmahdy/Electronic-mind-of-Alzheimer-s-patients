@@ -318,45 +318,7 @@ namespace BLL.Services
                 Message = "Email did not confirm",
             };
         }
-
-        public async Task<EmailConfirmation> ResetPasswordAsync(ResetPasswordDto model)
-        {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null)
-            {
-                return new EmailConfirmation
-                {
-                    IsConfirm = false,
-                    Message = "No user associated with email",
-                };
-            }
-            if (model.NewPassWord != model.ConfirmPassword)
-            {
-                return new EmailConfirmation
-                {
-                    IsConfirm = false,
-                    Message = "Password doesn't match its confirmation",
-                };
-            }
-            var decodedToken = WebEncoders.Base64UrlDecode(model.Token);
-            string normalToken = Encoding.UTF8.GetString(decodedToken);
-            var resetResult = await _userManager.ResetPasswordAsync(user, normalToken, model.NewPassWord);
-
-            if (resetResult.Succeeded)
-            {
-                return new EmailConfirmation
-                {
-                    Message = "Password has been reset successfully!",
-                    IsConfirm = true,
-                };
-            }
-            return new EmailConfirmation
-            {
-                Message = "Something went wrong",
-                IsConfirm = false,
-
-            };
-        }
+        
 
 
         private async Task<JwtSecurityToken> CreateJwtToken(User user)
@@ -622,12 +584,54 @@ namespace BLL.Services
 
 
             string url = $"{_mail.ServerLink}/api/Authentication/ResetPassword?email={email}&token={validToken}";
+            
+            htmlContent = htmlContent.Replace("{FullName}", email).Replace("{url}", url);
             await _mailService.SendEmailAsync(email, _mail.FromMail, _mail.Password, "forget password email", htmlContent);
 
             return new EmailConfirmation
             {
                 IsConfirm = true,
                 Message = "Reset password URL has been sent to the email successfully!"
+            };
+
+        }
+        //reset password 
+        public async Task<EmailConfirmation> ResetPasswordAsync(ResetPasswordDto model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                return new EmailConfirmation
+                {
+                    IsConfirm = false,
+                    Message = "No user associated with email",
+                };
+            }
+            if (model.NewPassWord != model.ConfirmPassword)
+            {
+                return new EmailConfirmation
+                {
+                    IsConfirm = false,
+                    Message = "Password doesn't match its confirmation",
+                };
+            }
+            var decodedToken = WebEncoders.Base64UrlDecode(model.Token);
+            string normalToken = Encoding.UTF8.GetString(decodedToken);
+            var resetResult = await _userManager.ResetPasswordAsync(user, normalToken, model.NewPassWord);
+
+            if (resetResult.Succeeded)
+            {
+                return new EmailConfirmation
+                {
+                    Message = "Password has been reset successfully!",
+                    IsConfirm = true,
+                };
+            }
+            return new EmailConfirmation
+            {
+                Message = "Something went wrong",
+                IsConfirm = false,
+
             };
         }
     }

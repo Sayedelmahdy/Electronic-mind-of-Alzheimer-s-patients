@@ -1,4 +1,5 @@
-﻿using Azure;
+﻿using API.Models;
+using Azure;
 using BLL.DTOs;
 using BLL.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -61,13 +62,22 @@ namespace API.Controllers
             return BadRequest(result);
         }
         [HttpPost("ResetPassword")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto model)
+        public async Task<IActionResult> ResetPassword([FromForm] resetpassViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var result = await _authService.ResetPasswordAsync(model);
+            var re = new ResetPasswordDto 
+            {
+                ConfirmPassword = model.ConfirmPassword,
+                Email = model.email,
+                NewPassWord = model.NewPassWord,
+                Token = model.token
+            };
+
+
+            var result = await _authService.ResetPasswordAsync(re);
             if (result.IsConfirm)
             {
                 return Ok(result.Message);
@@ -75,5 +85,19 @@ namespace API.Controllers
 
             return BadRequest(result);
         }
+        [HttpPost("ForgetPassword")]
+        public async Task<IActionResult> ForgetPassword(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return NotFound();
+
+            var result = await _authService.ForgetPasswordAsync(email);
+
+            if (result.IsConfirm)
+                return Ok(result); // 200
+
+            return BadRequest(result); // 400
+        }
+
     }
 }
