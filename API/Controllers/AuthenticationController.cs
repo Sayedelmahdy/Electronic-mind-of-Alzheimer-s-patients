@@ -1,4 +1,5 @@
-﻿using BLL.DTOs;
+﻿using Azure;
+using BLL.DTOs;
 using BLL.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -57,6 +58,21 @@ namespace API.Controllers
                 return Redirect($"{_configuration["Mail:ServerLink"]}/confirmemail.html");
             }
             
+            return BadRequest(result);
+        }
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var result = await _authService.ResetPasswordASync(model);
+            if (result.IsConfirm)
+            {
+                return Ok(result.Message);
+            }
+
             return BadRequest(result);
         }
     }

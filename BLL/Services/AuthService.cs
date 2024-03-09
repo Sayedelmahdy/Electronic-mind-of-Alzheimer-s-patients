@@ -318,8 +318,45 @@ namespace BLL.Services
                 Message = "Email did not confirm",
             };
         }
-        
 
+        public async Task<EmailConfirmation> ResetPasswordAsync(ResetPasswordDto model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                return new EmailConfirmation
+                {
+                    IsConfirm = false,
+                    Message = "No user associated with email",
+                };
+            }
+            if (model.NewPassWord != model.ConfirmPassword)
+            {
+                return new EmailConfirmation
+                {
+                    IsConfirm = false,
+                    Message = "Password doesn't match its confirmation",
+                };
+            }
+            var decodedToken = WebEncoders.Base64UrlDecode(model.Token);
+            string normalToken = Encoding.UTF8.GetString(decodedToken);
+            var resetResult = await _userManager.ResetPasswordAsync(user, normalToken, model.NewPassWord);
+
+            if (resetResult.Succeeded)
+            {
+                return new EmailConfirmation
+                {
+                    Message = "Password has been reset successfully!",
+                    IsConfirm = true,
+                };
+            }
+            return new EmailConfirmation
+            {
+                Message = "Something went wrong",
+                IsConfirm = false,
+
+            };
+        }
 
 
         private async Task<JwtSecurityToken> CreateJwtToken(User user)
@@ -408,7 +445,8 @@ namespace BLL.Services
             await _userManager.UpdateAsync(user);
             return AuthDto;
         }
-       //test
+       
+        //test
         public async Task<AuthDto> AddPatients( RegisterDto model, string username, string Relationility,DateTime DiagnosisDate)
         {
             Patient patient = new Patient
@@ -461,6 +499,7 @@ namespace BLL.Services
             await _userManager.UpdateAsync(user);
             return true;
         }
+
         //forget password
         public async Task<EmailConfirmation> ForgetPasswordAsync(string email)
         {
@@ -591,7 +630,5 @@ namespace BLL.Services
                 Message = "Reset password URL has been sent to the email successfully!"
             };
         }
-
-        
     }
 }
