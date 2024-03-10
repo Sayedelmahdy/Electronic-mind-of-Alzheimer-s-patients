@@ -1,3 +1,4 @@
+using API.CustomTokenProvider;
 using BLL.Helper;
 using BLL.Interfaces;
 using BLL.Services;
@@ -25,7 +26,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddRazorPages();
+
 builder.Services.AddSwaggerGen(option =>
 {
     option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
@@ -63,19 +64,28 @@ builder.Services.AddDbContext<DBContext>(option =>
 builder.Services.AddIdentity<User, IdentityRole>(option=>
 {
     option.SignIn.RequireConfirmedEmail= true;
-}).AddEntityFrameworkStores<DBContext>().AddDefaultTokenProviders();
+    option.Tokens.EmailConfirmationTokenProvider = "emailconfirmation";
+}).AddEntityFrameworkStores<DBContext>().AddDefaultTokenProviders().AddTokenProvider<EmailTokenProvider<User>>("emailconfirmation");
 builder.Services.AddIdentityCore<Patient>(option =>
 {
-    option.SignIn.RequireConfirmedEmail = true;
+   
 }).AddEntityFrameworkStores<DBContext>();
 builder.Services.AddIdentityCore<Family>(option =>
 {
-    option.SignIn.RequireConfirmedEmail = true;
+   
 }).AddEntityFrameworkStores<DBContext>();
 builder.Services.AddIdentityCore<Caregiver>(option =>
 {
-    option.SignIn.RequireConfirmedEmail = true;
+   
 }).AddEntityFrameworkStores<DBContext>();
+builder.Services.Configure<DataProtectionTokenProviderOptions>(option =>
+{
+    option.TokenLifespan=TimeSpan.FromHours(2);
+});
+builder.Services.Configure<EmailConfirmationTokenProviderOptions>(option =>
+{
+    option.TokenLifespan = TimeSpan.FromDays(5);
+});
 builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IMailService, MailService>();
@@ -111,6 +121,7 @@ builder.Services.AddRateLimiter(option =>
         }
         ));
 });
+builder.Services.AddRazorPages();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -128,11 +139,9 @@ app.UseRouting();
 
 app.UseAuthorization();
 app.UseAuthorization();
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-    endpoints.MapRazorPages();
-});
+
+app.MapRazorPages();
+app.MapControllers();
 
 
 app.Run();

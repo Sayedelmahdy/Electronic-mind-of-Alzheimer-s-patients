@@ -62,7 +62,7 @@ namespace API.Controllers
             return BadRequest(result);
         }
         [HttpPost("ResetPassword")]
-        public async Task<IActionResult> ResetPassword([FromForm] resetpassViewModel model)
+        public async Task<IActionResult> ResetPassword([FromForm] ResetPasswordViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -71,16 +71,16 @@ namespace API.Controllers
             var re = new ResetPasswordDto 
             {
                 ConfirmPassword = model.ConfirmPassword,
-                Email = model.email,
+                Email = model.Email,
                 NewPassWord = model.NewPassWord,
-                Token = model.token
+                Token = model.Token
             };
 
 
             var result = await _authService.ResetPasswordAsync(re);
-            if (result.IsConfirm)
+            if (result.IsPasswordReset)
             {
-                return Ok(result.Message);
+                return Redirect($"{_configuration["Mail:ServerLink"]}/ResetpasswordSucc.html");
             }
 
             return BadRequest(result);
@@ -93,7 +93,7 @@ namespace API.Controllers
 
             var result = await _authService.ForgetPasswordAsync(email);
 
-            if (result.IsConfirm)
+            if (result.IsEmailSent)
                 return Ok(result); // 200
 
             return BadRequest(result); // 400

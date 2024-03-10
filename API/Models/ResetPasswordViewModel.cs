@@ -2,10 +2,13 @@
 
 namespace API.Models
 {
-    public class resetpassViewModel
+    public class ResetPasswordViewModel
     {
-        public string email { get; set; }
-        public string token { get; set; }
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+        [Required]
+        public string Token { get; set; }
         [Required]
         public string NewPassWord { get; set; }
         [Required]

@@ -17,8 +17,8 @@ namespace BLL.Interfaces
 
         Task<AuthDto> AddPatients(RegisterDto model, string username, string Relationility, DateTime DiagnosisDate);
         Task<EmailConfirmation> ConfirmEmailAsync(string UserId, string Token);
-        Task<EmailConfirmation> ResetPasswordAsync(ResetPasswordDto model);
-        Task<EmailConfirmation> ForgetPasswordAsync(string email);
+        Task<ResetPassword> ResetPasswordAsync(ResetPasswordDto model);
+        Task<ForgetPassword> ForgetPasswordAsync(string email);
     }
 
 

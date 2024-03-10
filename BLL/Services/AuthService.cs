@@ -463,13 +463,13 @@ namespace BLL.Services
         }
 
         //forget password
-        public async Task<EmailConfirmation> ForgetPasswordAsync(string email)
+        public async Task<ForgetPassword> ForgetPasswordAsync(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
-                return new EmailConfirmation
+                return new ForgetPassword
                 {
-                    IsConfirm = false,
+                    IsEmailSent = false,
                     Message = "No user associated with email",
                 };
 
@@ -583,35 +583,35 @@ namespace BLL.Services
             ";
 
 
-            string url = $"{_mail.ServerLink}/api/Authentication/ResetPassword?email={email}&token={validToken}";
+            string url = $"{_mail.ServerLink}/ResetPassword?email={email}&token={validToken}";
             
             htmlContent = htmlContent.Replace("{FullName}", email).Replace("{url}", url);
             await _mailService.SendEmailAsync(email, _mail.FromMail, _mail.Password, "forget password email", htmlContent);
 
-            return new EmailConfirmation
+            return new ForgetPassword
             {
-                IsConfirm = true,
+                IsEmailSent = true,
                 Message = "Reset password URL has been sent to the email successfully!"
             };
 
         }
         //reset password 
-        public async Task<EmailConfirmation> ResetPasswordAsync(ResetPasswordDto model)
+        public async Task<ResetPassword> ResetPasswordAsync(ResetPasswordDto model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
-                return new EmailConfirmation
+                return new ResetPassword
                 {
-                    IsConfirm = false,
+                    IsPasswordReset = false,
                     Message = "No user associated with email",
                 };
             }
             if (model.NewPassWord != model.ConfirmPassword)
             {
-                return new EmailConfirmation
+                return new ResetPassword
                 {
-                    IsConfirm = false,
+                    IsPasswordReset = false,
                     Message = "Password doesn't match its confirmation",
                 };
             }
@@ -621,16 +621,16 @@ namespace BLL.Services
 
             if (resetResult.Succeeded)
             {
-                return new EmailConfirmation
+                return new ResetPassword
                 {
                     Message = "Password has been reset successfully!",
-                    IsConfirm = true,
+                    IsPasswordReset = true,
                 };
             }
-            return new EmailConfirmation
+            return new ResetPassword
             {
                 Message = "Something went wrong",
-                IsConfirm = false,
+                IsPasswordReset = false,
 
             };
         }
