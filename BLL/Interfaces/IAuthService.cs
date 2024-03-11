@@ -12,11 +12,12 @@ namespace BLL.Interfaces
     {
         Task<RegisterAuthDto> RegisterAsync(RegisterDto model);
         Task<AuthDto> GetTokenAsync(TokenRequestDto model);
-        Task<AuthDto> RefreshTokenAsync(string Token);
-        Task<bool> RevokeTokenAsync(string Token);
+        //Task<AuthDto> RefreshTokenAsync(string Token);
+        /*Task<bool> RevokeTokenAsync(string Token);*/
 
-        Task<AuthDto> AddPatients(RegisterDto model, string username, string Relationility, DateTime DiagnosisDate);
+        /*Task<AuthDto> AddPatients(RegisterDto model, string username, string Relationility, DateTime DiagnosisDate);*/
         Task<EmailConfirmation> ConfirmEmailAsync(string UserId, string Token);
+        Task<ChangePassword> ChangePasswordAsync(ChangePasswordDto changePasswordDto);
         Task<ResetPassword> ResetPasswordAsync(ResetPasswordDto model);
         Task<ForgetPassword> ForgetPasswordAsync(string email);
     }

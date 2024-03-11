@@ -2,6 +2,7 @@
 using Azure;
 using BLL.DTOs;
 using BLL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -30,7 +31,7 @@ namespace API.Controllers
                 return BadRequest(ModelState);
 
             var result = await _authService.RegisterAsync(model);
-            if (result.Message != "User Created Successfully")
+            if (result.Message != "User Created Successfully,and he need to confirm his email")
             {
                 return BadRequest(JsonSerializer.Serialize(result.Message));
             }
@@ -38,14 +39,26 @@ namespace API.Controllers
 
             return Ok(result);
         }
-        [HttpPost("AddPatients/{username}/{Relationility}/{dateTime}")]
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] TokenRequestDto tokenRequestDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var res = await _authService.GetTokenAsync(tokenRequestDto);
+            if (!res.IsAuthenticated)
+            {
+                return BadRequest(res.Message);
+            }
+            return Ok(res);
+        }
+        /*[HttpPost("AddPatients/{username}/{Relationility}/{dateTime}")]
         public async Task<IActionResult> AddPatients([FromBody] RegisterDto model,string username,string Relationility,DateTime dateTime)
         {
            var result = await _authService.AddPatients(model, username, Relationility, dateTime);
             if (result.Message=="Done")
                 return Ok(result);
             return BadRequest(result);
-        }
+        }*/
         [HttpGet("ConfirmEmail")]
         public async Task <IActionResult> ConfirmEmail(string userId, string token)
         {
@@ -97,6 +110,25 @@ namespace API.Controllers
                 return Ok(result); // 200
 
             return BadRequest(result); // 400
+        }
+        [Authorize]
+        [HttpPut("ChangePassword")]
+        public async Task<IActionResult> ChangePassword ([FromBody]ChangePasswordDto changePasswordDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var res = await _authService.ChangePasswordAsync(changePasswordDto);
+            if (!res.PasswordIsChanged && !res.ErrorAppear)
+            {
+                return BadRequest(res.Message);
+            }
+            else if (!res.PasswordIsChanged && res.ErrorAppear)
+            {
+                return StatusCode(500, res.Message);
+            }
+            return Ok(res);
         }
 
     }

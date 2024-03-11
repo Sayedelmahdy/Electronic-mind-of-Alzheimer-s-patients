@@ -25,7 +25,7 @@ namespace DAL.Model
 
 
         #region Navigations
-        public virtual ICollection<RefreshToken>? RefreshTokens { get; set; }
+        //public virtual ICollection<RefreshToken>? RefreshTokens { get; set; }
         #endregion
     }
 }

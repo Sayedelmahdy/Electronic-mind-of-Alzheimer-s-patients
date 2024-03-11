@@ -245,7 +245,7 @@ namespace BLL.Services
 
             return new RegisterAuthDto
             {
-                Message = $"User Created Successfully",               
+                Message = $"User Created Successfully,and he need to confirm his email",               
                 NeedToConfirm = true ,
                 
             };
@@ -275,6 +275,8 @@ namespace BLL.Services
             if (user.EmailConfirmed == false)
             {
                 AuthDto.Message = "This User Need To Confirm Before Login ";
+                return AuthDto;
+
             }
 
             var jwtSecurityToken = await CreateJwtToken(user);
@@ -282,10 +284,10 @@ namespace BLL.Services
             
             AuthDto.IsAuthenticated = true;
             AuthDto.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
-            var NewRefreshToken = GenerateRefreshToken();
+            /*var NewRefreshToken = GenerateRefreshToken();
             AuthDto.RefreshToken = NewRefreshToken.Token;
             AuthDto.RefreshTokenExpiration = NewRefreshToken.ExpiresOn;
-            user.RefreshTokens.Add(NewRefreshToken);
+            user.RefreshTokens.Add(NewRefreshToken);*/
             await _userManager.UpdateAsync(user);
 
             return AuthDto;
@@ -350,12 +352,12 @@ namespace BLL.Services
                 issuer: _jwt.Issuer,
                 audience: _jwt.Audience,
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(_jwt.DurationInMinutes),
+                expires: DateTime.Now.AddDays(_jwt.DurationInDays),
                 signingCredentials: signingCredentials);
 
             return jwtSecurityToken;
         }
-        private RefreshToken GenerateRefreshToken()
+       /* private RefreshToken GenerateRefreshToken()
         {
             var Random = new byte[32];
             using var generator = new RNGCryptoServiceProvider();
@@ -366,8 +368,8 @@ namespace BLL.Services
                 ExpiresOn = DateTime.Now.AddDays(7),//numofdays
                 CreatedOn = DateTime.Now
             };
-        }
-        public async Task<AuthDto> RefreshTokenAsync(string Token)
+        }*/
+      /*  public async Task<AuthDto> RefreshTokenAsync(string Token)
         {
 
             var AuthDto = new AuthDto();
@@ -406,10 +408,10 @@ namespace BLL.Services
             user.RefreshTokens.Add(NewRefreshToken);
             await _userManager.UpdateAsync(user);
             return AuthDto;
-        }
+        }*/
        
         //test
-        public async Task<AuthDto> AddPatients( RegisterDto model, string username, string Relationility,DateTime DiagnosisDate)
+       /* public async Task<AuthDto> AddPatients( RegisterDto model, string username, string Relationility,DateTime DiagnosisDate)
         {
             Patient patient = new Patient
             {
@@ -443,12 +445,12 @@ namespace BLL.Services
 
             };
             _familyPatient.Add(familyPatient);
-            return new AuthDto { IsAuthenticated = true ,Message="Done",Token=null,RefreshToken=null};
+            return new AuthDto { IsAuthenticated = true ,Message="Done",Token=null};
 
 
-        }
+        }*/
         //Logout
-        public async Task<bool> RevokeTokenAsync(string Token)
+       /* public async Task<bool> RevokeTokenAsync(string Token)
         {
             var user = await _userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == Token));
             if (user == null) return false;
@@ -461,7 +463,7 @@ namespace BLL.Services
             await _userManager.UpdateAsync(user);
             return true;
         }
-
+*/
         //forget password
         public async Task<ForgetPassword> ForgetPasswordAsync(string email)
         {
@@ -632,6 +634,45 @@ namespace BLL.Services
                 Message = "Something went wrong",
                 IsPasswordReset = false,
 
+            };
+        }
+        public async Task <ChangePassword> ChangePasswordAsync (ChangePasswordDto model)
+        {
+            var user = await _userManager.FindByEmailAsync (model.Email);
+            if (user == null) {
+                return new ChangePassword
+                {
+                    Message = "Email Not Found",
+                    PasswordIsChanged = false,
+
+                };
+
+            }
+            if (model.NewPassword!=model.ConfirmNewPassword)
+            {
+                return new ChangePassword
+                {
+                    Message = "Password doesn't match its confirmation",
+                    PasswordIsChanged = false,
+
+                };
+            }
+            var result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+            if (result.Succeeded) {
+
+                return new ChangePassword
+                {
+                    Message = "Password changed successfully",
+                    PasswordIsChanged = true,
+                };
+
+             
+            }
+            return new ChangePassword
+            {
+                Message = string.Join(" | ", result.Errors.Select(e => e.Description)),
+                PasswordIsChanged = false,
+                ErrorAppear = true,
             };
         }
     }
