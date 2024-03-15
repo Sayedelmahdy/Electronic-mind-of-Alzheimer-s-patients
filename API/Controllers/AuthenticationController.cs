@@ -31,7 +31,7 @@ namespace API.Controllers
                 return BadRequest(ModelState);
 
             var result = await _authService.RegisterAsync(model);
-            if (result.Message != "User Created Successfully,and he need to confirm his email")
+            if (result.Message != "User Created Successfully,Confirmation Mail was send to his Email please confirm your email")
             {
                 return BadRequest(JsonSerializer.Serialize(result.Message));
             }
