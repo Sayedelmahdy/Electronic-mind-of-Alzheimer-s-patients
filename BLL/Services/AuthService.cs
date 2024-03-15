@@ -54,7 +54,7 @@ namespace BLL.Services
 
             IdentityResult? result = null;
        
-            if (model.Role.Count() > 0)
+            if (model.Role != string.Empty)
             {
 
                         string htmlContent = @"<!DOCTYPE html>
@@ -162,7 +162,7 @@ namespace BLL.Services
 
 
         ";
-                    if (model.Role.FirstOrDefault().ToLower() == "family")
+                    if (model.Role.ToLower() == "family")
                     {
                         Family family = new Family
                         {
@@ -195,11 +195,11 @@ namespace BLL.Services
 
                    
                 }
-                else if (model.Role.FirstOrDefault().ToLower() == "patient")
+                else if (model.Role.ToLower() == "patient")
                 {
                         
                 }
-                    else if (model.Role.FirstOrDefault().ToLower() == "caregiver")
+                    else if (model.Role.ToLower() == "caregiver")
                     {
                         Caregiver caregiver = new Caregiver
                         {
@@ -245,7 +245,7 @@ namespace BLL.Services
 
             return new RegisterAuthDto
             {
-                Message = $"User Created Successfully,and he need to confirm his email",               
+                Message = $"User Created Successfully,Confirmation Mail was send to his Email please confirm your email",               
                 NeedToConfirm = true ,
                 
             };
