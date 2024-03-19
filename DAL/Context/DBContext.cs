@@ -60,7 +60,7 @@ namespace DAL.Context
                 .HasOne(fp => fp.Patient)
                 .WithMany(p => p.FamilyPatients)
                 .HasForeignKey(fp => fp.PatientId);
-            List<IdentityRole> roles = new List<IdentityRole>
+            /*List<IdentityRole> roles = new List<IdentityRole>
             {
                 new IdentityRole
                 {
@@ -81,7 +81,7 @@ namespace DAL.Context
                     ConcurrencyStamp=Guid.NewGuid().ToString()
                  },
             };
-            builder.Entity<IdentityRole>().HasData(roles);
+            builder.Entity<IdentityRole>().HasData(roles);*/
 
         }
     }

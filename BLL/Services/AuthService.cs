@@ -170,7 +170,7 @@ namespace BLL.Services
                             Email=model.Email,
                             PhoneNumber=model.PhoneNumber,
                             FullName=model.FullName,
-                            BirthDate=model.BirthDate,
+                            Age= model.Age,
                         };
                    
                              result = await _userManager.CreateAsync(family, model.Password);
@@ -207,7 +207,7 @@ namespace BLL.Services
                             Email = model.Email,
                             PhoneNumber = model.PhoneNumber,
                             FullName = model.FullName,
-                            BirthDate = model.BirthDate,
+                            Age = model.Age,
 
                         };
                         result = await _userManager.CreateAsync(caregiver, model.Password);

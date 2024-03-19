@@ -89,7 +89,7 @@ namespace API.Controllers
                 Token = model.Token
             };
 
-
+            
             var result = await _authService.ResetPasswordAsync(re);
             if (result.IsPasswordReset)
             {

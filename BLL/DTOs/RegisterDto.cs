@@ -24,7 +24,8 @@ namespace BLL.DTOs
         public string Role { get; set; }
         [Required]
         public string PhoneNumber { get; set; }
-        public DateTime BirthDate { get; set; }
+        [Required]
+        public int Age { get; set; }
         
     }
 }
