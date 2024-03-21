@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -15,7 +16,17 @@ namespace DAL.Model
         public DateTime Date { get; set; }
         public string Location { get; set; }
         public string Notes { get; set; }
-        [JsonIgnore]
-        public ICollection<User_Appointment> user_Appointments { get; set; }
+       
+      
+
+        #region Navigation Prop
+        [ForeignKey(nameof(Family))]
+        public string FamilyId { get; set; } // الى هيعملها 
+        public Family family { get; set; }
+        [ForeignKey(nameof(Patient))]
+        public string PatientId { get; set; } // اتعملت لمين 
+        public Patient patient { get; set; }    
+
+        #endregion
     }
 }

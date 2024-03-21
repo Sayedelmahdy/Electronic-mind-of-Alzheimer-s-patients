@@ -15,11 +15,18 @@ namespace DAL.Model
         public string Image_Path { get; set; }
         public DateTime Upload_Date { get; set; }
         public string Caption { get; set; }
-        public Patient patient { get; set; }
+        #region Navigation Prop
+
         [ForeignKey(nameof(Patient))]
         public string PatientId { get; set; }
-        public Family family { get; set; }
         [ForeignKey(nameof(Family))]
         public string FamilyId { get; set; }
+
+
+        public Patient patient { get; set; }
+        
+        public Family family { get; set; }
+       
+        #endregion
     }
 }

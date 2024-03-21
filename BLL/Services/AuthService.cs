@@ -26,21 +26,21 @@ namespace BLL.Services
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IMailService _mailService;
-        private readonly IBaseRepository<FamilyPatient> _familyPatient;
+      
        
         private readonly JWT _jwt;
         private readonly Mail _mail;
         public AuthService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IOptions<JWT> jwt,
             IOptions<Mail> Mail
             ,IMailService mailService
-            ,IBaseRepository<FamilyPatient> familyPatient
+           
             )
         {
             _userManager = userManager;
             _roleManager = roleManager;
            _mailService = mailService;
             _mail = Mail.Value;
-            _familyPatient = familyPatient;
+            
             _jwt = jwt.Value;
 
         }

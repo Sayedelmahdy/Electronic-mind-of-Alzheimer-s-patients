@@ -16,8 +16,10 @@ namespace DAL.Model
         public string FileName { get; set; }
         public string File_Description { get; set; }
         public string DocumentPath { get; set; }
+        #region Navigation Prop
         public Patient patient { get; set; }
         [ForeignKey(nameof(Patient))]
         public string PatientId { get; set; }
+        #endregion
     }
 }

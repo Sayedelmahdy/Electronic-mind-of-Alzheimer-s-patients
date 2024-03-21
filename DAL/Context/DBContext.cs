@@ -26,7 +26,7 @@ namespace DAL.Context
         public virtual DbSet<Family> Families { get; set; }
         public virtual DbSet<Caregiver> Caregivers { get; set; }
         public virtual DbSet<Appointment> Appointments { get; set; }
-        public virtual DbSet<User_Appointment> User_Appointments { get; set; }
+        
         public virtual DbSet<Location> Locations { get; set; }
         public virtual DbSet<Mark_Medicine_Reminder> Mark_Medicine_Reminders { get; set; }
         public virtual DbSet<Medication_Reminders> Medication_Reminders { get; set; }
@@ -44,11 +44,11 @@ namespace DAL.Context
         {
             base.OnModelCreating(builder);
             builder.Entity<Patient>(entity => { entity.ToTable("Patients"); });
-            builder.Entity<Family>(entity => { entity.ToTable("Familys"); });
+            builder.Entity<Family>(entity => { entity.ToTable("Families"); });
             builder.Entity<Caregiver>(entity => { entity.ToTable("Caregivers"); });
 
 
-            builder.Entity<FamilyPatient>()
+           /* builder.Entity<FamilyPatient>()
             .HasKey(fp => new { fp.FamilyId, fp.PatientId });
 
             builder.Entity<FamilyPatient>()
@@ -59,7 +59,7 @@ namespace DAL.Context
             builder.Entity<FamilyPatient>()
                 .HasOne(fp => fp.Patient)
                 .WithMany(p => p.FamilyPatients)
-                .HasForeignKey(fp => fp.PatientId);
+                .HasForeignKey(fp => fp.PatientId);*/
             /*List<IdentityRole> roles = new List<IdentityRole>
             {
                 new IdentityRole

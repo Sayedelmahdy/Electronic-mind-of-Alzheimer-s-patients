@@ -14,8 +14,10 @@ namespace DAL.Model
         public string Title { get; set; }
         public string Content { get; set; }
         public DateTime Created_At { get; set; }
+        #region Navigation Prop
         public Patient patient { get; set; }
         [ForeignKey(nameof(Patient))]
         public string PatientId { get; set; }
+        #endregion
     }
 }

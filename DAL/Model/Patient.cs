@@ -7,11 +7,17 @@ using System.Threading.Tasks;
 
 namespace DAL.Model
 {
-    public class Patient:User
+    public class Patient : User
     {
-        public DateTime? DiagnosisDate {  get; set; }
+        public DateTime? DiagnosisDate { get; set; }
+
+
+
+        #region Navigation Prop
         [ForeignKey(nameof(Caregiver))]
         public string? CaregiverID { get; set; }
-        public virtual ICollection<FamilyPatient> FamilyPatients { get; set; }
+        public virtual ICollection<Family> Families { get; set; }
+        public virtual Caregiver Caregiver { get; set; }
+        #endregion
     }
 }
