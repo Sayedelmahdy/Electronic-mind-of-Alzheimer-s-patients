@@ -15,15 +15,9 @@ namespace DAL.Model
         public int File_Id { get; set; }
         public string FileName { get; set; }
         public string File_Description { get; set; }
-        public FileType? FileType { get; set; }
         public string DocumentPath { get; set; }
+        public Patient patient { get; set; }
         [ForeignKey(nameof(Patient))]
         public string PatientId { get; set; }
-    }
-    public enum FileType
-    {
-        PDF,
-        Image,
-        Word
     }
 }
