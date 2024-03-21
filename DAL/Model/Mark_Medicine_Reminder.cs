@@ -12,6 +12,7 @@ namespace DAL.Model
     {
         [Key]
         public int MarkId { get; set; }
+        public Medication_Reminders medication_Reminder { get; set; }
         [ForeignKey(nameof(Medication_Reminders))]
         public int ReminderId { get; set; }
         public bool IsTaken { get; set; }

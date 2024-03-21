@@ -15,6 +15,7 @@ namespace DAL.Model
         public double Longitude { get; set; }
         public double Latitude { get; set; }
         public DateTime Timestamp { get; set; }
+        public User user { get; set; }
         [ForeignKey(nameof(User))]
         public string UserId { get; set; }
     }

@@ -15,9 +15,11 @@ namespace DAL.Model
         public string Image_Path { get; set; }
         public DateTime Upload_Date { get; set; }
         public string Caption { get; set; }
-        [ForeignKey(nameof(FamilyPatient))]
+        public Patient patient { get; set; }
+        [ForeignKey(nameof(Patient))]
         public string PatientId { get; set; }
-        [ForeignKey(nameof(FamilyPatient))]
+        public Family family { get; set; }
+        [ForeignKey(nameof(Family))]
         public string FamilyId { get; set; }
     }
 }

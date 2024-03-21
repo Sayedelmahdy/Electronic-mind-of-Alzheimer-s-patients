@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace DAL.Model
 {
@@ -17,10 +18,14 @@ namespace DAL.Model
         public DateTime StartDate { get; set; }
         public RepeatType Repeater { get; set; }
         public string Time_Period { get; set; }
+        public Caregiver caregiver { get; set; }
         [ForeignKey(nameof(Caregiver))]
         public string Caregiver_Id { get; set; }
+        public Patient patient { get; set; }
         [ForeignKey(nameof(Patient))]
         public string Patient_Id { get; set; }
+        [JsonIgnore]
+        public ICollection<Mark_Medicine_Reminder> Mark_Medicines { get; set; }
     }
     public enum RepeatType
     {
