@@ -24,11 +24,8 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Model.Appointment", b =>
                 {
-                    b.Property<int>("AppointmentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AppointmentId"));
+                    b.Property<string>("AppointmentId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
@@ -60,11 +57,8 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Model.Location", b =>
                 {
-                    b.Property<int>("LocationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LocationId"));
+                    b.Property<string>("LocationId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<double>("Latitude")
                         .HasColumnType("float");
@@ -88,11 +82,8 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Model.Mark_Medicine_Reminder", b =>
                 {
-                    b.Property<int>("MarkId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MarkId"));
+                    b.Property<string>("MarkId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("IsTaken")
                         .HasColumnType("bit");
@@ -103,8 +94,9 @@ namespace DAL.Migrations
                     b.Property<int>("ReminderId")
                         .HasColumnType("int");
 
-                    b.Property<int>("medication_ReminderReminder_ID")
-                        .HasColumnType("int");
+                    b.Property<string>("medication_ReminderReminder_ID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("MarkId");
 
@@ -115,11 +107,8 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Model.Medication_Reminders", b =>
                 {
-                    b.Property<int>("Reminder_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Reminder_ID"));
+                    b.Property<string>("Reminder_ID")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Caregiver_Id")
                         .IsRequired()
@@ -164,11 +153,8 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Model.Note", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -194,11 +180,8 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Model.Picture", b =>
                 {
-                    b.Property<int>("Picture_Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Picture_Id"));
+                    b.Property<string>("Picture_Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Caption")
                         .IsRequired()
@@ -230,11 +213,8 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Model.SecretAndImportantFile", b =>
                 {
-                    b.Property<int>("File_Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("File_Id"));
+                    b.Property<string>("File_Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("DocumentPath")
                         .IsRequired()
@@ -499,6 +479,12 @@ namespace DAL.Migrations
                     b.Property<DateTime?>("DiagnosisDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("FamilyCreatedId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MaximumDistance")
+                        .HasColumnType("int");
+
                     b.HasIndex("CaregiverID");
 
                     b.ToTable("Patients", (string)null);
@@ -669,16 +655,16 @@ namespace DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DAL.Model.Patient", "Patient")
-                        .WithMany("Families")
+                    b.HasOne("DAL.Model.Patient", "patient")
+                        .WithMany("families")
                         .HasForeignKey("PatientId");
 
-                    b.Navigation("Patient");
+                    b.Navigation("patient");
                 });
 
             modelBuilder.Entity("DAL.Model.Patient", b =>
                 {
-                    b.HasOne("DAL.Model.Caregiver", "Caregiver")
+                    b.HasOne("DAL.Model.Caregiver", "caregiver")
                         .WithMany("Patients")
                         .HasForeignKey("CaregiverID");
 
@@ -688,7 +674,7 @@ namespace DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Caregiver");
+                    b.Navigation("caregiver");
                 });
 
             modelBuilder.Entity("DAL.Model.Medication_Reminders", b =>
@@ -708,7 +694,7 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Model.Patient", b =>
                 {
-                    b.Navigation("Families");
+                    b.Navigation("families");
                 });
 #pragma warning restore 612, 618
         }

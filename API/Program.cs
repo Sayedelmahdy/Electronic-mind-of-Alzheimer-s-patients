@@ -89,6 +89,7 @@ builder.Services.Configure<EmailConfirmationTokenProviderOptions>(option =>
 builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IMailService, MailService>();
+builder.Services.AddSingleton<IDecodeJwt, DecodeJwt>();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -131,18 +132,11 @@ var app = builder.Build();
 }*/
 app.UseSwagger();
 app.UseSwaggerUI();
-
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthorization();
 app.UseAuthorization();
-
 app.MapRazorPages();
 app.MapControllers();
-
-
 app.Run();

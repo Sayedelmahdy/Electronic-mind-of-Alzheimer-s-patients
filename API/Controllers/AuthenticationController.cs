@@ -1,6 +1,6 @@
 ﻿using API.Models;
 using Azure;
-using BLL.DTOs;
+using BLL.DTOs.AuthenticationDto;
 using BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

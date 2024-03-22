@@ -1,7 +1,6 @@
-﻿using BLL.DTOs;
+﻿using BLL.DTOs.AuthenticationDto;
 using BLL.Helper;
 using BLL.Interfaces;
-using DAL.Dto;
 using DAL.Interfaces;
 using DAL.Model;
 using Microsoft.AspNetCore.Identity;
@@ -49,9 +48,7 @@ namespace BLL.Services
             if (await _userManager.FindByEmailAsync(model.Email) is not null)
                 return new RegisterAuthDto { Message = "Email is already registered!" };
 
-            if (await _userManager.FindByNameAsync(model.Username) is not null)
-                return new RegisterAuthDto { Message = "Username is already registered!" };
-
+           
             IdentityResult? result = null;
        
             if (model.Role != string.Empty)
@@ -166,7 +163,7 @@ namespace BLL.Services
                     {
                         Family family = new Family
                         {
-                            UserName=model.Username,
+                           
                             Email=model.Email,
                             PhoneNumber=model.PhoneNumber,
                             FullName=model.FullName,
@@ -194,16 +191,13 @@ namespace BLL.Services
                             await _mailService.SendEmailAsync(family.Email, _mail.FromMail, _mail.Password,"Confirm your email", htmlContent);
 
                    
-                }
-                else if (model.Role.ToLower() == "patient")
-                {
-                        
-                }
+                    }
+
                     else if (model.Role.ToLower() == "caregiver")
                     {
                         Caregiver caregiver = new Caregiver
                         {
-                            UserName = model.Username,
+                          
                             Email = model.Email,
                             PhoneNumber = model.PhoneNumber,
                             FullName = model.FullName,
@@ -335,7 +329,6 @@ namespace BLL.Services
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim("FullName",user.FullName),

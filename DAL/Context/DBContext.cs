@@ -55,12 +55,12 @@ namespace DAL.Context
                 .HasOne(fp => fp.Family)
                 .WithMany(f => f.FamilyPatients)
                 .HasForeignKey(fp => fp.FamilyId);
-         
+
             builder.Entity<FamilyPatient>()
                 .HasOne(fp => fp.Patient)
                 .WithMany(p => p.FamilyPatients)
                 .HasForeignKey(fp => fp.PatientId);*/
-            /*List<IdentityRole> roles = new List<IdentityRole>
+           /* List<IdentityRole> roles = new List<IdentityRole>
             {
                 new IdentityRole
                 {

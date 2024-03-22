@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.DTOs
+namespace BLL.DTOs.AuthenticationDto
 {
-    public class ResetPassword
+    public class ForgetPassword
     {
         public string Message { set; get; }
-        public bool IsPasswordReset { set; get; }
+        public bool IsEmailSent { set; get; }
     }
 }

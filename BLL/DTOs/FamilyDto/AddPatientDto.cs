@@ -1,19 +1,16 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.DTOs
+namespace BLL.DTOs.FamilyDto
 {
-    public class RegisterDto
+    public class AddPatientDto
     {
         [Required, StringLength(100)]
         public string FullName { get; set; }
-        [Required, StringLength(50)]
-        public string Username { get; set; }
 
         [Required, StringLength(128)]
         public string Email { get; set; }
@@ -21,11 +18,14 @@ namespace BLL.DTOs
         [Required, StringLength(256)]
         public string Password { get; set; }
         [Required]
-        public string Role { get; set; }
-        [Required]
         public string PhoneNumber { get; set; }
         [Required]
         public int Age { get; set; }
-        
+        [Required]
+       public string relationality { get; set; }
+        [Required]
+        public DateOnly DiagnosisDate { get; set; }
+        [Required]
+        public int MaximumDistance { get; set; }
     }
 }

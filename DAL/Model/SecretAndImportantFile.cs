@@ -12,7 +12,7 @@ namespace DAL.Model
     public class SecretAndImportantFile
     {
         [Key]
-        public int File_Id { get; set; }
+        public string File_Id { get; set; }
         public string FileName { get; set; }
         public string File_Description { get; set; }
         public string DocumentPath { get; set; }

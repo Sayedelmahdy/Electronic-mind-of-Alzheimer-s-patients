@@ -5,17 +5,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.DTOs
+namespace BLL.DTOs.AuthenticationDto
 {
     public class EditUserDto
     {
- 
-        
 
-        [ StringLength(128)]
+
+
+        [StringLength(128)]
         public string? Email { get; set; }
 
-        [ StringLength(256)]
+        [StringLength(256)]
         public string? Password { get; set; }
 
         public IEnumerable<string> Role { get; set; }

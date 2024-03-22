@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(DBContext))]
-    [Migration("20240226030220_sec")]
+    [Migration("20240322212756_sec")]
     partial class sec
     {
         /// <inheritdoc />
@@ -25,6 +25,223 @@ namespace DAL.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("DAL.Model.Appointment", b =>
+                {
+                    b.Property<string>("AppointmentId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FamilyId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PatientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("AppointmentId");
+
+                    b.HasIndex("FamilyId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Appointments");
+                });
+
+            modelBuilder.Entity("DAL.Model.Location", b =>
+                {
+                    b.Property<string>("LocationId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("LocationId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Locations");
+                });
+
+            modelBuilder.Entity("DAL.Model.Mark_Medicine_Reminder", b =>
+                {
+                    b.Property<string>("MarkId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsTaken")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("MarkTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ReminderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("medication_ReminderReminder_ID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("MarkId");
+
+                    b.HasIndex("medication_ReminderReminder_ID");
+
+                    b.ToTable("Mark_Medicine_Reminders");
+                });
+
+            modelBuilder.Entity("DAL.Model.Medication_Reminders", b =>
+                {
+                    b.Property<string>("Reminder_ID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Caregiver_Id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Dosage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Medication_Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Patient_Id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Repeater")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Time_Period")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("caregiverId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("patientId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Reminder_ID");
+
+                    b.HasIndex("caregiverId");
+
+                    b.HasIndex("patientId");
+
+                    b.ToTable("Medication_Reminders");
+                });
+
+            modelBuilder.Entity("DAL.Model.Note", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Created_At")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PatientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Notes");
+                });
+
+            modelBuilder.Entity("DAL.Model.Picture", b =>
+                {
+                    b.Property<string>("Picture_Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Caption")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FamilyId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Image_Path")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PatientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Upload_Date")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Picture_Id");
+
+                    b.HasIndex("FamilyId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Pictures");
+                });
+
+            modelBuilder.Entity("DAL.Model.SecretAndImportantFile", b =>
+                {
+                    b.Property<string>("File_Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("DocumentPath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("File_Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PatientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("File_Id");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("SecretAndImportantFiles");
+                });
+
             modelBuilder.Entity("DAL.Model.User", b =>
                 {
                     b.Property<string>("Id")
@@ -33,8 +250,8 @@ namespace DAL.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("BirthDate")
-                        .HasColumnType("datetime2");
+                    b.Property<int>("Age")
+                        .HasColumnType("int");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -100,21 +317,6 @@ namespace DAL.Migrations
                     b.UseTptMappingStrategy();
                 });
 
-            modelBuilder.Entity("FamilyPatient", b =>
-                {
-                    b.Property<string>("FamilysId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("PatientsId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("FamilysId", "PatientsId");
-
-                    b.HasIndex("PatientsId");
-
-                    b.ToTable("FamilyPatient");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -140,29 +342,6 @@ namespace DAL.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "9b83b4ce-433a-4640-af71-200c89640ee6",
-                            ConcurrencyStamp = "daab67c5-93d2-41ac-82aa-8fbb2cba4b79",
-                            Name = "Family",
-                            NormalizedName = "FAMILY"
-                        },
-                        new
-                        {
-                            Id = "ddbf6245-02e9-477d-92f3-ef9769d57745",
-                            ConcurrencyStamp = "ce9ce161-1ca1-47a9-97e9-ee718910bb4f",
-                            Name = "Patient",
-                            NormalizedName = "PATIENT"
-                        },
-                        new
-                        {
-                            Id = "6b009d16-cbb6-4883-b335-6c657261046f",
-                            ConcurrencyStamp = "4ccab050-88f5-40a8-b4f0-594c31e07219",
-                            Name = "Caregiver",
-                            NormalizedName = "CAREGIVER"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -282,11 +461,15 @@ namespace DAL.Migrations
                 {
                     b.HasBaseType("DAL.Model.User");
 
+                    b.Property<string>("PatientId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Relationility")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.ToTable("Familys", (string)null);
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Families", (string)null);
                 });
 
             modelBuilder.Entity("DAL.Model.Patient", b =>
@@ -294,67 +477,117 @@ namespace DAL.Migrations
                     b.HasBaseType("DAL.Model.User");
 
                     b.Property<string>("CaregiverID")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<DateTime>("DiagnosisDate")
+                    b.Property<DateTime?>("DiagnosisDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("FamilyCreatedId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MaximumDistance")
+                        .HasColumnType("int");
 
                     b.HasIndex("CaregiverID");
 
                     b.ToTable("Patients", (string)null);
                 });
 
-            modelBuilder.Entity("DAL.Model.User", b =>
+            modelBuilder.Entity("DAL.Model.Appointment", b =>
                 {
-                    b.OwnsMany("DAL.Model.RefreshToken", "RefreshTokens", b1 =>
-                        {
-                            b1.Property<string>("UserId")
-                                .HasColumnType("nvarchar(450)");
-
-                            b1.Property<int>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("int");
-
-                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
-
-                            b1.Property<DateTime>("CreatedOn")
-                                .HasColumnType("datetime2");
-
-                            b1.Property<DateTime>("ExpiresOn")
-                                .HasColumnType("datetime2");
-
-                            b1.Property<DateTime?>("RevokedOn")
-                                .HasColumnType("datetime2");
-
-                            b1.Property<string>("Token")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("UserId", "Id");
-
-                            b1.ToTable("RefreshToken");
-
-                            b1.WithOwner()
-                                .HasForeignKey("UserId");
-                        });
-
-                    b.Navigation("RefreshTokens");
-                });
-
-            modelBuilder.Entity("FamilyPatient", b =>
-                {
-                    b.HasOne("DAL.Model.Family", null)
+                    b.HasOne("DAL.Model.Family", "family")
                         .WithMany()
-                        .HasForeignKey("FamilysId")
-                        .OnDelete(DeleteBehavior.ClientCascade)
-                        .IsRequired();
-
-                    b.HasOne("DAL.Model.Patient", null)
-                        .WithMany()
-                        .HasForeignKey("PatientsId")
+                        .HasForeignKey("FamilyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("DAL.Model.Patient", "patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("family");
+
+                    b.Navigation("patient");
+                });
+
+            modelBuilder.Entity("DAL.Model.Location", b =>
+                {
+                    b.HasOne("DAL.Model.User", "user")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("user");
+                });
+
+            modelBuilder.Entity("DAL.Model.Mark_Medicine_Reminder", b =>
+                {
+                    b.HasOne("DAL.Model.Medication_Reminders", "medication_Reminder")
+                        .WithMany("Mark_Medicines")
+                        .HasForeignKey("medication_ReminderReminder_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("medication_Reminder");
+                });
+
+            modelBuilder.Entity("DAL.Model.Medication_Reminders", b =>
+                {
+                    b.HasOne("DAL.Model.Caregiver", "caregiver")
+                        .WithMany()
+                        .HasForeignKey("caregiverId");
+
+                    b.HasOne("DAL.Model.Patient", "patient")
+                        .WithMany()
+                        .HasForeignKey("patientId");
+
+                    b.Navigation("caregiver");
+
+                    b.Navigation("patient");
+                });
+
+            modelBuilder.Entity("DAL.Model.Note", b =>
+                {
+                    b.HasOne("DAL.Model.Patient", "patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("patient");
+                });
+
+            modelBuilder.Entity("DAL.Model.Picture", b =>
+                {
+                    b.HasOne("DAL.Model.Family", "family")
+                        .WithMany("Pictures")
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DAL.Model.Patient", "patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("family");
+
+                    b.Navigation("patient");
+                });
+
+            modelBuilder.Entity("DAL.Model.SecretAndImportantFile", b =>
+                {
+                    b.HasOne("DAL.Model.Patient", "patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("patient");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -424,26 +657,47 @@ namespace DAL.Migrations
                         .HasForeignKey("DAL.Model.Family", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("DAL.Model.Patient", "patient")
+                        .WithMany("families")
+                        .HasForeignKey("PatientId");
+
+                    b.Navigation("patient");
                 });
 
             modelBuilder.Entity("DAL.Model.Patient", b =>
                 {
-                    b.HasOne("DAL.Model.Caregiver", null)
+                    b.HasOne("DAL.Model.Caregiver", "caregiver")
                         .WithMany("Patients")
-                        .HasForeignKey("CaregiverID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CaregiverID");
 
                     b.HasOne("DAL.Model.User", null)
                         .WithOne()
                         .HasForeignKey("DAL.Model.Patient", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("caregiver");
+                });
+
+            modelBuilder.Entity("DAL.Model.Medication_Reminders", b =>
+                {
+                    b.Navigation("Mark_Medicines");
                 });
 
             modelBuilder.Entity("DAL.Model.Caregiver", b =>
                 {
                     b.Navigation("Patients");
+                });
+
+            modelBuilder.Entity("DAL.Model.Family", b =>
+                {
+                    b.Navigation("Pictures");
+                });
+
+            modelBuilder.Entity("DAL.Model.Patient", b =>
+                {
+                    b.Navigation("families");
                 });
 #pragma warning restore 612, 618
         }

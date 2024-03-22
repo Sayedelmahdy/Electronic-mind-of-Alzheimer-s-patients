@@ -12,7 +12,7 @@ namespace DAL.Model
     public class Appointment
     {
         [Key]
-        public int AppointmentId { get; set; }
+        public string AppointmentId { get; set; } = Guid.NewGuid().ToString();
         public DateTime Date { get; set; }
         public string Location { get; set; }
         public string Notes { get; set; }
