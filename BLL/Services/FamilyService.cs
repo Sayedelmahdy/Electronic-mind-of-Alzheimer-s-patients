@@ -28,6 +28,7 @@ namespace BLL.Services
         private readonly IBaseRepository<Appointment> _Appointments;
         private readonly IDecodeJwt _jwtDecode;
         private readonly IWebHostEnvironment _env;
+        private readonly JWT _jwt;
         private readonly IMailService _mailService;
         private readonly IBaseRepository<Picture> _pictures;
         private readonly UserManager<User> _userManager;
@@ -41,6 +42,7 @@ namespace BLL.Services
             IDecodeJwt jwtDecode,  
             IWebHostEnvironment env,
               IOptions<Mail> Mail,
+              IOptions<JWT> JWT,
               IMailService mailService,
             UserManager<User> user
             )
@@ -52,6 +54,7 @@ namespace BLL.Services
             _Appointments=appointment;
             _jwtDecode = jwtDecode;
             _env = env;
+            _jwt = JWT.Value;
             _mailService = mailService;
             _userManager = user;
         }
@@ -266,13 +269,24 @@ namespace BLL.Services
                 Email = addPatientDto.Email,
                 Age = addPatientDto.Age,
                 FullName = addPatientDto.FullName,
+                UserName = addPatientDto.Email.Split('@')[0],
                 DiagnosisDate = addPatientDto.DiagnosisDate.ToDateTime(TimeOnly.MinValue),
                 PhoneNumber = addPatientDto.PhoneNumber,
                 FamilyCreatedId=FamilyId,
                 MaximumDistance = addPatientDto.MaximumDistance
             };
-           await _userManager.CreateAsync(patient, addPatientDto.Password);
-            await _userManager.AddToRoleAsync(patient, "Patient");
+            var Created = await _userManager.CreateAsync(patient, addPatientDto.Password);
+            if (Created == null || !Created.Succeeded)
+            {
+                var errors = string.Empty;
+                foreach (var error in Created.Errors)
+                    errors += $"{error.Description},";
+                return new GlobalResponse {
+                    
+                    HasError= true,
+                    message = errors };
+            }
+            await _userManager.AddToRoleAsync(patient, "patient");
             await _userManager.UpdateAsync(patient);
 
             var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(patient);
@@ -295,7 +309,7 @@ namespace BLL.Services
             }
             family.Relationility = addPatientDto.relationality;
             family.PatientId = patient.Id;
-           await _family.UpdateAsync(family);
+            await _family.UpdateAsync(family);
             return new GlobalResponse
             {
                 HasError = false,
@@ -315,6 +329,15 @@ namespace BLL.Services
                 };
             }
             Family? family = await _family.GetByIdAsync(FamilyId);
+            if (family.PatientId!=null)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "family alredy have assigned to patient"
+                };
+
+            }
             if (family==null)
             {
                 return new GlobalResponse
@@ -340,17 +363,93 @@ namespace BLL.Services
                 message = "Patient Assigned to this family succesfully"
             };
         }
-        public Task<IEnumerable<Appointment>> GetPatientAppointmentsAsync(string familyId, string patientId)
+        public async Task<IEnumerable<GetAppointmentDto>> GetPatientAppointmentsAsync(string token)
         {
-            throw new NotImplementedException();
+            string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
+            if (FamilyId == null)
+            {
+               return Enumerable.Empty<GetAppointmentDto>();
+            }
+            var family =await _family.GetByIdAsync(FamilyId);
+            if (family==null || family.PatientId==null ) {
+            
+            return Enumerable.Empty<GetAppointmentDto>();
+            }
+            var appointment = _Appointments.Where(p => p.PatientId == family.PatientId).ToList().Select(p => new GetAppointmentDto
+            {
+                AppointmentId=p.AppointmentId,
+                Date=p.Date,
+                Location=p.Location,
+                Notes=p.Notes,
+                FamilyNameWhoCreatedAppointemnt=_family.GetById(p.FamilyId).FullName,
+                CanDeleted = (p.FamilyId==FamilyId)?true:false
+            });
+            return appointment;
         }
-        public Task<GlobalResponse> AddAppointmentAsync(string familyId, string patientId, Appointment appointment)
+        public async Task<GlobalResponse> AddAppointmentAsync(string token , AddAppointmentDto addAppointmentDto)
         {
-            throw new NotImplementedException();
+            string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
+            if (FamilyId == null)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "Token Not Have ID"
+                };
+            }
+            var family = await _family.GetByIdAsync(FamilyId);
+            if (family.PatientId== null)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "This person doesn't have Patient yet"
+                };
+            }
+            Appointment appointment = new Appointment
+            {
+                Date = addAppointmentDto.Date,
+                Location = addAppointmentDto.Location,
+                Notes = addAppointmentDto.Notes,
+                FamilyId = family.Id,
+                PatientId = family.PatientId,
+            };
+            await _Appointments.AddAsync(appointment);
+            return new GlobalResponse
+            {
+                HasError = false,
+                message = "Appointment added successfully"
+            };
         }
-        public Task<GlobalResponse> DeleteAppointmentAsync(string familyId, string patientId, int appointmentId)
+        public async Task<GlobalResponse> DeleteAppointmentAsync(string token, string AppointmentId)
         {
-            throw new NotImplementedException();
+            string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
+            if (FamilyId == null)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "Token Not Have ID"
+                };
+            }
+            var Appointemnt = await _Appointments.GetByIdAsync(AppointmentId);
+            if (Appointemnt.FamilyId!=FamilyId)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "This user didn't Create this appointment so he cann't delete it"
+                };
+
+            }
+           
+            await _Appointments.DeleteAsync(Appointemnt);
+            return new GlobalResponse
+            {
+                HasError = false,
+                message = "Appointment Deleted Successfully"
+            };
+            
         }
         public async Task<IEnumerable<GetPictureDto>> GetPicturesForFamilyAsync(string token)
         {
@@ -365,7 +464,7 @@ namespace BLL.Services
             {
 
                 Caption = p.Caption,
-                Picture = System.IO.File.ReadAllBytes(p.Image_Path),
+                Picture = GetPictureUrl(p.Image_Path),
                 PictureId = p.Picture_Id,
                 Uploaded_date = p.Upload_Date,
             }).ToList();
@@ -398,22 +497,22 @@ namespace BLL.Services
             }
             string PictureId = Guid.NewGuid().ToString();
 
-            string FilePath = @$"{PateintId}\{FamilyId}_{PictureId}";
-                if (!Directory.Exists(_env.WebRootPath + PateintId))
-                {
-                    Directory.CreateDirectory(_env.WebRootPath + PateintId);
-
-                }
-                using (FileStream filestream = System.IO.File.Create(_env.WebRootPath + FilePath))
-                {
-                     addPictureDto.Picture.CopyTo(filestream);
-                    filestream.Flush();
-                }
-                Picture picture = new Picture
+            string filePath = Path.Combine(PateintId, $"{FamilyId}_{PictureId}.jpg");
+            string directoryPath = Path.Combine(_env.WebRootPath, PateintId);
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+            using (FileStream filestream = File.Create(Path.Combine(_env.WebRootPath, filePath)))
+            {
+                addPictureDto.Picture.CopyTo(filestream);
+                filestream.Flush();
+            }
+            Picture picture = new Picture
                 {
                     Picture_Id=PictureId,
                     Caption = addPictureDto.Caption,
-                    Image_Path = _env.WebRootPath + FilePath,
+                    Image_Path = Path.Combine(_env.WebRootPath, filePath),
                     Upload_Date = DateTime.UtcNow,
                     FamilyId = FamilyId,
                     PatientId = PateintId,
@@ -427,6 +526,16 @@ namespace BLL.Services
                 };
             }
 
-      
+
+        private string GetPictureUrl(string imagePath)
+        {
+            // Assuming imagePath contains the relative path to the picture within the web root
+            // Construct the URL based on your application's routing configuration
+            string baseUrl = _mail.ServerLink; // Replace with your actual base URL
+            string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
+
+            return $"{baseUrl}/{relativePath}";
+        }
     }
+
 }

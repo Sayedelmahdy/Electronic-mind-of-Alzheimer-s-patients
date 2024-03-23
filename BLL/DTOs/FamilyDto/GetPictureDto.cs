@@ -11,7 +11,7 @@ namespace BLL.DTOs.FamilyDto
         public string PictureId { get; set; }
         public DateTime Uploaded_date { get; set; }
         public string Caption { get; set; }
-        public byte[] Picture { get; set; }
+        public string Picture { get; set; }
     }
 
 

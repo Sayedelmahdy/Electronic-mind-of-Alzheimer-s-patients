@@ -214,9 +214,10 @@ namespace BLL.Services
                                 errors += $"{error.Description},";
 
                             return new RegisterAuthDto { Message = errors };
-                        }
-                        await _userManager.AddToRoleAsync(caregiver, "caregiver");
-                        var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(caregiver);
+                    }
+                    await _userManager.AddToRoleAsync(caregiver, "caregiver");
+                    await _userManager.UpdateAsync(caregiver);
+                    var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(caregiver);
                     
                         var encodedEmailToken = Encoding.UTF8.GetBytes(confirmEmailToken);
                         var validEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
