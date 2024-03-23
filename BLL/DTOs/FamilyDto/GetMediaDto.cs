@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 
 namespace BLL.DTOs.FamilyDto
 {
-    public class GetPictureDto
+    public class GetMediaDto
     {
-        public string PictureId { get; set; }
+        public string MediaId { get; set; }
         public DateTime Uploaded_date { get; set; }
         public string Caption { get; set; }
-        public string Picture { get; set; }
+        public string MediaUrl { get; set; }
+        public string MediaExtension { get; set; }    
+
     }
 
 

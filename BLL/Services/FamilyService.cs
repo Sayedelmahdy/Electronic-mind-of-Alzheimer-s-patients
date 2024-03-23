@@ -30,12 +30,12 @@ namespace BLL.Services
         private readonly IWebHostEnvironment _env;
         private readonly JWT _jwt;
         private readonly IMailService _mailService;
-        private readonly IBaseRepository<Picture> _pictures;
+        private readonly IBaseRepository<Media> _Media;
         private readonly UserManager<User> _userManager;
         private readonly Mail _mail;
 
         public FamilyService(
-            IBaseRepository<Picture> pictures,
+            IBaseRepository<Media> Media,
             IBaseRepository<Family>family,
             IBaseRepository<Patient>patient,     
             IBaseRepository<Appointment>appointment,
@@ -47,7 +47,7 @@ namespace BLL.Services
             UserManager<User> user
             )
         {
-            _pictures = pictures;
+            _Media = Media;
             _family = family;
             _patient = patient;
             _mail = Mail.Value;
@@ -451,22 +451,23 @@ namespace BLL.Services
             };
             
         }
-        public async Task<IEnumerable<GetPictureDto>> GetPicturesForFamilyAsync(string token)
+        public async Task<IEnumerable<GetMediaDto>> GetMediaForFamilyAsync(string token)
         {
 
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
             if (FamilyId == null)
             {
-               return Enumerable.Empty<GetPictureDto>();
+               return Enumerable.Empty<GetMediaDto>();
             }
-            var pictures = await _pictures.Include(p => p.patient).Where(p => p.FamilyId == FamilyId).ToListAsync();
-            var res = pictures.Select(p => new GetPictureDto
+            var Media = await _Media.Include(p => p.patient).Where(p => p.FamilyId == FamilyId).ToListAsync();
+            var res = Media.Select(p => new GetMediaDto
             {
 
                 Caption = p.Caption,
-                Picture = GetPictureUrl(p.Image_Path),
-                PictureId = p.Picture_Id,
+                MediaUrl = GetMediaUrl(p.Image_Path),
+                MediaId = p.Media_Id,
                 Uploaded_date = p.Upload_Date,
+                MediaExtension= p.Extension
             }).ToList();
             return res;
         }
@@ -474,7 +475,7 @@ namespace BLL.Services
      
       
 
-        public async Task<GlobalResponse> UploadPictureAsync(string token, AddPictureDto addPictureDto)
+        public async Task<GlobalResponse> UploadMediaAsync(string token, AddMediaDto addMediaDto)
         {
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
             if (FamilyId == null)
@@ -495,9 +496,9 @@ namespace BLL.Services
 
                 };
             }
-            string PictureId = Guid.NewGuid().ToString();
+            string MediaId = Guid.NewGuid().ToString();
 
-            string filePath = Path.Combine(PateintId, $"{FamilyId}_{PictureId}.jpg");
+            string filePath = Path.Combine(PateintId, $"{FamilyId}_{MediaId}{Path.GetExtension(addMediaDto.MediaFile.FileName)}");
             string directoryPath = Path.Combine(_env.WebRootPath, PateintId);
             if (!Directory.Exists(directoryPath))
             {
@@ -505,31 +506,32 @@ namespace BLL.Services
             }
             using (FileStream filestream = File.Create(Path.Combine(_env.WebRootPath, filePath)))
             {
-                addPictureDto.Picture.CopyTo(filestream);
+                addMediaDto.MediaFile.CopyTo(filestream);
                 filestream.Flush();
             }
-            Picture picture = new Picture
-                {
-                    Picture_Id=PictureId,
-                    Caption = addPictureDto.Caption,
-                    Image_Path = Path.Combine(_env.WebRootPath, filePath),
-                    Upload_Date = DateTime.UtcNow,
-                    FamilyId = FamilyId,
-                    PatientId = PateintId,
+            Media media = new Media
+            {
+                Media_Id = MediaId,
+                Caption = addMediaDto.Caption,
+                Image_Path = Path.Combine(_env.WebRootPath, filePath),
+                Upload_Date = DateTime.UtcNow,
+                Extension = Path.GetExtension(addMediaDto.MediaFile.FileName),
+                FamilyId = FamilyId,
+                PatientId = PateintId,
 
-                };
-              await  _pictures.AddAsync(picture);
+            };
+              await  _Media.AddAsync(media);
                 return new GlobalResponse
                 {
                     HasError = false,
-                    message = "Picture Added Succesfully"
+                    message = "Media Added Succesfully"
                 };
             }
 
 
-        private string GetPictureUrl(string imagePath)
+        private string GetMediaUrl(string imagePath)
         {
-            // Assuming imagePath contains the relative path to the picture within the web root
+            // Assuming imagePath contains the relative path to the Media within the web root
             // Construct the URL based on your application's routing configuration
             string baseUrl = _mail.ServerLink; // Replace with your actual base URL
             string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");

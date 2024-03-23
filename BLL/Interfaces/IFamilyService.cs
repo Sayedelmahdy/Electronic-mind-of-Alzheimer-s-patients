@@ -17,8 +17,8 @@ namespace BLL.Interfaces
         Task<GlobalResponse> AddPatientAsync(string token,AddPatientDto addPatientDto);
         Task<GetPatientProfile> GetPatientProfile(string token);
         Task<GetPatientProfile> UpdatePatientProfileAsync(string token , UpdatePatientProfileDto updatePatientProfileDto);
-        Task<IEnumerable<GetPictureDto>> GetPicturesForFamilyAsync(string token);
-        Task<GlobalResponse> UploadPictureAsync(string token, AddPictureDto addPictureDto) ;
+        Task<IEnumerable<GetMediaDto>> GetMediaForFamilyAsync(string token);
+        Task<GlobalResponse> UploadMediaAsync(string token, AddMediaDto addPictureDto) ;
         Task<GlobalResponse> AddAppointmentAsync(string token , AddAppointmentDto addAppointmentDto);
         Task<IEnumerable<GetAppointmentDto>> GetPatientAppointmentsAsync(string token);
         Task<GlobalResponse> DeleteAppointmentAsync(string token , string AppointmentId);

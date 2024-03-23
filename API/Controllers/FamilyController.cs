@@ -102,30 +102,30 @@ namespace API.Controllers
             }
             return Ok(res);
         }
-        [HttpGet("GetPicturesForFamily")]
-        public async Task<IActionResult> GetPicturesForFamily ()
+        [HttpGet("GetMediaForFamily")]
+        public async Task<IActionResult> GetMediaForFamily ()
         {
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
                 return BadRequest("Token invaild");
             }
-            var res = await _familyService.GetPicturesForFamilyAsync(token);
+            var res = await _familyService.GetMediaForFamilyAsync(token);
             if (res.Count()==0)
             {
-                return NotFound("No Pictures");
+                return NotFound("No Media");
             }
             return Ok(res);
         }
-        [HttpPost("UploadPicture")]
-        public async Task<IActionResult> UploadPicture([FromForm]AddPictureDto addPictureDto)
+        [HttpPost("UploadMedia")]
+        public async Task<IActionResult> UploadMedia([FromForm]AddMediaDto addMediaDto)
         {
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
                 return BadRequest("Token invaild");
             }
-            var res = await _familyService.UploadPictureAsync(token,addPictureDto);
+            var res = await _familyService.UploadMediaAsync(token,addMediaDto);
             if (res.HasError)
             {
                 return BadRequest(res.message);

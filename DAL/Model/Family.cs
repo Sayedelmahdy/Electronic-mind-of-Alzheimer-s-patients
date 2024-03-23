@@ -16,7 +16,7 @@ namespace DAL.Model
         [ForeignKey(nameof(Patient))]
         public string? PatientId { get; set; }
         public Patient patient { get; set; }
-        public ICollection<Picture> Pictures { get; set; }  
+        public ICollection<Media> Pictures { get; set; }  
         #endregion
     }
 }

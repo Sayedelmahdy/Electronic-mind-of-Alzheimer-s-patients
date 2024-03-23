@@ -4,6 +4,7 @@ using DAL.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(DBContext))]
-    partial class DBContextModelSnapshot : ModelSnapshot
+    [Migration("20240323224842_ChangePictureToMedia")]
+    partial class ChangePictureToMedia
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -136,7 +139,7 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Model.Media", b =>
                 {
-                    b.Property<string>("Media_Id")
+                    b.Property<string>("Picture_Id")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Caption")
@@ -162,7 +165,7 @@ namespace DAL.Migrations
                     b.Property<DateTime>("Upload_Date")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("Media_Id");
+                    b.HasKey("Picture_Id");
 
                     b.HasIndex("FamilyId");
 

@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 
 namespace DAL.Model
 {
-    public class Picture
+    public class Media
     {
         [Key]
-        public string Picture_Id { get; set; } = Guid.NewGuid().ToString();
+        public string Media_Id { get; set; } = Guid.NewGuid().ToString();
         public string Image_Path { get; set; }
         public DateTime Upload_Date { get; set; }
+         public  string Extension { get; set; }
         public string Caption { get; set; }
         #region Navigation Prop
 

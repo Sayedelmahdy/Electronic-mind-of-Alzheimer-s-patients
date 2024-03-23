@@ -31,7 +31,7 @@ namespace DAL.Context
         public virtual DbSet<Mark_Medicine_Reminder> Mark_Medicine_Reminders { get; set; }
         public virtual DbSet<Medication_Reminders> Medication_Reminders { get; set; }
         public virtual DbSet<Note> Notes { get; set; }
-        public virtual DbSet<Picture> Pictures { get; set; }
+        public virtual DbSet<Media> Medias { get; set; }
         public virtual DbSet<SecretAndImportantFile> SecretAndImportantFiles { get; set; }
         public virtual DbSet<GameScore> GameScores { get; set; }
         public virtual DbSet<Report> Reports { get; set; } // يااااااااااااارب
