@@ -20,10 +20,10 @@ namespace DAL.Model
         public string Time_Period { get; set; }
         public Caregiver caregiver { get; set; }
         [ForeignKey(nameof(Caregiver))]
-        public string Caregiver_Id { get; set; }
+        public string Caregiver_Id { get; set; }//اللي عملها 
         public Patient patient { get; set; }
         [ForeignKey(nameof(Patient))]
-        public string Patient_Id { get; set; }
+        public string Patient_Id { get; set; } // اللي معمولاله 
         [JsonIgnore]
         public ICollection<Mark_Medicine_Reminder> Mark_Medicines { get; set; }
     }

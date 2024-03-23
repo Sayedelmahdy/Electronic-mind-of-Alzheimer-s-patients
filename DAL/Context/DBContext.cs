@@ -33,6 +33,8 @@ namespace DAL.Context
         public virtual DbSet<Note> Notes { get; set; }
         public virtual DbSet<Picture> Pictures { get; set; }
         public virtual DbSet<SecretAndImportantFile> SecretAndImportantFiles { get; set; }
+        public virtual DbSet<GameScore> GameScores { get; set; }
+        public virtual DbSet<Report> Reports { get; set; } // يااااااااااااارب
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);

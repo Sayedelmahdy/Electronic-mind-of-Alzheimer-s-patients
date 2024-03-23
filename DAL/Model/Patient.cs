@@ -19,7 +19,8 @@ namespace DAL.Model
         public string? CaregiverID { get; set; }
         public virtual ICollection<Family> families { get; set; }
         public virtual Caregiver caregiver { get; set; }
-       
+        public virtual ICollection<Report> Reports { get; set; }
+        public virtual ICollection<GameScore> GameScores { get; set; }
         #endregion
     }
 }
