@@ -11,7 +11,7 @@ namespace DAL.Model
     public class Mark_Medicine_Reminder
     {
         [Key]
-        public int MarkId { get; set; }
+        public string MarkId { get; set; } = Guid.NewGuid().ToString();
         public Medication_Reminders medication_Reminder { get; set; }
         [ForeignKey(nameof(Medication_Reminders))]
         public int ReminderId { get; set; }

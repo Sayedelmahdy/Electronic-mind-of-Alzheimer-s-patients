@@ -10,14 +10,16 @@ namespace DAL.Model
     public class Patient : User
     {
         public DateTime? DiagnosisDate { get; set; }
-
+        public int MaximumDistance { get; set; }
+        public string? FamilyCreatedId { get; set; }
 
 
         #region Navigation Prop
         [ForeignKey(nameof(Caregiver))]
         public string? CaregiverID { get; set; }
-        public virtual ICollection<Family> Families { get; set; }
-        public virtual Caregiver Caregiver { get; set; }
+        public virtual ICollection<Family> families { get; set; }
+        public virtual Caregiver caregiver { get; set; }
+       
         #endregion
     }
 }

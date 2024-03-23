@@ -12,7 +12,7 @@ namespace BLL.Services
     public class MailService : IMailService
     {
 
-        public async Task SendEmailAsync(string toEmail,string FromEmail,string Password, string subject, string content)
+        public async  Task<bool> SendEmailAsync(string toEmail,string FromEmail,string Password, string subject, string content)
         {
             try
             {
@@ -28,10 +28,11 @@ namespace BLL.Services
                 mailMessage.Body = content;
                 mailMessage.IsBodyHtml = true;
                 await smtpClient.SendMailAsync(mailMessage);
+                return true;
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);    
+               return false;    
             }
             }
     }

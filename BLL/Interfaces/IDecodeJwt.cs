@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace BLL.Interfaces
 {
-    public interface IMailService
+    public interface IDecodeJwt
     {
-        Task<bool> SendEmailAsync(string toEmail, string FromEmail, string Password, string subject, string content);
+        public string? GetUserIdFromToken(string token);
     }
 }

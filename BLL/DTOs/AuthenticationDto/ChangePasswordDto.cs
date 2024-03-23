@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.DTOs
+namespace BLL.DTOs.AuthenticationDto
 {
     public class ChangePasswordDto
     {
@@ -17,6 +17,6 @@ namespace BLL.DTOs
         [Required]
         public string NewPassword { get; set; }
         [Required]
-        public string ConfirmNewPassword { get; set;}
+        public string ConfirmNewPassword { get; set; }
     }
 }

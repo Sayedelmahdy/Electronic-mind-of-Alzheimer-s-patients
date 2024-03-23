@@ -12,7 +12,7 @@ namespace DAL.Model
     public class Medication_Reminders
     {
         [Key]
-        public int Reminder_ID { get; set; }
+        public string Reminder_ID { get; set; } = Guid.NewGuid().ToString();
         public string Medication_Name { get; set; }
         public string Dosage { get; set; }
         public DateTime StartDate { get; set; }

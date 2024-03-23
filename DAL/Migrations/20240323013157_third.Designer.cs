@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(DBContext))]
-    [Migration("20240319191256_EditBirthDate")]
-    partial class EditBirthDate
+    [Migration("20240323013157_third")]
+    partial class third
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,14 +27,15 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Model.Appointment", b =>
                 {
-                    b.Property<int>("AppointmentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AppointmentId"));
+                    b.Property<string>("AppointmentId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("FamilyId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Location")
                         .IsRequired()
@@ -44,36 +45,23 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PatientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("AppointmentId");
+
+                    b.HasIndex("FamilyId");
+
+                    b.HasIndex("PatientId");
 
                     b.ToTable("Appointments");
                 });
 
-            modelBuilder.Entity("DAL.Model.FamilyPatient", b =>
-                {
-                    b.Property<string>("FamilyId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("PatientId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Relationility")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("FamilyId", "PatientId");
-
-                    b.HasIndex("PatientId");
-
-                    b.ToTable("FamilyPatient");
-                });
-
             modelBuilder.Entity("DAL.Model.Location", b =>
                 {
-                    b.Property<int>("LocationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LocationId"));
+                    b.Property<string>("LocationId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<double>("Latitude")
                         .HasColumnType("float");
@@ -86,20 +74,19 @@ namespace DAL.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("LocationId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Locations");
                 });
 
             modelBuilder.Entity("DAL.Model.Mark_Medicine_Reminder", b =>
                 {
-                    b.Property<int>("MarkId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MarkId"));
+                    b.Property<string>("MarkId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("IsTaken")
                         .HasColumnType("bit");
@@ -110,18 +97,21 @@ namespace DAL.Migrations
                     b.Property<int>("ReminderId")
                         .HasColumnType("int");
 
+                    b.Property<string>("medication_ReminderReminder_ID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("MarkId");
+
+                    b.HasIndex("medication_ReminderReminder_ID");
 
                     b.ToTable("Mark_Medicine_Reminders");
                 });
 
             modelBuilder.Entity("DAL.Model.Medication_Reminders", b =>
                 {
-                    b.Property<int>("Reminder_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Reminder_ID"));
+                    b.Property<string>("Reminder_ID")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Caregiver_Id")
                         .IsRequired()
@@ -149,18 +139,25 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("caregiverId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("patientId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Reminder_ID");
+
+                    b.HasIndex("caregiverId");
+
+                    b.HasIndex("patientId");
 
                     b.ToTable("Medication_Reminders");
                 });
 
             modelBuilder.Entity("DAL.Model.Note", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -171,7 +168,7 @@ namespace DAL.Migrations
 
                     b.Property<string>("PatientId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -179,16 +176,15 @@ namespace DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PatientId");
+
                     b.ToTable("Notes");
                 });
 
             modelBuilder.Entity("DAL.Model.Picture", b =>
                 {
-                    b.Property<int>("Picture_Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Picture_Id"));
+                    b.Property<string>("Picture_Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Caption")
                         .IsRequired()
@@ -196,7 +192,7 @@ namespace DAL.Migrations
 
                     b.Property<string>("FamilyId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Image_Path")
                         .IsRequired()
@@ -204,23 +200,24 @@ namespace DAL.Migrations
 
                     b.Property<string>("PatientId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("Upload_Date")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Picture_Id");
 
+                    b.HasIndex("FamilyId");
+
+                    b.HasIndex("PatientId");
+
                     b.ToTable("Pictures");
                 });
 
             modelBuilder.Entity("DAL.Model.SecretAndImportantFile", b =>
                 {
-                    b.Property<int>("File_Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("File_Id"));
+                    b.Property<string>("File_Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("DocumentPath")
                         .IsRequired()
@@ -230,18 +227,17 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("FileType")
-                        .HasColumnType("int");
-
                     b.Property<string>("File_Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PatientId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("File_Id");
+
+                    b.HasIndex("PatientId");
 
                     b.ToTable("SecretAndImportantFiles");
                 });
@@ -321,34 +317,6 @@ namespace DAL.Migrations
                     b.UseTptMappingStrategy();
                 });
 
-            modelBuilder.Entity("DAL.Model.User_Appointment", b =>
-                {
-                    b.Property<int>("UserAppointmentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserAppointmentId"));
-
-                    b.Property<int>("AppointmentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PatientId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("State")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("UserAppointmentId");
-
-                    b.ToTable("User_Appointments");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -374,6 +342,29 @@ namespace DAL.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "55719995-5761-41bb-b629-2450f83656e3",
+                            ConcurrencyStamp = "4a63a658-4452-4627-b6a0-bdb99a647b32",
+                            Name = "Family",
+                            NormalizedName = "FAMILY"
+                        },
+                        new
+                        {
+                            Id = "46344206-1d07-4279-9e28-4f809f77cb57",
+                            ConcurrencyStamp = "fa078624-a975-4058-9d3b-a3eff12f77da",
+                            Name = "Patient",
+                            NormalizedName = "PATIENT"
+                        },
+                        new
+                        {
+                            Id = "00904b09-8a38-4e46-81f4-3156f7ffdcb6",
+                            ConcurrencyStamp = "87a92256-04ce-4935-96ec-80a65588b0c6",
+                            Name = "Caregiver",
+                            NormalizedName = "CAREGIVER"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -493,7 +484,15 @@ namespace DAL.Migrations
                 {
                     b.HasBaseType("DAL.Model.User");
 
-                    b.ToTable("Familys", (string)null);
+                    b.Property<string>("PatientId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Relationility")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Families", (string)null);
                 });
 
             modelBuilder.Entity("DAL.Model.Patient", b =>
@@ -506,28 +505,112 @@ namespace DAL.Migrations
                     b.Property<DateTime?>("DiagnosisDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("FamilyCreatedId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MaximumDistance")
+                        .HasColumnType("int");
+
                     b.HasIndex("CaregiverID");
 
                     b.ToTable("Patients", (string)null);
                 });
 
-            modelBuilder.Entity("DAL.Model.FamilyPatient", b =>
+            modelBuilder.Entity("DAL.Model.Appointment", b =>
                 {
-                    b.HasOne("DAL.Model.Family", "Family")
-                        .WithMany("FamilyPatients")
+                    b.HasOne("DAL.Model.Family", "family")
+                        .WithMany()
                         .HasForeignKey("FamilyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DAL.Model.Patient", "Patient")
-                        .WithMany("FamilyPatients")
+                    b.HasOne("DAL.Model.Patient", "patient")
+                        .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Family");
+                    b.Navigation("family");
 
-                    b.Navigation("Patient");
+                    b.Navigation("patient");
+                });
+
+            modelBuilder.Entity("DAL.Model.Location", b =>
+                {
+                    b.HasOne("DAL.Model.User", "user")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("user");
+                });
+
+            modelBuilder.Entity("DAL.Model.Mark_Medicine_Reminder", b =>
+                {
+                    b.HasOne("DAL.Model.Medication_Reminders", "medication_Reminder")
+                        .WithMany("Mark_Medicines")
+                        .HasForeignKey("medication_ReminderReminder_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("medication_Reminder");
+                });
+
+            modelBuilder.Entity("DAL.Model.Medication_Reminders", b =>
+                {
+                    b.HasOne("DAL.Model.Caregiver", "caregiver")
+                        .WithMany()
+                        .HasForeignKey("caregiverId");
+
+                    b.HasOne("DAL.Model.Patient", "patient")
+                        .WithMany()
+                        .HasForeignKey("patientId");
+
+                    b.Navigation("caregiver");
+
+                    b.Navigation("patient");
+                });
+
+            modelBuilder.Entity("DAL.Model.Note", b =>
+                {
+                    b.HasOne("DAL.Model.Patient", "patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("patient");
+                });
+
+            modelBuilder.Entity("DAL.Model.Picture", b =>
+                {
+                    b.HasOne("DAL.Model.Family", "family")
+                        .WithMany("Pictures")
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DAL.Model.Patient", "patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("family");
+
+                    b.Navigation("patient");
+                });
+
+            modelBuilder.Entity("DAL.Model.SecretAndImportantFile", b =>
+                {
+                    b.HasOne("DAL.Model.Patient", "patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("patient");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -597,11 +680,17 @@ namespace DAL.Migrations
                         .HasForeignKey("DAL.Model.Family", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("DAL.Model.Patient", "patient")
+                        .WithMany("families")
+                        .HasForeignKey("PatientId");
+
+                    b.Navigation("patient");
                 });
 
             modelBuilder.Entity("DAL.Model.Patient", b =>
                 {
-                    b.HasOne("DAL.Model.Caregiver", null)
+                    b.HasOne("DAL.Model.Caregiver", "caregiver")
                         .WithMany("Patients")
                         .HasForeignKey("CaregiverID");
 
@@ -610,6 +699,13 @@ namespace DAL.Migrations
                         .HasForeignKey("DAL.Model.Patient", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("caregiver");
+                });
+
+            modelBuilder.Entity("DAL.Model.Medication_Reminders", b =>
+                {
+                    b.Navigation("Mark_Medicines");
                 });
 
             modelBuilder.Entity("DAL.Model.Caregiver", b =>
@@ -619,12 +715,12 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Model.Family", b =>
                 {
-                    b.Navigation("FamilyPatients");
+                    b.Navigation("Pictures");
                 });
 
             modelBuilder.Entity("DAL.Model.Patient", b =>
                 {
-                    b.Navigation("FamilyPatients");
+                    b.Navigation("families");
                 });
 #pragma warning restore 612, 618
         }

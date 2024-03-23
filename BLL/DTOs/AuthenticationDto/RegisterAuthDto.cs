@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.DTOs
+namespace BLL.DTOs.AuthenticationDto
 {
-    public class ChangePassword
+    public class RegisterAuthDto
     {
         public string Message { get; set; }
-        public bool PasswordIsChanged { get; set; }
-        public bool ErrorAppear { get; set; }
+        public bool NeedToConfirm { get; set; }
+
     }
 }

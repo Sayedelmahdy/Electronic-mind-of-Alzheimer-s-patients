@@ -11,7 +11,7 @@ namespace DAL.Model
     public class Location
     {
         [Key]
-        public int LocationId { get; set; }
+        public string LocationId { get; set; } = Guid.NewGuid().ToString();
         public double Longitude { get; set; }
         public double Latitude { get; set; }
         public DateTime Timestamp { get; set; }

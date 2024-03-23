@@ -18,7 +18,7 @@ namespace DAL.Model
         public int Age { get; set; }
         [Required]
         public string PhoneNumber {  get; set; }
-
+        public override string? UserName { get => base.UserName; set => base.UserName = value; }
         #endregion
 
 
@@ -26,6 +26,6 @@ namespace DAL.Model
 
         #region Navigations
         //public virtual ICollection<RefreshToken>? RefreshTokens { get; set; }
-            #endregion
+        #endregion
     }
 }

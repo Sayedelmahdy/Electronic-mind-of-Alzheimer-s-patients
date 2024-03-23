@@ -11,7 +11,7 @@ namespace DAL.Model
     public class Picture
     {
         [Key]
-        public int Picture_Id { get; set; }
+        public string Picture_Id { get; set; } = Guid.NewGuid().ToString();
         public string Image_Path { get; set; }
         public DateTime Upload_Date { get; set; }
         public string Caption { get; set; }

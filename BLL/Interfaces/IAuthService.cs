@@ -1,5 +1,4 @@
-﻿using BLL.DTOs;
-using DAL.Dto;
+﻿using BLL.DTOs.AuthenticationDto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
