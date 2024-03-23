@@ -223,8 +223,8 @@ namespace BLL.Services
                         var validEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
 
                         string url = $"{_mail.ServerLink}/api/Authentication/confirmemail?userid={caregiver.Id}&token={validEmailToken}";
-                    htmlContent = htmlContent.Replace("{FullName}", caregiver.FullName).Replace("{url}", url);
-                    await _mailService.SendEmailAsync(caregiver.Email, _mail.FromMail, _mail.Password, "Confirm your email", htmlContent);
+                      htmlContent = htmlContent.Replace("{FullName}", caregiver.FullName).Replace("{url}", url);
+                      await _mailService.SendEmailAsync(caregiver.Email, _mail.FromMail, _mail.Password, "Confirm your email", htmlContent);
             
                 }
                     else

@@ -49,20 +49,20 @@ namespace DAL.Context
             builder.Entity<Family>(entity => { entity.ToTable("Families"); });
             builder.Entity<Caregiver>(entity => { entity.ToTable("Caregivers"); });
 
+/*
+            builder.Entity<FamilyPatient>()
+            .HasKey(fp => new { fp.FamilyId, fp.PatientId });
 
-            /* builder.Entity<FamilyPatient>()
-             .HasKey(fp => new { fp.FamilyId, fp.PatientId });
+            builder.Entity<FamilyPatient>()
+                .HasOne(fp => fp.Family)
+                .WithMany(f => f.FamilyPatients)
+                .HasForeignKey(fp => fp.FamilyId);
 
-             builder.Entity<FamilyPatient>()
-                 .HasOne(fp => fp.Family)
-                 .WithMany(f => f.FamilyPatients)
-                 .HasForeignKey(fp => fp.FamilyId);
-
-             builder.Entity<FamilyPatient>()
-                 .HasOne(fp => fp.Patient)
-                 .WithMany(p => p.FamilyPatients)
-                 .HasForeignKey(fp => fp.PatientId);*/
-           /* List<IdentityRole> roles = new List<IdentityRole>
+            builder.Entity<FamilyPatient>()
+                .HasOne(fp => fp.Patient)
+                .WithMany(p => p.FamilyPatients)
+                .HasForeignKey(fp => fp.PatientId);*/
+            /*List<IdentityRole> roles = new List<IdentityRole>
             {
                 new IdentityRole
                 {
