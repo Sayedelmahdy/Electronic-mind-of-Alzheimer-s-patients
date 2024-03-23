@@ -161,13 +161,14 @@ namespace BLL.Services
         ";
                     if (model.Role.ToLower() == "family")
                     {
-                        Family family = new Family
-                        {
-                           
-                            Email=model.Email,
-                            PhoneNumber=model.PhoneNumber,
-                            FullName=model.FullName,
-                            Age= model.Age,
+                    Family family = new Family
+                    {
+
+                        Email = model.Email,
+                        PhoneNumber = model.PhoneNumber,
+                        FullName = model.FullName,
+                        Age = model.Age,
+                        UserName = model.Email.Split('@')[0],
                         };
                    
                              result = await _userManager.CreateAsync(family, model.Password);
@@ -178,7 +179,7 @@ namespace BLL.Services
                                     errors += $"{error.Description},";
                                 return new RegisterAuthDto { Message = errors };
                             }
-                            await _userManager.AddToRoleAsync(family, "Family");
+                            await _userManager.AddToRoleAsync(family, "family");
                             await _userManager.UpdateAsync(family);
                             
                             var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(family);
