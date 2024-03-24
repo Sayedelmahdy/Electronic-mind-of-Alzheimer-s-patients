@@ -32,6 +32,15 @@ namespace BLL.Services
             _jwtDecode = jwtDecode;
             _medication_Reminders = medication_Reminders;
         }
+        public async Task<string?> GetCaregiverCode(string token)
+        {
+            string CaregiverCode= _jwtDecode.GetUserIdFromToken(token);
+            if(CaregiverCode == null )
+            {
+                return null;
+            }
+            return CaregiverCode;
+        }
         public async Task<GlobalResponse> AddMedicationReminder(string token, string patientId, MedicationReminderDto mediceneDto)
         {
             string? caregiverId = _jwtDecode.GetUserIdFromToken(token);
