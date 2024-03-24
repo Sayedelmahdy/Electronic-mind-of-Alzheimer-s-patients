@@ -14,6 +14,7 @@ namespace BLL.Interfaces
     {
         Task<GlobalResponse> AssignPatientToFamily(string token , AssignPatientDto assignPatientDto);
         Task<string?> GetPatientCode(string token);
+        Task<GlobalResponse> AssignPatientToCaregiver (string token,string CaregiverCode);
         Task<GlobalResponse> AddPatientAsync(string token,AddPatientDto addPatientDto);
         Task<GetPatientProfile> GetPatientProfile(string token);
         Task<GetPatientProfile> UpdatePatientProfileAsync(string token , UpdatePatientProfileDto updatePatientProfileDto);

@@ -124,8 +124,7 @@ builder.Services.AddRateLimiter(option =>
         {
             PermitLimit = 5,
             Window = TimeSpan.FromSeconds(10),
-        }
-        ));
+        }));
 });
 builder.Services.Configure<IISServerOptions>(options =>
 {

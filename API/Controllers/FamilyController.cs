@@ -56,6 +56,21 @@ namespace API.Controllers
             }
             return Ok(res);
         }
+        [HttpPut("AssignPatientToCaregiver/{CaregiverCode}")]
+        public async Task<IActionResult> AssignPatientToCaregiver (string CaregiverCode)
+        {
+            string? token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Token invaild");
+            }
+            var res = await _familyService.AssignPatientToCaregiver(token, CaregiverCode);
+            if (res.HasError)
+            {
+                return BadRequest(res);
+            }
+            return Ok(res);
+        }
         [HttpPost("AddPatient")]
         public async Task<IActionResult> AddPatient ( AddPatientDto addPatientDto)
         {
@@ -171,5 +186,6 @@ namespace API.Controllers
                 return BadRequest(res);
             return Ok(res); 
         }
+
     }
 }

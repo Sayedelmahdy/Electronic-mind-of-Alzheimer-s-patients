@@ -24,7 +24,7 @@ namespace BLL.Services
     {
         private readonly IBaseRepository<Family> _family;
         private readonly IBaseRepository<Patient> _patient;
-      
+        private readonly IBaseRepository<Caregiver> _caregiver;
         private readonly IBaseRepository<Appointment> _Appointments;
         private readonly IDecodeJwt _jwtDecode;
         private readonly IWebHostEnvironment _env;
@@ -38,23 +38,28 @@ namespace BLL.Services
             IBaseRepository<Media> Media,
             IBaseRepository<Family>family,
             IBaseRepository<Patient>patient,     
+            IBaseRepository<Caregiver>caregiver,     
+
             IBaseRepository<Appointment>appointment,
             IDecodeJwt jwtDecode,  
             IWebHostEnvironment env,
               IOptions<Mail> Mail,
               IOptions<JWT> JWT,
               IMailService mailService,
+
             UserManager<User> user
             )
         {
             _Media = Media;
             _family = family;
             _patient = patient;
+            _caregiver = caregiver;
             _mail = Mail.Value;
             _Appointments=appointment;
             _jwtDecode = jwtDecode;
             _env = env;
             _jwt = JWT.Value;
+
             _mailService = mailService;
             _userManager = user;
         }
@@ -537,6 +542,47 @@ namespace BLL.Services
             string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
 
             return $"{baseUrl}/{relativePath}";
+        }
+
+        public async Task<GlobalResponse> AssignPatientToCaregiver(string token, string CaregiverCode)
+        {
+            string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
+            if (FamilyId == null)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "Token Not Have ID"
+                };
+            }
+            var Family = _family.GetById(FamilyId);
+            if (Family.PatientId == null)
+            {
+
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "This Family doesn't have patient yet"
+
+                };
+            }
+            if (_caregiver.GetById(CaregiverCode)== null)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "Caregiver Code invaild"
+
+                };
+            }
+          var patient =await  _patient.GetByIdAsync(Family.PatientId);
+            patient.CaregiverID = CaregiverCode;
+            await _patient.UpdateAsync(patient);
+            return new GlobalResponse
+            {
+                HasError = false,
+                message = "Patient Assigned to Caregiver succesfully"
+            };
         }
     }
 
