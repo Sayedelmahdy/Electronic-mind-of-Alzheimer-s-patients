@@ -203,6 +203,7 @@ namespace BLL.Services
                             PhoneNumber = model.PhoneNumber,
                             FullName = model.FullName,
                             Age = model.Age,
+                            UserName = model.Email.Split('@')[0],
 
                         };
                         result = await _userManager.CreateAsync(caregiver, model.Password);
