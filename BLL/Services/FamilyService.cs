@@ -575,7 +575,7 @@ namespace BLL.Services
 
                 };
             }
-          var patient =await  _patient.GetByIdAsync(Family.PatientId);
+            var patient =await  _patient.GetByIdAsync(Family.PatientId);
             patient.CaregiverID = CaregiverCode;
             await _patient.UpdateAsync(patient);
             return new GlobalResponse
