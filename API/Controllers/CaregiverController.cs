@@ -48,7 +48,7 @@ namespace API.Controllers
             return Ok(res.ToList());
         }
         [HttpPost("AddMedicationReminder/{patientId}")]
-        public async Task<IActionResult> AddMedicationReminder([FromBody] MedicationReminderDto medicationReminderDto, string patientId)
+        public async Task<IActionResult> AddMedicationReminder([FromBody] MedicationReminderPostDto medicationReminderDto, string patientId)
         {
             var token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
@@ -78,7 +78,7 @@ namespace API.Controllers
             return Ok(res.ToList());
         }
         [HttpPut("UpdateMedicationReminderForPatient/{ReminderId}")]
-        public async Task<IActionResult> UpdateMedicationReminder(string ReminderId, [FromBody] MedicationReminderDto medication)
+        public async Task<IActionResult> UpdateMedicationReminder(string ReminderId, [FromBody] MedicationReminderUpdateDto medication)
         {
             var token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
