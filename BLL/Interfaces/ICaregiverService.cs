@@ -19,5 +19,8 @@ namespace BLL.Interfaces
         Task<IEnumerable<MedicationReminderDto>> GetMedicationRemindersAsync(string token, string patientId);
         Task<IEnumerable<GameScoreDto>> GetGameScoresAsync(string patientId);
         Task<string?> GetCaregiverCode(string token);
+        Task<GlobalResponse> DeleteReport(string token, string reportId);
+        Task<IEnumerable<GetReportDto>> getallReport(string token, string patientid);
+        Task<GlobalResponse> CreateReportCardAsync(string token, ReportCardDto reportCardDto);
     }
 }

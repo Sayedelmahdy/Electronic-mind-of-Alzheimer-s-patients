@@ -295,7 +295,7 @@ namespace BLL.Services
 
             await _report.DeleteAsync(reportToDelete);
 
-a            return new GlobalResponse
+            return new GlobalResponse
             {
                 HasError = false,
                 message = "The report has been deleted successfully"
