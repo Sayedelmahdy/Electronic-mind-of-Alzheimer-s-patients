@@ -22,15 +22,22 @@ namespace BLL.Services
         private readonly IBaseRepository<Patient> _patient;
         private readonly IDecodeJwt _jwtDecode;
         private readonly IBaseRepository<Medication_Reminders> _medication_Reminders;
+        private readonly IBaseRepository<GameScore> _gameScoreRepository;
+        private readonly IBaseRepository<Caregiver> _caregiver;
+        private readonly IBaseRepository<Report> _report;
         public CaregiverService(
             IBaseRepository<Patient> patient,
             IDecodeJwt jwtDecode,
-            IBaseRepository<Medication_Reminders> medication_Reminders
+            IBaseRepository<Medication_Reminders> medication_Reminders,
+            IBaseRepository<GameScore> gameScoreRepository,
+            IBaseRepository<Caregiver> caregiver
             )
         {
             _patient = patient;
             _jwtDecode = jwtDecode;
             _medication_Reminders = medication_Reminders;
+            _gameScoreRepository = gameScoreRepository;
+            _caregiver = caregiver;
         }
         public async Task<string?> GetCaregiverCode(string token)
         {
@@ -167,5 +174,147 @@ namespace BLL.Services
                 message = "Medication Reminder Updated Successfully ."
             };
         }
+        // game method
+        public async Task<IEnumerable<GameScoreDto>> GetGameScoresAsync(string patientId)
+        {
+
+            var patient = await _patient.FindAsync(p => p.Id == patientId);
+
+            if (patient == null)
+            { 
+                return Enumerable.Empty<GameScoreDto>();
+            }
+            var gameScores = await _gameScoreRepository.WhereAsync(gs => gs.PatientId == patientId);
+
+            if (gameScores == null || !gameScores.Any())
+            {
+
+                return Enumerable.Empty<GameScoreDto>();
+            }
+            var gameScoreDtos = gameScores.Select(gs => new GameScoreDto
+            {
+                GameScoreId = gs.GameScoreId,
+                GameScoreName = gs.GameScoreName,
+                DifficultyGame = gs.DifficultyGame,
+                PatientScore = gs.PatientScore,
+                MaxScore = gs.MaxScore
+            });
+
+            return gameScoreDtos;
+        }
+        // caregiver code
+        public async Task<string?> GetCaregiverCode(string token)
+        {
+            string? CaregiverId = _jwtDecode.GetUserIdFromToken(token);
+            if (CaregiverId == null)
+            {
+                return null;
+            }
+            var caregiverr = await _caregiver.GetByIdAsync(CaregiverId);
+
+
+            return caregiverr?.Id;
+
+        }
+        // report card
+
+        public async Task<GlobalResponse> CreateReportCardAsync(string token, ReportCardDto reportCardDto)
+        {
+            // Check if caregiverId is valid or extract it from token based on your application logic
+            string? caregiverId = _jwtDecode.GetUserIdFromToken(token);
+            var patient = await _patient.GetByIdAsync(reportCardDto.patientid);
+            if (patient == null || patient.CaregiverID != caregiverId)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "failed to find any patients"
+
+                };
+            }
+
+
+            var reportCard = new Report
+            {
+                FromDate = reportCardDto.FromDate.ToDateTime(TimeOnly.MinValue),
+                ToDate = reportCardDto.ToDate.ToDateTime(TimeOnly.MinValue),
+                ReportContent = reportCardDto.ReportContent,
+                CaregiverId = caregiverId,
+                PatientId = reportCardDto.patientid
+            };
+
+            // Add the report card entity to the database using Entity Framework Core
+            await _report.AddAsync(reportCard);
+
+            
+            return new GlobalResponse {
+                HasError = true,
+                message = "succuessfully" 
+            };
+        }
+        public async Task<IEnumerable<GetReportDto>> getallReport(string token, string patientid )
+        {
+            string? caregiverId = _jwtDecode.GetUserIdFromToken(token);
+            if (string.IsNullOrEmpty(caregiverId))
+            {
+                return Enumerable.Empty<GetReportDto>();
+            }
+
+            var allreport = await _report.WhereAsync(s =>s.CaregiverId == caregiverId && s.PatientId == patientid);
+
+            if (allreport.Count() ==0 || !allreport.Any())
+            {
+                return Enumerable.Empty<GetReportDto>();
+            }
+
+            var result = allreport.Select(d=> new GetReportDto 
+            {
+                FromDate = d.FromDate.Date.ToShortDateString(),
+                ReportContent = d.ReportContent,
+                ToDate = d.ToDate.Date.ToShortDateString(),
+                ReportId = d.ReportId,
+            }).ToList();
+            return result;
+
+
+        }
+        public async Task<GlobalResponse> DeleteReport(string token, string reportId)
+        {
+            string? caregiverId = _jwtDecode.GetUserIdFromToken(token);
+
+            if (string.IsNullOrEmpty(caregiverId))
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "The caregiver is not found"
+                };
+            }
+
+            var reportToDelete = await _report.FindAsync(r => r.CaregiverId == caregiverId && r.ReportId == reportId);
+
+            if (reportToDelete == null)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "The report does not exist or you don't have permission to delete it"
+                };
+            }
+
+            await _report.DeleteAsync(reportToDelete);
+
+            return new GlobalResponse
+            {
+                HasError = false,
+                message = "The report has been deleted successfully"
+            };
+        }
+
+
+
+
+
+
     }
 }
