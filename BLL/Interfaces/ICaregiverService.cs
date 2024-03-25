@@ -13,9 +13,10 @@ namespace BLL.Interfaces
     public interface ICaregiverService
     {
         Task<IEnumerable<GetPatientsDto>> GetAssignedPatientsAsync(string token);
-        Task<GlobalResponse> AddMedicationReminder(string token, string patientId, MedicationReminderDto mediceneDto);
-        Task<GlobalResponse> UpdateMedicationReminderAsync(string token, string reminderId, MedicationReminderDto UpdateMedicationReminderDto);
+        Task<string?> GetCaregiverCode(string token);
+        Task<GlobalResponse> AddMedicationReminder(string token, string patientId, MedicationReminderPostDto mediceneDto);
+        Task<GlobalResponse> UpdateMedicationReminderAsync(string token, string reminderId, MedicationReminderUpdateDto UpdateMedicationReminderDto);
         Task<GlobalResponse> DeleteMedicationReminderAsync(string token, string reminderId);
-        Task<IEnumerable<MedicationReminderDto>> GetMedicationRemindersAsync(string token, string patientId);
+        Task<IEnumerable<MedicationReminderGetDto>> GetMedicationRemindersAsync(string token, string patientId);
     }
 }
