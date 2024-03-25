@@ -9,7 +9,6 @@ namespace BLL.DTOs.CaregiverDto
 {
     public class MedicationReminderPostDto
     {
-        public string Reminder_ID { get; set; }
 
         public string Medication_Name { get; set; }
 

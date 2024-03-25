@@ -10,7 +10,7 @@ namespace BLL.DTOs.CaregiverDto
 {
     public class MedicationReminderGetDto
     {
-        
+        public string ReminderId {  get; set; }
         public string Medication_Name { get; set; }
         
         public string Dosage { get; set; }

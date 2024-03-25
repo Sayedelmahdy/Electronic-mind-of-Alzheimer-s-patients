@@ -17,12 +17,14 @@ namespace BLL.Interfaces
         Task<GlobalResponse> AddMedicationReminder(string token, string patientId, MedicationReminderPostDto mediceneDto);
         Task<GlobalResponse> UpdateMedicationReminderAsync(string token, string reminderId, MedicationReminderUpdateDto UpdateMedicationReminderDto);
         Task<GlobalResponse> DeleteMedicationReminderAsync(string token, string reminderId);
-        Task<IEnumerable<MedicationReminderDto>> GetMedicationRemindersAsync(string token, string patientId);
         Task<IEnumerable<GameScoreDto>> GetGameScoresAsync(string patientId);
         Task<GlobalResponse> DeleteReport(string token, string reportId);
         Task<IEnumerable<GetReportDto>> getallReport(string token, string patientid);
         Task<GlobalResponse> CreateReportCardAsync(string token, ReportCardDto reportCardDto);
         Task<IEnumerable<MedicationReminderGetDto>> GetMedicationRemindersAsync(string token, string patientId);
+        
+
+
 
     }
 }
