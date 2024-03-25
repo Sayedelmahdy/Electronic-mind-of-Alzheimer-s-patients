@@ -39,7 +39,16 @@ namespace BLL.Services
             _gameScoreRepository = gameScoreRepository;
             _caregiver = caregiver;
         }
-        public async Task<GlobalResponse> AddMedicationReminder(string token, string patientId, MedicationReminderDto mediceneDto)
+        public async Task<string?> GetCaregiverCode(string token)
+        {
+            string CaregiverCode= _jwtDecode.GetUserIdFromToken(token);
+            if(CaregiverCode == null )
+            {
+                return null;
+            }
+            return CaregiverCode;
+        }
+        public async Task<GlobalResponse> AddMedicationReminder(string token, string patientId, MedicationReminderPostDto mediceneDto)
         {
             string? caregiverId = _jwtDecode.GetUserIdFromToken(token);
             if( caregiverId == null )
@@ -113,21 +122,21 @@ namespace BLL.Services
             return res;
         }
 
-        public async Task<IEnumerable<MedicationReminderDto>> GetMedicationRemindersAsync(string token, string patientId)
+        public async Task<IEnumerable<MedicationReminderGetDto>> GetMedicationRemindersAsync(string token, string patientId)
         {
             string? caregiverId = _jwtDecode.GetUserIdFromToken(token);
             if( caregiverId == null)
             {
-                return Enumerable.Empty<MedicationReminderDto>();
+                return Enumerable.Empty<MedicationReminderGetDto>();
             }
             var reminders =await _medication_Reminders.WhereAsync(s => s.Patient_Id == patientId);
             if( reminders == null)
             {
-                return Enumerable.Empty<MedicationReminderDto> ();
+                return Enumerable.Empty<MedicationReminderGetDto> ();
             }
-            var res=reminders.Select(s=> new MedicationReminderDto
+            var res=reminders.Select(s=> new MedicationReminderGetDto
                 {
-                    Reminder_ID=s.Reminder_ID,
+                    
                     Medication_Name=s.Medication_Name,
                     StartDate=s.StartDate,
                     Dosage=s.Dosage,
@@ -136,12 +145,12 @@ namespace BLL.Services
                 }).ToList();
             if (!res.Any())
             {
-                return Enumerable.Empty<MedicationReminderDto>();
+                return Enumerable.Empty<MedicationReminderGetDto>();
             }
             return res;
         }
 
-        public async Task<GlobalResponse> UpdateMedicationReminderAsync(string token, string reminderId, MedicationReminderDto UpdateMedicationReminderDto)
+        public async Task<GlobalResponse> UpdateMedicationReminderAsync(string token, string reminderId, MedicationReminderUpdateDto UpdateMedicationReminderDto)
         {
             string? caregiverId= _jwtDecode.GetUserIdFromToken(token);
             var medicine = await _medication_Reminders.FindAsync(r=>r.Reminder_ID == reminderId);

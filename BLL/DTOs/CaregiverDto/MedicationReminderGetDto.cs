@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 
 namespace BLL.DTOs.CaregiverDto
 {
-    public class MedicationReminderDto
+    public class MedicationReminderGetDto
     {
-        public string Reminder_ID { get; set; } 
         
         public string Medication_Name { get; set; }
         
