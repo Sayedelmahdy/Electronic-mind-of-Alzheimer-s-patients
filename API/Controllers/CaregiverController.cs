@@ -1,4 +1,5 @@
 ﻿using API.Helper;
+using BLL.DTOs;
 using BLL.DTOs.CaregiverDto;
 using BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -92,7 +93,7 @@ namespace API.Controllers
             }
             return Ok(res.message);
         }
-        [HttpDelete("DeleteMedicationReminder/{ReminderId}")]
+        [HttpDelete("DeleteMedicationReminder/{ReminderID}")]
         public async Task<IActionResult> DeleteMedicationReminder(string ReminderID)
         {
             var token = HttpContextHelper.GetToken(this.HttpContext);
@@ -101,6 +102,61 @@ namespace API.Controllers
                 return BadRequest("Invalid Token");
             }
             var res = await _caregiverService.DeleteMedicationReminderAsync(token, ReminderID);
+            if (res.HasError)
+            {
+                return BadRequest(res.message);
+            }
+            return Ok(res.message);
+        }
+        [HttpGet("GetGameScoreforPatinet/{PatientId}")]
+        public async Task<IActionResult> GetGameScoreForPatient(string PatientId)
+        {
+            var res = await _caregiverService.GetGameScoresAsync(PatientId);
+            if (!res.Any())
+            {
+                return NotFound("No Game Score Found for this Patient ");
+            }
+            return Ok(res.ToList());
+        }
+        [HttpGet("GetAllReportsForPatinet/{PatientId}")]
+        public async Task<IActionResult> GetAllReportsForPatient(string PatientId)
+        {
+            var token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Invalid Token");
+            }
+            var res = await _caregiverService.getallReport(token, PatientId);
+            if (!res.Any())
+            {
+                return NotFound("No Report for Patient ");
+            }
+            return Ok(res.ToList());
+        }
+        [HttpPost("CreateReport")]
+        public async Task<IActionResult> CreateReport([FromBody] ReportCardDto reportCardDto)
+        {
+            var token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Invalid Token");
+            }
+            var res = await _caregiverService.CreateReportCardAsync(token, reportCardDto);
+            if(res.HasError)
+            {
+                return BadRequest(res.message);
+            }
+            return Ok(res.message);
+        }
+        [HttpDelete("DeleteReport/{ReportId}")]
+        public async Task<IActionResult> DeleteReport(string ReportId)
+        {
+            var token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Invalid Token");
+            }
+            var res = await _caregiverService.DeleteReport(token, ReportId);
             if (res.HasError)
             {
                 return BadRequest(res.message);

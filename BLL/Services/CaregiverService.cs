@@ -30,7 +30,8 @@ namespace BLL.Services
             IDecodeJwt jwtDecode,
             IBaseRepository<Medication_Reminders> medication_Reminders,
             IBaseRepository<GameScore> gameScoreRepository,
-            IBaseRepository<Caregiver> caregiver
+            IBaseRepository<Caregiver> caregiver,
+            IBaseRepository<Report> report
             )
         {
             _patient = patient;
@@ -38,6 +39,7 @@ namespace BLL.Services
             _medication_Reminders = medication_Reminders;
             _gameScoreRepository = gameScoreRepository;
             _caregiver = caregiver;
+            _report = report;
         }
         public async Task<string?> GetCaregiverCode(string token)
         {
@@ -136,7 +138,7 @@ namespace BLL.Services
             }
             var res=reminders.Select(s=> new MedicationReminderGetDto
                 {
-                    
+                    ReminderId=s.Reminder_ID,
                     Medication_Name=s.Medication_Name,
                     StartDate=s.StartDate,
                     Dosage=s.Dosage,
@@ -166,7 +168,7 @@ namespace BLL.Services
             medicine.StartDate = UpdateMedicationReminderDto.StartDate;
             medicine.Dosage= UpdateMedicationReminderDto.Dosage;
             medicine.Repeater= UpdateMedicationReminderDto.Repeater;
-            medicine.Caregiver_Id=medicine.Caregiver_Id;
+            medicine.Time_Period = UpdateMedicationReminderDto.Time_Period;
             await _medication_Reminders.UpdateAsync(medicine);
             return new GlobalResponse
             {
@@ -202,20 +204,6 @@ namespace BLL.Services
 
             return gameScoreDtos;
         }
-        // caregiver code
-        public async Task<string?> GetCaregiverCode(string token)
-        {
-            string? CaregiverId = _jwtDecode.GetUserIdFromToken(token);
-            if (CaregiverId == null)
-            {
-                return null;
-            }
-            var caregiverr = await _caregiver.GetByIdAsync(CaregiverId);
-
-
-            return caregiverr?.Id;
-
-        }
         // report card
 
         public async Task<GlobalResponse> CreateReportCardAsync(string token, ReportCardDto reportCardDto)
@@ -248,8 +236,8 @@ namespace BLL.Services
 
             
             return new GlobalResponse {
-                HasError = true,
-                message = "succuessfully" 
+                HasError =false,
+                message = "Report Created Succuessfully ." 
             };
         }
         public async Task<IEnumerable<GetReportDto>> getallReport(string token, string patientid )
