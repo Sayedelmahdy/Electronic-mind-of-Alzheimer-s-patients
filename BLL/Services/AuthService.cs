@@ -281,10 +281,7 @@ namespace BLL.Services
             
             AuthDto.IsAuthenticated = true;
             AuthDto.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
-            /*var NewRefreshToken = GenerateRefreshToken();
-            AuthDto.RefreshToken = NewRefreshToken.Token;
-            AuthDto.RefreshTokenExpiration = NewRefreshToken.ExpiresOn;
-            user.RefreshTokens.Add(NewRefreshToken);*/
+            
             await _userManager.UpdateAsync(user);
 
             return AuthDto;

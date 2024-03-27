@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalR Message Listener</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="lib/microsoft/signalr/dist/browser/signalr.js"></script>
+    <script>
+        $(function () {
+            // Initialize SignalR connection
+            let acces = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4OTU4MWYzMy0xYjA5LTRmZDctOWM5Yi02YzM2YzNlYTllYWMiLCJlbWFpbCI6InNzMDEwOTMzMDczOTdAZ21haWwuY29tIiwiRnVsbE5hbWUiOiLYs9mK2K8g2YXYsdmK2LYg2KjYp9mE2K3YqCIsIlBob25lTnVtYmVyIjoiMDExMjQyNjgxNzciLCJ1aWQiOiI2N2Q3YzZhYy02YWI1LTQ0MDYtOTllZS0zYzc4NjhmYmYzMzEiLCJyb2xlcyI6IlBhdGllbnQiLCJleHAiOjE3MTkzNDcxNDUsImlzcyI6IkFydE9mQ29kaW5nIiwiYXVkIjoiQWx6aGVpbWFyQXBwIn0.BTx82D3bi9k_KAHb_SuVxWXPtPjbfRQpyKnYJ5rpw8o"
+            var connection = new signalR.HubConnectionBuilder()
+                .withUrl("hubs/medicineReminder", { accessTokenFactory: () => acces }) // Adjust the URL to match your SignalR endpoint
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+           
+            // Start the connection
+            connection.start().then(function () {
+                console.log("SignalR connected");
+            }).catch(function (err) {
+                console.error(err.toString());
+            });
+
+            // Listen for "ReceiveMedicineReminder" event
+            connection.on("ReceiveMedicineReminder", function (medication) {
+                // Display the message
+                $("#messages").append("<p><strong>Medication Name:</strong> " + medication.medication_Name + "</p>");
+         /*       $("#messages").append("<p><strong>Dosage:</strong> " + medication.dosage + "</p>");
+                $("#messages").append("<p><strong>Start Date:</strong> " + medication.startDate + "</p>");
+                $("#messages").append("<p><strong>Repeater:</strong> " + medication.repeater + "</p>");
+                $("#messages").append("<p><strong>Time Period:</strong> " + medication.time_Period + "</p>");*/
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>SignalR Message Listener</h1>
+    <div id="messages">
+        <!-- Messages will be displayed here -->
+    </div>
+</body>
+</html>
