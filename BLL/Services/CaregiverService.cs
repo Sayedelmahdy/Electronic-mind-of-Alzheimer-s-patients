@@ -1,13 +1,16 @@
-﻿using BLL.DTOs;
+﻿
+using BLL.DTOs;
 using BLL.DTOs.CaregiverDto;
 using BLL.Helper;
+using BLL.Hubs;
 using BLL.Interfaces;
 using DAL.Interfaces;
 using DAL.Model;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,13 +28,18 @@ namespace BLL.Services
         private readonly IBaseRepository<GameScore> _gameScoreRepository;
         private readonly IBaseRepository<Caregiver> _caregiver;
         private readonly IBaseRepository<Report> _report;
+        private readonly IHubContext<MedicineReminderHub> _medicineHub;
+
+      
+
         public CaregiverService(
             IBaseRepository<Patient> patient,
             IDecodeJwt jwtDecode,
             IBaseRepository<Medication_Reminders> medication_Reminders,
             IBaseRepository<GameScore> gameScoreRepository,
             IBaseRepository<Caregiver> caregiver,
-            IBaseRepository<Report> report
+            IBaseRepository<Report> report,
+            IHubContext<MedicineReminderHub> medicineHub
             )
         {
             _patient = patient;
@@ -40,6 +48,7 @@ namespace BLL.Services
             _gameScoreRepository = gameScoreRepository;
             _caregiver = caregiver;
             _report = report;
+            _medicineHub = medicineHub;
         }
         public async Task<string?> GetCaregiverCode(string token)
         {
@@ -72,11 +81,13 @@ namespace BLL.Services
                 Time_Period = mediceneDto.Time_Period,
             };
            await _medication_Reminders.AddAsync(medication);
+            await _medicineHub.Clients.Group(patientId).SendAsync("ReceiveMedicineReminder", medication);
             return new GlobalResponse
             {
                 HasError = false,
                 message = "Medication Created Successfully ."
             };
+
 
         }
 

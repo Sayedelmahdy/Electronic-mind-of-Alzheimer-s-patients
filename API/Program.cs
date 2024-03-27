@@ -14,8 +14,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Microsoft.AspNetCore.SignalR;
 using System.Text;
 using System.Threading.RateLimiting;
+using BLL.Hubs;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,6 +61,7 @@ builder.Services.AddSwaggerGen(option =>
 });
 builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
 builder.Services.Configure<Mail>(builder.Configuration.GetSection("Mail"));
+
 builder.Services.AddDbContext<DBContext>(option =>
 {
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -141,6 +145,7 @@ builder.Services.Configure<FormOptions>(x =>
     x.MultipartHeadersLengthLimit = int.MaxValue;
 });
 builder.Services.AddRazorPages();
+builder.Services.AddSignalR();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -157,4 +162,6 @@ app.UseAuthorization();
 app.UseAuthorization();
 app.MapRazorPages();
 app.MapControllers();
+app.MapHub<MedicineReminderHub>("hubs/medicineReminder");
+
 app.Run();
