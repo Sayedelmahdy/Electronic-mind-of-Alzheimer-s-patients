@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -24,6 +25,8 @@ namespace BLL.DTOs.AuthenticationDto
         public string PhoneNumber { get; set; }
         [Required]
         public int Age { get; set; }
+        [Required]
+        public IFormFile Avatar { get; set; }
 
     }
 }

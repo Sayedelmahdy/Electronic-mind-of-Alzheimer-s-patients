@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -21,6 +22,8 @@ namespace BLL.DTOs.FamilyDto
         public string PhoneNumber { get; set; }
         [Required]
         public int Age { get; set; }
+        [Required]
+        public IFormFile Avatar { get; set; }
         [Required]
        public string relationality { get; set; }
         [Required]

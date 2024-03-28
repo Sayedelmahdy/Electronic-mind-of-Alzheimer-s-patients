@@ -1,8 +1,10 @@
 ﻿using BLL.DTOs.AuthenticationDto;
+using BLL.DTOs.FamilyDto;
 using BLL.Helper;
 using BLL.Interfaces;
 using DAL.Interfaces;
 using DAL.Model;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
@@ -25,21 +27,23 @@ namespace BLL.Services
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IMailService _mailService;
-      
-       
+        private readonly IWebHostEnvironment _env;
+
         private readonly JWT _jwt;
         private readonly Mail _mail;
         public AuthService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IOptions<JWT> jwt,
             IOptions<Mail> Mail
             ,IMailService mailService
-           
+            , IWebHostEnvironment env
+
+
             )
         {
             _userManager = userManager;
             _roleManager = roleManager;
            _mailService = mailService;
             _mail = Mail.Value;
-            
+            _env = env; 
             _jwt = jwt.Value;
 
         }
@@ -180,6 +184,20 @@ namespace BLL.Services
                                 return new RegisterAuthDto { Message = errors };
                             }
                             await _userManager.AddToRoleAsync(family, "family");
+                            string MediaId = Guid.NewGuid().ToString();
+
+                            string filePath = Path.Combine("User Avatar", $"{family.Id}_{MediaId}{Path.GetExtension(model.Avatar.FileName)}");
+                            string directoryPath = Path.Combine(_env.WebRootPath, "User Avatar");
+                            if (!Directory.Exists(directoryPath))
+                            {
+                                Directory.CreateDirectory(directoryPath);
+                            }
+                            using (FileStream filestream = File.Create(Path.Combine(_env.WebRootPath, filePath)))
+                            {
+                                model.Avatar.CopyTo(filestream);
+                                filestream.Flush();
+                            }
+                            family.imageUrl = Path.Combine(_env.WebRootPath, filePath);
                             await _userManager.UpdateAsync(family);
                             
                             var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(family);
@@ -217,6 +235,20 @@ namespace BLL.Services
                             return new RegisterAuthDto { Message = errors };
                     }
                     await _userManager.AddToRoleAsync(caregiver, "caregiver");
+                    string MediaId = Guid.NewGuid().ToString();
+
+                    string filePath = Path.Combine("User Avatar", $"{caregiver.Id}_{MediaId}{Path.GetExtension(model.Avatar.FileName)}");
+                    string directoryPath = Path.Combine(_env.WebRootPath, "User Avatar");
+                    if (!Directory.Exists(directoryPath))
+                    {
+                        Directory.CreateDirectory(directoryPath);
+                    }
+                    using (FileStream filestream = File.Create(Path.Combine(_env.WebRootPath, filePath)))
+                    {
+                        model.Avatar.CopyTo(filestream);
+                        filestream.Flush();
+                    }
+                    caregiver.imageUrl = Path.Combine(_env.WebRootPath, filePath);
                     await _userManager.UpdateAsync(caregiver);
                     var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(caregiver);
                     
@@ -333,7 +365,9 @@ namespace BLL.Services
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim("FullName",user.FullName),
                 new Claim("PhoneNumber",user.PhoneNumber),
-                new Claim("uid", user.Id)
+                new Claim("uid", user.Id),
+                new Claim ("UserAvatar",GetMediaUrl(user.imageUrl)),
+                
             }
             .Union(userClaims)
             .Union(roleClaims);
@@ -667,6 +701,14 @@ namespace BLL.Services
                 PasswordIsChanged = false,
                 ErrorAppear = true,
             };
+        }
+        private string GetMediaUrl(string imagePath)
+        {
+          
+            string baseUrl = _mail.ServerLink; 
+            string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
+
+            return $"{baseUrl}/{relativePath}";
         }
     }
 }
