@@ -80,8 +80,8 @@ namespace BLL.Services
                 StartDate = mediceneDto.StartDate,
                 Time_Period = mediceneDto.Time_Period,
             };
-           await _medication_Reminders.AddAsync(medication);
-            await _medicineHub.Clients.Group(patientId).SendAsync("ReceiveMedicineReminder", medication);
+            await _medication_Reminders.AddAsync(medication);
+            await _medicineHub.Clients.Group(patientId).SendAsync("ReceiveMedicineReminder", "Medicine Added Successfully");
             return new GlobalResponse
             {
                 HasError = false,

@@ -23,9 +23,9 @@
             });
 
             // Listen for "ReceiveMedicineReminder" event
-            connection.on("ReceiveMedicineReminder", function (medication) {
+            connection.on("ReceiveMedicineReminder", function (message) {
                 // Display the message
-                $("#messages").append("<p><strong>Medication Name:</strong> " + medication.medication_Name + "</p>");
+                $("#messages").append("<p><strong>Message:</strong> " + message + "</p>");
          /*       $("#messages").append("<p><strong>Dosage:</strong> " + medication.dosage + "</p>");
                 $("#messages").append("<p><strong>Start Date:</strong> " + medication.startDate + "</p>");
                 $("#messages").append("<p><strong>Repeater:</strong> " + medication.repeater + "</p>");

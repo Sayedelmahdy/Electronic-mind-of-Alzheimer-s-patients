@@ -4,6 +4,7 @@ using DAL.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(DBContext))]
-    partial class DBContextModelSnapshot : ModelSnapshot
+    [Migration("20240328061551_FixMedication")]
+    partial class FixMedication
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -109,31 +112,6 @@ namespace DAL.Migrations
                     b.ToTable("Locations");
                 });
 
-            modelBuilder.Entity("DAL.Model.Mark_Medicine_Reminder", b =>
-                {
-                    b.Property<string>("MarkId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<bool>("IsTaken")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("MarkTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ReminderId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("medication_ReminderReminder_ID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("MarkId");
-
-                    b.HasIndex("medication_ReminderReminder_ID");
-
-                    b.ToTable("Mark_Medicine_Reminders");
-                });
-
             modelBuilder.Entity("DAL.Model.Media", b =>
                 {
                     b.Property<string>("Media_Id")
@@ -169,46 +147,6 @@ namespace DAL.Migrations
                     b.HasIndex("PatientId");
 
                     b.ToTable("Medias");
-                });
-
-            modelBuilder.Entity("DAL.Model.Medication_Reminders", b =>
-                {
-                    b.Property<string>("Reminder_ID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Caregiver_Id")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Dosage")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Medication_Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Patient_Id")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("Repeater")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Time_Period")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Reminder_ID");
-
-                    b.HasIndex("Caregiver_Id");
-
-                    b.HasIndex("Patient_Id");
-
-                    b.ToTable("Medication_Reminders");
                 });
 
             modelBuilder.Entity("DAL.Model.Note", b =>
@@ -590,17 +528,6 @@ namespace DAL.Migrations
                     b.Navigation("user");
                 });
 
-            modelBuilder.Entity("DAL.Model.Mark_Medicine_Reminder", b =>
-                {
-                    b.HasOne("DAL.Model.Medication_Reminders", "medication_Reminder")
-                        .WithMany("Mark_Medicines")
-                        .HasForeignKey("medication_ReminderReminder_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("medication_Reminder");
-                });
-
             modelBuilder.Entity("DAL.Model.Media", b =>
                 {
                     b.HasOne("DAL.Model.Family", "family")
@@ -616,25 +543,6 @@ namespace DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("family");
-
-                    b.Navigation("patient");
-                });
-
-            modelBuilder.Entity("DAL.Model.Medication_Reminders", b =>
-                {
-                    b.HasOne("DAL.Model.Caregiver", "caregiver")
-                        .WithMany()
-                        .HasForeignKey("Caregiver_Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DAL.Model.Patient", "patient")
-                        .WithMany()
-                        .HasForeignKey("Patient_Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("caregiver");
 
                     b.Navigation("patient");
                 });
@@ -768,11 +676,6 @@ namespace DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("caregiver");
-                });
-
-            modelBuilder.Entity("DAL.Model.Medication_Reminders", b =>
-                {
-                    b.Navigation("Mark_Medicines");
                 });
 
             modelBuilder.Entity("DAL.Model.Caregiver", b =>
