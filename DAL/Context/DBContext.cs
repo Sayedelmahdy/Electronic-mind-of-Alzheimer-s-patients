@@ -48,20 +48,28 @@ namespace DAL.Context
             builder.Entity<Patient>(entity => { entity.ToTable("Patients"); });
             builder.Entity<Family>(entity => { entity.ToTable("Families"); });
             builder.Entity<Caregiver>(entity => { entity.ToTable("Caregivers"); });
+            builder.Entity<Medication_Reminders>()
+              .HasOne(mr => mr.caregiver)
+              .WithMany()
+              .HasForeignKey(mr => mr.Caregiver_Id);
 
-/*
-            builder.Entity<FamilyPatient>()
-            .HasKey(fp => new { fp.FamilyId, fp.PatientId });
+            builder.Entity<Medication_Reminders>()
+                .HasOne(mr => mr.patient)
+                .WithMany()
+                .HasForeignKey(mr => mr.Patient_Id);
+            /*
+                        builder.Entity<FamilyPatient>()
+                        .HasKey(fp => new { fp.FamilyId, fp.PatientId });
 
-            builder.Entity<FamilyPatient>()
-                .HasOne(fp => fp.Family)
-                .WithMany(f => f.FamilyPatients)
-                .HasForeignKey(fp => fp.FamilyId);
+                        builder.Entity<FamilyPatient>()
+                            .HasOne(fp => fp.Family)
+                            .WithMany(f => f.FamilyPatients)
+                            .HasForeignKey(fp => fp.FamilyId);
 
-            builder.Entity<FamilyPatient>()
-                .HasOne(fp => fp.Patient)
-                .WithMany(p => p.FamilyPatients)
-                .HasForeignKey(fp => fp.PatientId);*/
+                        builder.Entity<FamilyPatient>()
+                            .HasOne(fp => fp.Patient)
+                            .WithMany(p => p.FamilyPatients)
+                            .HasForeignKey(fp => fp.PatientId);*/
             /*List<IdentityRole> roles = new List<IdentityRole>
             {
                 new IdentityRole
