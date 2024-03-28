@@ -72,7 +72,7 @@ namespace API.Controllers
             return Ok(res);
         }
         [HttpPost("AddPatient")]
-        public async Task<IActionResult> AddPatient ( AddPatientDto addPatientDto)
+        public async Task<IActionResult> AddPatient([FromForm] AddPatientDto addPatientDto)
         {
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)

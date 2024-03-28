@@ -292,6 +292,20 @@ namespace BLL.Services
                     message = errors };
             }
             await _userManager.AddToRoleAsync(patient, "patient");
+            string MediaId = Guid.NewGuid().ToString();
+
+            string filePath = Path.Combine("User Avatar", $"{patient.Id}_{MediaId}{Path.GetExtension(addPatientDto.Avatar.FileName)}");
+            string directoryPath = Path.Combine(_env.WebRootPath, "User Avatar");
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+            using (FileStream filestream = File.Create(Path.Combine(_env.WebRootPath, filePath)))
+            {
+                addPatientDto.Avatar.CopyTo(filestream);
+                filestream.Flush();
+            }
+            patient.imageUrl = Path.Combine(_env.WebRootPath, filePath);
             await _userManager.UpdateAsync(patient);
 
             var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(patient);
