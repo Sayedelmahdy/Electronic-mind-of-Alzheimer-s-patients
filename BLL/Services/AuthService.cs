@@ -707,7 +707,7 @@ namespace BLL.Services
           
             string baseUrl = _mail.ServerLink; 
             string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
-
+            
             return $"{baseUrl}/{relativePath}";
         }
     }
