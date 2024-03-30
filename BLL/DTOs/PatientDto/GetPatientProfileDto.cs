@@ -9,7 +9,6 @@ namespace BLL.DTOs.PatientDto
     public class GetPatientProfileDto
     {
         public string PatientId { get; set; }
-        public string FamilyMember { get; set; }
         public string FullName { get; set; }
         public int Age { get; set; }
         public string PhoneNumber { get; set; }
