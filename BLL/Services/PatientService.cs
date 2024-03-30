@@ -64,7 +64,6 @@ namespace BLL.Services
                     HasError = true
                 };
             }
-            var family = _family.GetById(patinet.FamilyCreatedId);
             return new GetPatientProfileDto
             {
                 PatientId = patientid,
@@ -72,7 +71,6 @@ namespace BLL.Services
                 Age = patinet.Age,
                 DiagnosisDate = patinet.DiagnosisDate,
                 PhoneNumber = patinet.PhoneNumber,
-                FamilyMember = family.FullName
             };
         }
         public async Task<IEnumerable<GetAppointmentDto>> GetAppointmentAsync(string token)
