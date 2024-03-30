@@ -69,6 +69,16 @@ namespace BLL.Services
                     HasError = true,
                     message = "Invalid CaregiverId"
                 };
+                
+            }
+            var patient = await _patient.GetByIdAsync( patientId );
+            if( patient == null || patient.CaregiverID !=caregiverId)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "This Patient Not Assigned To Caregiver ."
+                };
             }
             var medication = new Medication_Reminders
             {
@@ -143,7 +153,12 @@ namespace BLL.Services
                 return Enumerable.Empty<MedicationReminderGetDto>();
             }
             var reminders =await _medication_Reminders.WhereAsync(s => s.Patient_Id == patientId);
-            if( reminders == null)
+            var patient = await _patient.GetByIdAsync(patientId);
+            if( patient == null || patient.CaregiverID!=caregiverId)
+            {
+                return Enumerable.Empty<MedicationReminderGetDto>();
+            }
+            if ( reminders == null)
             {
                 return Enumerable.Empty<MedicationReminderGetDto> ();
             }
