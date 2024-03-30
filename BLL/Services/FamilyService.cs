@@ -2,11 +2,13 @@
 using BLL.DTOs.AuthenticationDto;
 using BLL.DTOs.FamilyDto;
 using BLL.Helper;
+using BLL.Hubs;
 using BLL.Interfaces;
 using DAL.Interfaces;
 using DAL.Model;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
@@ -30,6 +32,7 @@ namespace BLL.Services
         private readonly IWebHostEnvironment _env;
         private readonly JWT _jwt;
         private readonly IMailService _mailService;
+        private readonly IHubContext<AppointmentHub> _appointmentHub;
         private readonly IBaseRepository<Media> _Media;
         private readonly UserManager<User> _userManager;
         private readonly Mail _mail;
@@ -46,7 +49,7 @@ namespace BLL.Services
               IOptions<Mail> Mail,
               IOptions<JWT> JWT,
               IMailService mailService,
-
+              IHubContext<AppointmentHub> appointmentHub,
             UserManager<User> user
             )
         {
@@ -61,6 +64,7 @@ namespace BLL.Services
             _jwt = JWT.Value;
 
             _mailService = mailService;
+            _appointmentHub = appointmentHub;
             _userManager = user;
         }
 
@@ -328,7 +332,9 @@ namespace BLL.Services
             }
             family.Relationility = addPatientDto.relationality;
             family.PatientId = patient.Id;
+            
             await _family.UpdateAsync(family);
+            // todo : send image to Ai for recognition
             return new GlobalResponse
             {
                 HasError = false,
@@ -376,6 +382,7 @@ namespace BLL.Services
             family.PatientId = assignPatientDto.PatientCode;
             family.Relationility = assignPatientDto.relationility;
             await  _family.UpdateAsync(family) ;
+            // todo : send image to Ai for recognition
             return new GlobalResponse
             {
                 HasError = false,
@@ -434,6 +441,7 @@ namespace BLL.Services
                 PatientId = family.PatientId,
             };
             await _Appointments.AddAsync(appointment);
+            await _appointmentHub.Clients.Group(family.PatientId).SendAsync("ReceiveAppointment", "Appointment Added");
             return new GlobalResponse
             {
                 HasError = false,
