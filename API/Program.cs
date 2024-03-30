@@ -96,9 +96,10 @@ builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IFamilyService, FamilyService>();
 builder.Services.AddScoped<ICaregiverService,CaregiverService>();
+builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddSingleton<IMailService, MailService>();
 builder.Services.AddSingleton<IDecodeJwt, DecodeJwt>();
-builder.Services.AddScoped<IFamilyService, FamilyService>();
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
