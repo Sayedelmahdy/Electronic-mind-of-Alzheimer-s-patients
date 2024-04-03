@@ -2,11 +2,15 @@
 using BLL.DTOs.CaregiverDto;
 using BLL.DTOs.FamilyDto;
 using BLL.DTOs.PatientDto;
+using BLL.Helper;
 using BLL.Hubs;
 using BLL.Interfaces;
 using DAL.Interfaces;
 using DAL.Model;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,13 +27,19 @@ namespace BLL.Services
         private readonly IBaseRepository<Appointment> _appointments;
         private readonly IBaseRepository<Family> _family;
         private readonly IDecodeJwt _jwtDecode;
+        private readonly IBaseRepository<Media> _media;
+        private readonly Mail _mail;
+        private readonly IWebHostEnvironment _env;
         public PatientService
             (
             IHubContext<MedicineReminderHub> hubContext, IDecodeJwt jwtDecode,
             IBaseRepository<Patient>patient,
             IBaseRepository<Medication_Reminders>medicines ,
             IBaseRepository<Appointment>appointments,
-            IBaseRepository<Family>family
+            IBaseRepository<Family>family,
+            IBaseRepository<Media>media,
+             IWebHostEnvironment env,
+              IOptions<Mail> Mail
             )
         {
             _hubContext = hubContext;
@@ -37,6 +47,10 @@ namespace BLL.Services
             _patient = patient;
             _medicines = medicines;
             _appointments = appointments;
+            _family = family;
+            _media = media;
+            _mail = Mail.Value;
+            _env = env;
         }
 
         public Task<GlobalResponse> AddPatientToSignalRGroup(string patientId)
@@ -153,6 +167,39 @@ namespace BLL.Services
                 HasError = false,
                 message = "Profile Updated Successfully :D"
             };
+        }
+        public async Task<IEnumerable<GetMediaforPatientDto>> GetMediaAsync(string token)
+        {
+            string PatientId = _jwtDecode.GetUserIdFromToken(token);
+            if (PatientId == null)
+            {
+                return Enumerable.Empty<GetMediaforPatientDto>();
+            }
+            var patient = await _patient.GetByIdAsync(PatientId);
+            if (patient == null)
+            {
+                return Enumerable.Empty<GetMediaforPatientDto>();
+            }
+            var media =await _media.Include(s => s.patient).Include(s=>s.family).Where(s => s.PatientId == PatientId).ToListAsync();
+            var res = media.Select(s => new GetMediaforPatientDto
+            {
+                Caption = s.Caption,
+                MediaUrl = GetMediaUrl(s.Image_Path),
+                MediaId = s.Media_Id,
+                Uploaded_date = s.Upload_Date,
+                MediaExtension = s.Extension,
+                FamilyNameWhoUpload=s.family.FullName
+            }).ToList();
+            return res;
+        }
+        private string GetMediaUrl(string imagePath)
+        {
+            // Assuming imagePath contains the relative path to the Media within the web root
+            // Construct the URL based on your application's routing configuration
+            string baseUrl = _mail.ServerLink; // Replace with your actual base URL
+            string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
+
+            return $"{baseUrl}/{relativePath}";
         }
     }
 }

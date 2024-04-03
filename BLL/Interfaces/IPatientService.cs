@@ -17,5 +17,6 @@ namespace BLL.Interfaces
         Task<GlobalResponse> UpdateProfileAsync(string token, UpdatePatientProfileDto updatePatientProfile);
         Task<IEnumerable<GetAppointmentDto>> GetAppointmentAsync(string token);
         Task<IEnumerable<MedicationReminderGetDto>> GetMedicationRemindersAsync(string token);
+        Task<IEnumerable<GetMediaforPatientDto>> GetMediaAsync(string token);
     }
 }
