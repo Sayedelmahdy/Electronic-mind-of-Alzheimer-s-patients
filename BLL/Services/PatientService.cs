@@ -71,6 +71,8 @@ namespace BLL.Services
                 Age = patinet.Age,
                 DiagnosisDate = patinet.DiagnosisDate,
                 PhoneNumber = patinet.PhoneNumber,
+                Message = "Welcome To Your Profile",
+                HasError = false
             };
         }
         public async Task<IEnumerable<GetAppointmentDto>> GetAppointmentAsync(string token)
@@ -80,7 +82,12 @@ namespace BLL.Services
             {
                 return Enumerable.Empty<GetAppointmentDto>();
             }
-          var appointments = await _appointments.WhereAsync(s=>s.PatientId== PatientId);
+            var patient = await _patient.GetByIdAsync(PatientId);
+            if(patient == null)
+            {
+                return Enumerable.Empty<GetAppointmentDto>();
+            }
+          var appointments =  _appointments.Include(s=>s.family).Where(s=>s.PatientId== PatientId);
             if(appointments == null)
             {
                 return Enumerable.Empty<GetAppointmentDto>();
@@ -90,7 +97,8 @@ namespace BLL.Services
                 AppointmentId=s.AppointmentId,
                 Date=s.Date,
                 Location= s.Location,
-                Notes=s.Notes
+                Notes=s.Notes,
+                FamilyNameWhoCreatedAppointemnt=s.family.FullName,
             }).ToList();
         }
         public async Task<IEnumerable<MedicationReminderGetDto>> GetMedicationRemindersAsync(string token)
