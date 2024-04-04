@@ -21,5 +21,6 @@ namespace BLL.DTOs.FamilyDto
         public int Age { get; set; }
         public string relationality { get; set; }
         public string DiagnosisDate { get; set; }
+        public int MaxDistance { get; set; }
     }
 }

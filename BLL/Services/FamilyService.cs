@@ -146,7 +146,7 @@ namespace BLL.Services
                 PhoneNumber = res.patient.PhoneNumber,
                 relationality = res.Relationility,
                 DiagnosisDate = res.patient.DiagnosisDate.Value.ToShortDateString(),
-
+                MaxDistance = res.patient.MaximumDistance
 
             };
         }
