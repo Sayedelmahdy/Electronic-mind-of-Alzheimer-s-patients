@@ -77,5 +77,20 @@ namespace API.Controllers
             }
             return Ok(res.ToList());
         }
+        [HttpGet("GetMedia")]
+        public async Task<IActionResult> GetMedia()
+        {
+            var token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Invalid Token");
+            }
+            var res = await _patientService.GetMediaAsync(token);
+            if(!res.Any() || res == null)
+            {
+                return NotFound("No Media Yet .. ");
+            }
+            return Ok(res.ToList());
+        }
     }
 }
