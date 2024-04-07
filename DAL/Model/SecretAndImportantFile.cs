@@ -12,10 +12,12 @@ namespace DAL.Model
     public class SecretAndImportantFile
     {
         [Key]
-        public string File_Id { get; set; }
+        public string File_Id { get; set; } = Guid.NewGuid().ToString();
         public string FileName { get; set; }
         public string File_Description { get; set; }
         public string DocumentPath { get; set; }
+        public bool hasPermission { get; set; } = false;
+        public DateTime permissionEndDate { get; set; }
         #region Navigation Prop
         public Patient patient { get; set; }
         [ForeignKey(nameof(Patient))]

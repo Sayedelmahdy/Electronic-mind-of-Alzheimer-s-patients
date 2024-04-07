@@ -53,13 +53,10 @@ namespace BLL.Services
             _env = env;
         }
 
-        public Task<GlobalResponse> AddPatientToSignalRGroup(string patientId)
-        {
-            throw new NotImplementedException();
-        }
+       
         public async Task<GetPatientProfileDto> GetPatientProfileAsync(string token)
         {
-            string patientid = _jwtDecode.GetUserIdFromToken(token);
+            string? patientid = _jwtDecode.GetUserIdFromToken(token);
 
             if(patientid == null)
             {
@@ -170,7 +167,7 @@ namespace BLL.Services
         }
         public async Task<IEnumerable<GetMediaforPatientDto>> GetMediaAsync(string token)
         {
-            string PatientId = _jwtDecode.GetUserIdFromToken(token);
+            string? PatientId = _jwtDecode.GetUserIdFromToken(token);
             if (PatientId == null)
             {
                 return Enumerable.Empty<GetMediaforPatientDto>();
@@ -200,6 +197,31 @@ namespace BLL.Services
             string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
 
             return $"{baseUrl}/{relativePath}";
+        }
+
+        public Task<GlobalResponse> AddGameScoreAsync(string token, PostGameScoreDto gameScoreDto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<GetGameScoresDto> GetGameScoresDto(string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<GlobalResponse> AddSecretFileAsync(string token, PostSecretFileDto secretFileDto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<GlobalResponse> AskToViewSecretFileAsync(string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<GetSecretFileDto> GetSecretFileAsync(string token)
+        {
+            throw new NotImplementedException();
         }
     }
 }

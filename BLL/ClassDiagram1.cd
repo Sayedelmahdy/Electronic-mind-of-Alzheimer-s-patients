@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="BLL.Services.AuthService" BaseTypeListCollapsed="true">
+    <Position X="17.5" Y="7" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>gAAABAAAAAgAQAAABAAAABAgAAAAAAAgAAAAARAAEAo=</HashCode>
+      <FileName>Services\AuthService.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="BLL.Services.CaregiverService" BaseTypeListCollapsed="true">
+    <Position X="10.5" Y="0.5" Width="5.5" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAAwYAAAAAEAAAACAAABBAgAAABAAEAABgBAQQ=</HashCode>
+      <FileName>Services\CaregiverService.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="BLL.Services.DecodeJwt" BaseTypeListCollapsed="true">
+    <Position X="10.5" Y="11" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAA=</HashCode>
+      <FileName>Services\DecodeJwt.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="BLL.Services.FamilyService" BaseTypeListCollapsed="true">
+    <Position X="16.75" Y="0.5" Width="5" />
+    <TypeIdentifier>
+      <HashCode>oAAABkAJAAAACAAAAAAAAJMAABACAAAgQAAAARwBEAM=</HashCode>
+      <FileName>Services\FamilyService.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="BLL.Services.MailService" BaseTypeListCollapsed="true">
+    <Position X="14.75" Y="11" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAA=</HashCode>
+      <FileName>Services\MailService.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="BLL.Services.PatientService" BaseTypeListCollapsed="true">
+    <Position X="10.5" Y="5.25" Width="5.5" />
+    <TypeIdentifier>
+      <HashCode>gAAgAAgAEEAAAAAAgAAAAJEAABAAAgAAEAACEiwBEAA=</HashCode>
+      <FileName>Services\PatientService.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Interface Name="BLL.Interfaces.IPatientService">
+    <Position X="4.75" Y="0.5" Width="5.5" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAgAAEAAAAAAgAAAAIAAAAAAAgAAEAAAECQAAAA=</HashCode>
+      <FileName>Interfaces\IPatientService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="BLL.Interfaces.IAuthService">
+    <Position X="0.75" Y="0.5" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAABAAAAAAAAAAAAAAgAAAAABAAAAo=</HashCode>
+      <FileName>Interfaces\IAuthService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="BLL.Interfaces.ICaregiverService">
+    <Position X="4.75" Y="3" Width="5.5" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAAgQAAAAAEAAAACAAAAAAgAAABAAAAAAgAAQQ=</HashCode>
+      <FileName>Interfaces\ICaregiverService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="BLL.Interfaces.IDecodeJwt">
+    <Position X="2.25" Y="3.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces\IDecodeJwt.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="BLL.Interfaces.IMailService">
+    <Position X="0.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAA=</HashCode>
+      <FileName>Interfaces\IMailService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="BLL.Interfaces.IFamilyService">
+    <Position X="5.25" Y="6.25" Width="5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAkAJAAAACAAAAAAAAAIAAAACAAAAQAAAAAQAAAE=</HashCode>
+      <FileName>Interfaces\IFamilyService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

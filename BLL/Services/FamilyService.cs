@@ -68,7 +68,6 @@ namespace BLL.Services
             _userManager = user;
         }
 
-        
         public async Task<string?> GetPatientCode(string token)
         {
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
