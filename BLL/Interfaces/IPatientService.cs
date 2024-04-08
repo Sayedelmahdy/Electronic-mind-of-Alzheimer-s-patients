@@ -23,5 +23,6 @@ namespace BLL.Interfaces
         Task<GlobalResponse> AddSecretFileAsync(string token, PostSecretFileDto secretFileDto);
         Task<GlobalResponse> AskToViewSecretFileAsync(string token);
         Task<GetSecretFileDto> GetSecretFileAsync(string token);
+        //Task<GetGameScoresDto> GetGameScoresAsync2(string token);
     }
 }
