@@ -30,6 +30,7 @@ namespace BLL.Services
         private readonly IBaseRepository<Media> _media;
         private readonly Mail _mail;
         private readonly IWebHostEnvironment _env;
+        private readonly IBaseRepository<GameScore> _gameScore;
         public PatientService
             (
             IHubContext<MedicineReminderHub> hubContext, IDecodeJwt jwtDecode,
@@ -39,7 +40,8 @@ namespace BLL.Services
             IBaseRepository<Family>family,
             IBaseRepository<Media>media,
              IWebHostEnvironment env,
-              IOptions<Mail> Mail
+              IOptions<Mail> Mail,
+            IBaseRepository<GameScore> gameScore
             )
         {
             _hubContext = hubContext;
@@ -51,6 +53,7 @@ namespace BLL.Services
             _media = media;
             _mail = Mail.Value;
             _env = env;
+            _gameScore = gameScore;
         }
 
        
@@ -199,14 +202,132 @@ namespace BLL.Services
             return $"{baseUrl}/{relativePath}";
         }
 
-        public Task<GlobalResponse> AddGameScoreAsync(string token, PostGameScoreDto gameScoreDto)
+        public async Task<GlobalResponse> AddGameScoreAsync(string token, PostGameScoreDto gameScoreDto)
         {
-            throw new NotImplementedException();
+            string? PatientId = _jwtDecode.GetUserIdFromToken(token);
+            if (PatientId == null)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "Invalid patient Id !"
+                };
+            }
+            var gamescore = new GameScore
+            {
+                GameScoreName = gameScoreDto.GameScoreName,
+                DifficultyGame = gameScoreDto.DifficultyGame,
+                PatientScore = gameScoreDto.PatientScore,
+                MaxScore = gameScoreDto.MaxScore,
+                PatientId = PatientId
+            };
+            await _gameScore.AddAsync(gamescore);
+            string message = gameScoreDto.PatientScore >= gameScoreDto.MaxScore / 2 ? "Congratulations! You did a great job" : "Hard luck! But don't give up, try again ";
+            return new GlobalResponse
+            {
+                HasError = false,
+                message = message
+            };
         }
 
-        public Task<GetGameScoresDto> GetGameScoresDto(string token)
+        public async Task<GetGameScoresDto> GetGameScoresAsync(string token)
         {
-            throw new NotImplementedException();
+            string? PatientId = _jwtDecode.GetUserIdFromToken(token);
+            if (PatientId == null)
+            {
+                return null;
+            }
+            var gamescores = _gameScore.Where(s => s.PatientId == PatientId).ToList();
+
+            if (gamescores == null)
+            {
+                return null;
+            }
+            Dictionary<Difficulty, (int wins, int losses)> difficultyState = new Dictionary<Difficulty, (int wins, int losses)>();
+
+
+            var groupedGamescores = gamescores.GroupBy(s => s.DifficultyGame);
+            int recommendedDifficulty = 0;
+
+            foreach ( var group in groupedGamescores)
+            {
+                var diff = group.Key;
+
+
+                int wins = 0;
+                int losses = 0;
+
+                foreach (var score in group)
+                {
+                    if(score.PatientScore >= score.MaxScore / 2)
+                    {
+                        wins++;
+                        losses = 0;
+                    }
+                    else
+                    {
+                        losses++;
+                    }
+                }
+                difficultyState.Add(diff, (wins, losses));
+            }
+            if (difficultyState.ContainsKey(Difficulty.Easy))
+            {
+                if(difficultyState[Difficulty.Easy].wins > 0)
+                {
+                    recommendedDifficulty = (int)Difficulty.Meduim;
+                }
+                else
+                {
+                    recommendedDifficulty = (int)Difficulty.Easy;
+                }
+            }
+
+             if (difficultyState.ContainsKey(Difficulty.Meduim))
+            {
+                if (difficultyState[Difficulty.Meduim].wins > difficultyState[Difficulty.Meduim].losses && difficultyState[Difficulty.Meduim].wins > 0)
+                {
+                    recommendedDifficulty = (int)Difficulty.Hard;
+                    
+                }
+                else if(difficultyState[Difficulty.Meduim].wins < difficultyState[Difficulty.Meduim].losses && difficultyState[Difficulty.Meduim].losses > 1)
+                {
+                    recommendedDifficulty = (int)Difficulty.Easy;
+                    
+                }
+            }
+             if (difficultyState.ContainsKey(Difficulty.Hard))
+            {
+                if (difficultyState[Difficulty.Hard].wins > 0 && difficultyState[Difficulty.Hard].wins > difficultyState[Difficulty.Hard].losses)
+                {
+                    recommendedDifficulty = (int)Difficulty.Hard;
+                    
+                }
+                if(difficultyState[Difficulty.Hard].losses > 1 && difficultyState[Difficulty.Hard].wins < difficultyState[Difficulty.Hard].losses)
+                {
+                    recommendedDifficulty = (int)Difficulty.Meduim;
+                    
+                    
+                }
+                
+            }
+            var gameScoresDto = gamescores.Select(s => new GameScoreDto
+            {
+                GameScoreId = s.GameScoreId,
+                GameScoreName = s.GameScoreName,
+                DifficultyGame = s.DifficultyGame,
+                PatientScore = s.PatientScore,
+                MaxScore = s.MaxScore,
+            }).GroupBy(s=>s.DifficultyGame).ToList();
+            if(gameScoresDto == null)
+            {
+                return null;
+            }
+            return new GetGameScoresDto
+            {
+                GameScore = gameScoresDto,
+                RecomendationDifficulty = recommendedDifficulty
+            };
         }
 
         public Task<GlobalResponse> AddSecretFileAsync(string token, PostSecretFileDto secretFileDto)

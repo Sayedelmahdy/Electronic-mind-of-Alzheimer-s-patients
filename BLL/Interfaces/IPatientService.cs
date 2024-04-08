@@ -19,7 +19,7 @@ namespace BLL.Interfaces
         Task<IEnumerable<MedicationReminderGetDto>> GetMedicationRemindersAsync(string token);
         Task<IEnumerable<GetMediaforPatientDto>> GetMediaAsync(string token);
         Task<GlobalResponse> AddGameScoreAsync(string token, PostGameScoreDto gameScoreDto);
-        Task<GetGameScoresDto> GetGameScoresDto(string token);
+        Task<GetGameScoresDto> GetGameScoresAsync(string token);
         Task<GlobalResponse> AddSecretFileAsync(string token, PostSecretFileDto secretFileDto);
         Task<GlobalResponse> AskToViewSecretFileAsync(string token);
         Task<GetSecretFileDto> GetSecretFileAsync(string token);
