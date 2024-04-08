@@ -318,7 +318,7 @@ namespace BLL.Services
                 DifficultyGame = s.DifficultyGame,
                 PatientScore = s.PatientScore,
                 MaxScore = s.MaxScore,
-            }).GroupBy(s=>s.DifficultyGame).ToList();
+            }).ToList();
             if(gameScoresDto == null)
             {
                 return null;
@@ -328,6 +328,66 @@ namespace BLL.Services
                 GameScore = gameScoresDto,
                 RecomendationDifficulty = recommendedDifficulty
             };
+        }
+        public async Task<GetGameScoresDto> GetGameScoresAsync2(string token)
+        {
+            int recommendedDifficulty = 1;
+            string? PatientId = _jwtDecode.GetUserIdFromToken(token);
+            if (PatientId == null)
+            {
+                return null;
+            }
+            var gamescores = _gameScore.Where(s => s.PatientId == PatientId).ToList();
+
+            if (gamescores == null)
+            {
+                return null;
+            }
+            var gameScoresDto = gamescores.Select(s => new GameScoreDto
+            {
+                GameScoreId = s.GameScoreId,
+                GameScoreName = s.GameScoreName,
+                DifficultyGame = s.DifficultyGame,
+                PatientScore = s.PatientScore,
+                MaxScore = s.MaxScore,
+            }).ToList();
+            Dictionary<Difficulty, double> winRates = new Dictionary<Difficulty, double>
+            {
+                        { Difficulty.Easy, CalculateWinRate(gameScoresDto, Difficulty.Easy) },
+                        { Difficulty.Meduim, CalculateWinRate(gameScoresDto, Difficulty.Meduim) },
+                        { Difficulty.Hard, CalculateWinRate(gameScoresDto, Difficulty.Hard) }
+            };
+            if (winRates[Difficulty.Easy] > 0.7)
+            {
+                recommendedDifficulty = (int)Difficulty.Meduim;
+            }
+            else if (winRates[Difficulty.Meduim] > 0.6)
+            {
+               recommendedDifficulty = (int)Difficulty.Hard;
+            }
+            else if (winRates[Difficulty.Hard] < 0.4)
+            {
+               recommendedDifficulty = (int)Difficulty.Meduim;
+            }
+            else if (winRates[Difficulty.Meduim] < 0.4)
+            {
+                recommendedDifficulty = (int)Difficulty.Easy;
+            }
+            return new GetGameScoresDto
+            {
+                GameScore = gameScoresDto,
+                RecomendationDifficulty = recommendedDifficulty
+            };
+        }
+
+        private double CalculateWinRate(List<GameScoreDto> gameScoresDto, Difficulty difficulty)
+        {
+           
+            var filteredGameScores = gameScoresDto.Where(gs => gs.DifficultyGame == difficulty);      
+            int totalGamesPlayed = filteredGameScores.Count();     
+            int totalWins = filteredGameScores.Count(gs => gs.PatientScore > gs.MaxScore / 2);
+            double winRate = totalGamesPlayed > 0 ? (double)totalWins / totalGamesPlayed : 0;
+            return winRate;
         }
 
         public Task<GlobalResponse> AddSecretFileAsync(string token, PostSecretFileDto secretFileDto)
