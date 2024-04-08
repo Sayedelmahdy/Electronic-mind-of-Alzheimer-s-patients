@@ -50,7 +50,7 @@ namespace BLL.Services
               IOptions<Mail> Mail,
 
               IMailService mailService,
-              IBaseRepository<SecretAndImportantFile> secret
+              IBaseRepository<SecretAndImportantFile> secret,
 
             IBaseRepository<GameScore> gameScore,
             IBaseRepository<Mark_Medicine_Reminder>Mark_Medicine_Reminder
@@ -458,7 +458,7 @@ namespace BLL.Services
             }
             else
             {
-                recommendedDifficulty = totalGamesPlayed[Difficulty.Easy] > totalGamesPlayed[Difficulty.Meduim] ?
+                recommendedDifficulty = CalculateWinRate(gameScoresDto, Difficulty.Easy) > CalculateWinRate(gameScoresDto, Difficulty.Meduim)  ?
                                          (int)Difficulty.Easy : (int)Difficulty.Meduim;
             }
 
@@ -750,9 +750,11 @@ namespace BLL.Services
 
             var MarkMedctaion = new Mark_Medicine_Reminder
             {
+                
                 ReminderId = markMedictaionDto.MedictaionId,
                 IsTaken = markMedictaionDto.IsTaken,
-                MarkTime = DateTime.Now
+                MarkTime = DateTime.Now,
+                
             };
 
             await _Mark_Medicine_Reminder.AddAsync(MarkMedctaion);

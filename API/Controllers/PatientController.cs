@@ -18,6 +18,7 @@ namespace API.Controllers
         {
             _patientService = patientService;
         }
+
         [HttpGet("GetPatientProfile")]
         public async Task<IActionResult> GetPatientProfile()
         {
@@ -33,6 +34,23 @@ namespace API.Controllers
             }
             return Ok(res);
         }
+
+        [HttpGet("GetPatientFamilies")]
+        public async Task<IActionResult> GetPatientFamilies()
+        {
+            var token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Invalid Token");
+            }
+            var res = await _patientService.GetFamiliesAsync(token);
+            if (!res.Any() || res == null)
+            {
+                return NotFound("Have No Families :)");
+            }
+            return Ok(res.ToList());
+        }
+
         [HttpPut("UpdatePatientProfile")]
         public async Task<IActionResult> UpdatePatientProfile([FromBody] UpdatePatientProfileDto updatePatientProfileDto)
         {
@@ -47,6 +65,72 @@ namespace API.Controllers
                 return BadRequest(res.message);
             }
             return Ok(res);
+        }
+
+        [HttpGet("GetFamilyLocation/{familyId}")]
+        public async Task<IActionResult> GetFamilyLocation(string familyId)
+        {
+            var token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Invalid Token");
+            }
+
+            var res = await _patientService.GetFamilyLocation(token, familyId);
+            if (res.Code != 200)
+            {
+                return BadRequest(res.Message);
+            }
+            return Ok(res);
+        }
+
+        [HttpPost("MarkMedicationReminder")]
+        public async Task<IActionResult> MarkMedicationReminder([FromBody] MarkMedictaionDto medicationReminderDto)
+        {
+            var token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Invalid Token");
+            }
+
+            var res = await _patientService.MarkMedicationReminderAsync(token, medicationReminderDto);
+            if (res.HasError)
+            {
+                return BadRequest(res.message);
+            }
+            return Ok(res.message);
+        }
+
+        [HttpPost("AddSecretFile")]
+        public async Task<IActionResult> AddSecretFile([FromForm] PostSecretFileDto addSecretFileDto)
+        {
+            var token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Invalid Token");
+            }
+            var res = await _patientService.AddSecretFileAsync(token, addSecretFileDto);
+            if (res.HasError)
+            {
+                return BadRequest(res.message);
+            }
+            return Ok(res.message);
+        }
+
+        [HttpGet("GetSecretFile")]
+        public async Task<IActionResult> GetSecretFile()
+        {
+            var token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Invalid Token");
+            }
+            var res = await _patientService.GetSecretFilesAsync(token);
+            if (!res.Any() || res == null)
+            {
+                return NotFound("Have No Secret Files :)");
+            }
+            return Ok(res.ToList());
         }
         [HttpGet("GetAllAppointments")]
         public async Task<IActionResult> GetAllAppointments()
