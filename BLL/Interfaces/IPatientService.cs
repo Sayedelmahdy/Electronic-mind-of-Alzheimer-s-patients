@@ -14,9 +14,12 @@ namespace BLL.Interfaces
     {
        
         Task<GetPatientProfileDto> GetPatientProfileAsync(string token);
+        Task<IEnumerable<GetFamiliesDto>> GetFamiliesAsync(string token);
+        Task<GetFamilyLocationDto?> GetFamilyLocation(string token, string familyId);
         Task<GlobalResponse> UpdateProfileAsync(string token, UpdatePatientProfileDto updatePatientProfile);
         Task<IEnumerable<GetAppointmentDto>> GetAppointmentAsync(string token);
         Task<IEnumerable<MedicationReminderGetDto>> GetMedicationRemindersAsync(string token);
+        Task<GlobalResponse> MarkMedicationReminderAsync(string token, MarkMedictaionDto markMedictaionDto);
         Task<IEnumerable<GetMediaforPatientDto>> GetMediaAsync(string token);
         Task<GlobalResponse> AddGameScoreAsync(string token, PostGameScoreDto gameScoreDto);
         Task<GetGameScoresDto> GetGameScoresAsync(string token);

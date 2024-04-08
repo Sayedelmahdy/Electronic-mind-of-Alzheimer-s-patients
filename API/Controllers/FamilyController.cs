@@ -40,6 +40,22 @@ namespace API.Controllers
             }
             return Ok(new {Code = res});
         }
+        [HttpGet("GetPatinetLocationsToday")]
+        public async Task<IActionResult> GetPatinetLocationsToday()
+        {
+            string? token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Token invaild");
+            }
+            var res = await _familyService.GetPatientLocationsTodayAsync(token);
+            if (res == null)
+            {
+                return BadRequest("No Patient Locations Today");
+            }
+            return Ok(res);
+
+        }
         [HttpPut("AssignPatientToFamily")]
         public async Task<IActionResult> AssignPatientToFamily(AssignPatientDto assignPatientDto)
         {

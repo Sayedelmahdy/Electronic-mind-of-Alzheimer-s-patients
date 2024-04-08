@@ -14,8 +14,9 @@ namespace BLL.Helper
             }
             return token;
         }
-        public static string? GetTokenHub(HttpContext httpContext)
+        public static string? GetTokenHub(HttpContext? httpContext)
         {
+            if (httpContext == null) return null;
             string? token = httpContext.Request.Query["access_token"];
             if (!string.IsNullOrEmpty(token) && token.StartsWith("Bearer "))
             {
