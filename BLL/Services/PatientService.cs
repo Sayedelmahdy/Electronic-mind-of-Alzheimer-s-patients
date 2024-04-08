@@ -239,8 +239,170 @@ namespace BLL.Services
                 message = message
             };
         }
+        #region Old get game scores
+        /*     public async Task<GetGameScoresDto> GetGameScoresAsync(string token)
+             {
+                 string? PatientId = _jwtDecode.GetUserIdFromToken(token);
+                 if (PatientId == null)
+                 {
+                     return null;
+                 }
+                 var gamescores = _gameScore.Where(s => s.PatientId == PatientId).ToList();
 
-        public async Task<GetGameScoresDto> GetGameScoresAsync(string token)
+                 if (gamescores == null)
+                 {
+                     return null;
+                 }
+                 Dictionary<Difficulty, (int wins, int losses)> difficultyState = new Dictionary<Difficulty, (int wins, int losses)>();
+
+
+                 var groupedGamescores = gamescores.GroupBy(s => s.DifficultyGame);
+                 int recommendedDifficulty = 0;
+
+                 foreach ( var group in groupedGamescores)
+                 {
+                     var diff = group.Key;
+
+
+                     int wins = 0;
+                     int losses = 0;
+
+                     foreach (var score in group)
+                     {
+                         if(score.PatientScore >= score.MaxScore / 2)
+                         {
+                             wins++;
+                             losses = 0;
+                         }
+                         else
+                         {
+                             losses++;
+                         }
+                     }
+                     difficultyState.Add(diff, (wins, losses));
+                 }
+                 if (difficultyState.ContainsKey(Difficulty.Easy))
+                 {
+                     if(difficultyState[Difficulty.Easy].wins > 0)
+                     {
+                         recommendedDifficulty = (int)Difficulty.Meduim;
+                     }
+                     else
+                     {
+                         recommendedDifficulty = (int)Difficulty.Easy;
+                     }
+                 }
+
+                  if (difficultyState.ContainsKey(Difficulty.Meduim))
+                 {
+                     if (difficultyState[Difficulty.Meduim].wins > difficultyState[Difficulty.Meduim].losses && difficultyState[Difficulty.Meduim].wins > 0)
+                     {
+                         recommendedDifficulty = (int)Difficulty.Hard;
+
+                     }
+                     else if(difficultyState[Difficulty.Meduim].wins < difficultyState[Difficulty.Meduim].losses && difficultyState[Difficulty.Meduim].losses > 1)
+                     {
+                         recommendedDifficulty = (int)Difficulty.Easy;
+
+                     }
+                 }
+                  if (difficultyState.ContainsKey(Difficulty.Hard))
+                 {
+                     if (difficultyState[Difficulty.Hard].wins > 0 && difficultyState[Difficulty.Hard].wins > difficultyState[Difficulty.Hard].losses)
+                     {
+                         recommendedDifficulty = (int)Difficulty.Hard;
+
+                     }
+                     if(difficultyState[Difficulty.Hard].losses > 1 && difficultyState[Difficulty.Hard].wins < difficultyState[Difficulty.Hard].losses)
+                     {
+                         recommendedDifficulty = (int)Difficulty.Meduim;
+
+
+                     }
+
+                 }
+                 var gameScoresDto = gamescores.Select(s => new GameScoreDto
+                 {
+                     GameScoreId = s.GameScoreId,
+                     GameScoreName = s.GameScoreName,
+                     DifficultyGame = s.DifficultyGame,
+                     PatientScore = s.PatientScore,
+                     MaxScore = s.MaxScore,
+                 }).ToList();
+                 if(gameScoresDto == null)
+                 {
+                     return null;
+                 }
+                 return new GetGameScoresDto
+                 {
+                     GameScore = gameScoresDto,
+                     RecomendationDifficulty = recommendedDifficulty
+                 };
+             }
+             public async Task<GetGameScoresDto> GetGameScoresAsync2(string token)
+             {
+                 int recommendedDifficulty = 1;
+                 string? PatientId = _jwtDecode.GetUserIdFromToken(token);
+                 if (PatientId == null)
+                 {
+                     return null;
+                 }
+                 var gamescores = _gameScore.Where(s => s.PatientId == PatientId).ToList();
+
+                 if (gamescores == null)
+                 {
+                     return null;
+                 }
+                 var gameScoresDto = gamescores.Select(s => new GameScoreDto
+                 {
+                     GameScoreId = s.GameScoreId,
+                     GameScoreName = s.GameScoreName,
+                     DifficultyGame = s.DifficultyGame,
+                     PatientScore = s.PatientScore,
+                     MaxScore = s.MaxScore,
+                 }).ToList();
+                 Dictionary<Difficulty, double> winRates = new Dictionary<Difficulty, double>
+                 {
+                             { Difficulty.Easy, CalculateWinRate(gameScoresDto, Difficulty.Easy) },
+                             { Difficulty.Meduim, CalculateWinRate(gameScoresDto, Difficulty.Meduim) },
+                             { Difficulty.Hard, CalculateWinRate(gameScoresDto, Difficulty.Hard) }
+                 };
+                 if (winRates[Difficulty.Easy] > 0.7)
+                 {
+                     recommendedDifficulty = (int)Difficulty.Meduim;
+                 }
+                  if (winRates[Difficulty.Meduim] > 0.6)
+                 {
+                    recommendedDifficulty = (int)Difficulty.Hard;
+                 }
+                  if (winRates[Difficulty.Hard] < 0.4)
+                 {
+                    recommendedDifficulty = (int)Difficulty.Meduim;
+                 }
+                  if (winRates[Difficulty.Meduim] < 0.4)
+                 {
+                     recommendedDifficulty = (int)Difficulty.Easy;
+                 }
+                 return new GetGameScoresDto
+                 {
+                     GameScore = gameScoresDto,
+                     RecomendationDifficulty = recommendedDifficulty
+                 };
+             }
+
+             private double CalculateWinRate(List<GameScoreDto> gameScoresDto, Difficulty difficulty)
+             {
+
+                 var filteredGameScores = gameScoresDto.Where(gs => gs.DifficultyGame == difficulty);      
+                 int totalGamesPlayed = filteredGameScores.Count();     
+                 int totalWins = filteredGameScores.Count(gs => gs.PatientScore > gs.MaxScore / 2);
+                 double winRate = totalGamesPlayed > 0 ? (double)totalWins / totalGamesPlayed : 0;
+                 return winRate;
+             }*/
+        #endregion
+
+     
+        public Task<GetGameScoresDto> GetGameScoresAsync(string token)
         {
             string? PatientId = _jwtDecode.GetUserIdFromToken(token);
             if (PatientId == null)
@@ -253,163 +415,72 @@ namespace BLL.Services
             {
                 return null;
             }
-            Dictionary<Difficulty, (int wins, int losses)> difficultyState = new Dictionary<Difficulty, (int wins, int losses)>();
+            var gameScoresDto = gamescores.Select(s => new GameScoreDto
+            {
+                GameScoreId = s.GameScoreId,
+                GameScoreName = s.GameScoreName,
+                DifficultyGame = s.DifficultyGame,
+                PatientScore = s.PatientScore,
+                MaxScore = s.MaxScore
+            }).ToList();
+            var winRates = new Dictionary<Difficulty, double>
+            {
+                { Difficulty.Easy, CalculateWinRate(gameScoresDto, Difficulty.Easy) },
+                { Difficulty.Meduim, CalculateWinRate(gameScoresDto, Difficulty.Meduim) },
+                { Difficulty.Hard, CalculateWinRate(gameScoresDto, Difficulty.Hard) }
+            };
 
 
-            var groupedGamescores = gamescores.GroupBy(s => s.DifficultyGame);
             int recommendedDifficulty = 0;
-
-            foreach ( var group in groupedGamescores)
+            if (winRates[Difficulty.Easy] > 0.7)
             {
-                var diff = group.Key;
-
-
-                int wins = 0;
-                int losses = 0;
-
-                foreach (var score in group)
-                {
-                    if(score.PatientScore >= score.MaxScore / 2)
-                    {
-                        wins++;
-                        losses = 0;
-                    }
-                    else
-                    {
-                        losses++;
-                    }
-                }
-                difficultyState.Add(diff, (wins, losses));
+                recommendedDifficulty = (int)Difficulty.Meduim;
             }
-            if (difficultyState.ContainsKey(Difficulty.Easy))
+            if (winRates[Difficulty.Meduim] > 0.6)
             {
-                if(difficultyState[Difficulty.Easy].wins > 0)
+                recommendedDifficulty = (int)Difficulty.Hard;
+            }
+             if (winRates[Difficulty.Hard] < 0.4) 
+            {
+                
+                if (winRates[Difficulty.Meduim] > 0.4)
                 {
-                    recommendedDifficulty = (int)Difficulty.Meduim;
+                    recommendedDifficulty = (int)Difficulty.Hard; 
+                    winRates[Difficulty.Hard] = 0;
                 }
+               
                 else
                 {
-                    recommendedDifficulty = (int)Difficulty.Easy;
+                    recommendedDifficulty = (int)Difficulty.Meduim; 
                 }
-            }
+               
 
-             if (difficultyState.ContainsKey(Difficulty.Meduim))
-            {
-                if (difficultyState[Difficulty.Meduim].wins > difficultyState[Difficulty.Meduim].losses && difficultyState[Difficulty.Meduim].wins > 0)
-                {
-                    recommendedDifficulty = (int)Difficulty.Hard;
-                    
-                }
-                else if(difficultyState[Difficulty.Meduim].wins < difficultyState[Difficulty.Meduim].losses && difficultyState[Difficulty.Meduim].losses > 1)
-                {
-                    recommendedDifficulty = (int)Difficulty.Easy;
-                    
-                }
-            }
-             if (difficultyState.ContainsKey(Difficulty.Hard))
-            {
-                if (difficultyState[Difficulty.Hard].wins > 0 && difficultyState[Difficulty.Hard].wins > difficultyState[Difficulty.Hard].losses)
-                {
-                    recommendedDifficulty = (int)Difficulty.Hard;
-                    
-                }
-                if(difficultyState[Difficulty.Hard].losses > 1 && difficultyState[Difficulty.Hard].wins < difficultyState[Difficulty.Hard].losses)
-                {
-                    recommendedDifficulty = (int)Difficulty.Meduim;
-                    
-                    
-                }
-                
-            }
-            var gameScoresDto = gamescores.Select(s => new GameScoreDto
-            {
-                GameScoreId = s.GameScoreId,
-                GameScoreName = s.GameScoreName,
-                DifficultyGame = s.DifficultyGame,
-                PatientScore = s.PatientScore,
-                MaxScore = s.MaxScore,
-            }).ToList();
-            if(gameScoresDto == null)
-            {
-                return null;
-            }
-            return new GetGameScoresDto
-            {
-                GameScore = gameScoresDto,
-                RecomendationDifficulty = recommendedDifficulty
-            };
-        }
-        public async Task<GetGameScoresDto> GetGameScoresAsync2(string token)
-        {
-            int recommendedDifficulty = 1;
-            string? PatientId = _jwtDecode.GetUserIdFromToken(token);
-            if (PatientId == null)
-            {
-                return null;
-            }
-            var gamescores = _gameScore.Where(s => s.PatientId == PatientId).ToList();
-
-            if (gamescores == null)
-            {
-                return null;
-            }
-            var gameScoresDto = gamescores.Select(s => new GameScoreDto
-            {
-                GameScoreId = s.GameScoreId,
-                GameScoreName = s.GameScoreName,
-                DifficultyGame = s.DifficultyGame,
-                PatientScore = s.PatientScore,
-                MaxScore = s.MaxScore,
-            }).ToList();
-            Dictionary<Difficulty, double> winRates = new Dictionary<Difficulty, double>
-            {
-                        { Difficulty.Easy, CalculateWinRate(gameScoresDto, Difficulty.Easy) },
-                        { Difficulty.Meduim, CalculateWinRate(gameScoresDto, Difficulty.Meduim) },
-                        { Difficulty.Hard, CalculateWinRate(gameScoresDto, Difficulty.Hard) }
-            };
-          
-            var highestWinRateDifficulty = winRates.OrderByDescending(kv => kv.Value).First().Key;
-
-          
-            var totalGamesPlayed = new Dictionary<Difficulty, int>
-            {
-                { Difficulty.Easy, gameScoresDto.Count(s => s.DifficultyGame == Difficulty.Easy) },
-                { Difficulty.Meduim, gameScoresDto.Count(s => s.DifficultyGame == Difficulty.Meduim) },
-                { Difficulty.Hard, gameScoresDto.Count(s => s.DifficultyGame == Difficulty.Hard) }
-            };
-            if (highestWinRateDifficulty == Difficulty.Easy)
-            {
-                recommendedDifficulty = totalGamesPlayed[Difficulty.Meduim] > totalGamesPlayed[Difficulty.Hard] ?
-                                         (int)Difficulty.Meduim : (int)Difficulty.Hard;
-            }
-            else if (highestWinRateDifficulty == Difficulty.Meduim)
-            {
-                recommendedDifficulty = totalGamesPlayed[Difficulty.Easy] > totalGamesPlayed[Difficulty.Hard] ?
-                                         (int)Difficulty.Easy : (int)Difficulty.Hard;
             }
             else
             {
                 recommendedDifficulty = totalGamesPlayed[Difficulty.Easy] > totalGamesPlayed[Difficulty.Meduim] ?
                                          (int)Difficulty.Easy : (int)Difficulty.Meduim;
             }
-            return new GetGameScoresDto
+
+            return Task.FromResult(new GetGameScoresDto
             {
                 GameScore = gameScoresDto,
                 RecomendationDifficulty = recommendedDifficulty
-            };
-        }
+            });
 
+        }
         private double CalculateWinRate(List<GameScoreDto> gameScoresDto, Difficulty difficulty)
         {
-           
-            var filteredGameScores = gameScoresDto.Where(gs => gs.DifficultyGame == difficulty);      
-            int totalGamesPlayed = filteredGameScores.Count();     
+            var filteredGameScores = gameScoresDto.Where(gs => gs.DifficultyGame == difficulty);
+            int totalGamesPlayed = filteredGameScores.Count();
             int totalWins = filteredGameScores.Count(gs => gs.PatientScore > gs.MaxScore / 2);
             double winRate = totalGamesPlayed > 0 ? (double)totalWins / totalGamesPlayed : 0;
             return winRate;
         }
 
+
         public async Task<GlobalResponse> AddSecretFileAsync(string token, PostSecretFileDto secretFileDto)
+
         {
             try
             {
