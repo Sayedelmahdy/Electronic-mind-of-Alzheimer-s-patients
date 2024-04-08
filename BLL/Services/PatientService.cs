@@ -8,6 +8,7 @@ using BLL.Interfaces;
 using DAL.Interfaces;
 using DAL.Model;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -31,6 +32,7 @@ namespace BLL.Services
         private readonly Mail _mail;
         private readonly IWebHostEnvironment _env;
         private readonly IBaseRepository<SecretAndImportantFile> _secret;
+        private readonly IMailService _mailService;
         public PatientService
             (
             IHubContext<MedicineReminderHub> hubContext, IDecodeJwt jwtDecode,
@@ -41,6 +43,7 @@ namespace BLL.Services
             IBaseRepository<Media> media,
              IWebHostEnvironment env,
               IOptions<Mail> Mail,
+              IMailService mailService,
               IBaseRepository<SecretAndImportantFile> secret
             )
         {
@@ -54,6 +57,7 @@ namespace BLL.Services
             _mail = Mail.Value;
             _env = env;
             _secret = secret;
+            _mailService = mailService;
         }
 
 
@@ -227,7 +231,7 @@ namespace BLL.Services
                 }           
                 string fileID = Guid.NewGuid().ToString();
                 string filepath = Path.Combine( patientId, $"{patientId }_{fileID}{Path.GetExtension(secretFileDto.FileName)}");
-                string directorypath = Path.Combine(_env.WebRootPath, patientId);
+                string directorypath = Path.Combine(_env.WebRootPath, patientId,"SecretFiles");
                 if (!Directory.Exists(directorypath))
                 {
                     Directory.CreateDirectory(directorypath);
@@ -246,6 +250,7 @@ namespace BLL.Services
                     File_Description = secretFileDto.File_Description,
                     DocumentPath = Path.Combine(_env.WebRootPath, filepath),
                     permissionEndDate = DateTime.Now.AddDays(1),
+                    hasPermission = true
                    
                 };
 
@@ -272,15 +277,189 @@ namespace BLL.Services
 
 
 
-        public Task<GlobalResponse> AskToViewSecretFileAsync(string token)
+        public async Task<GlobalResponse> AskToViewSecretFileAsync(string token, IFormFile videoFile)
         {
-            throw new NotImplementedException();
+            try
+            {
+                string patientId = _jwtDecode.GetUserIdFromToken(token);
+                
+                if (patientId == null)
+                {
+                    return new GlobalResponse
+                    {
+                        HasError = true,
+                        message = "Invalid patient ID"
+                    };
+                }
+
+                // Check if the video file is null or empty
+                if (videoFile == null || videoFile.Length == 0)
+                {
+                    return new GlobalResponse
+                    {
+                        HasError = true,
+                        message = "Video file is empty"
+                    };
+                }
+
+                // Save the video file and get the File_Id
+                string filepath = await SaveVideoAsync(patientId, videoFile);
+                var patient = await _patient.GetByIdAsync(patientId);
+                if (filepath != null)
+                {
+                    // Video saved successfully, return the File_Id for further processing
+                  var result =   await _mailService.SendEmailAsync("hazemzizo@gmail.com", _mail.FromMail, _mail.Password, $"Patient{patient.FullName} has sent a request to view his secret files", $"Video uploaded successfully for review. video Link: {GetMediaUrl(filepath)}");
+                    if (result == true)
+                    {
+                        return new GlobalResponse
+                        {
+                            HasError = false,
+                            message = $"Video uploaded successfully for review. File ID: {filepath}"
+                        };
+                    }
+                    else
+                    {
+                        return new GlobalResponse
+                        {
+                            HasError = true,
+                            message = "Failed to save the video, Try again later"
+                        };
+                    }
+                   
+                }
+                else
+                {
+                    return new GlobalResponse
+                    {
+                        HasError = true,
+                        message = "Failed to save the video"
+                    };
+                }
+            }
+            catch 
+            {
+                // Handle exceptions
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "An error occurred " 
+                };
+            }
         }
 
-        public Task<GetSecretFileDto> GetSecretFileAsync(string token)
+
+        private async Task<string> SaveVideoAsync(string patientId, IFormFile videoFile)
         {
-            throw new NotImplementedException();
+            try
+            {
+                string fileID = Guid.NewGuid().ToString();
+                string fileName = $"{patientId}_{fileID}{Path.GetExtension(videoFile.FileName)}";
+
+                string directoryPath = Path.Combine(_env.WebRootPath, patientId,"VideoForReview");
+
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+
+                string filePath = Path.Combine(directoryPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await videoFile.CopyToAsync(stream);
+                    stream.Flush(); 
+                }
+                return filePath;
+            }
+            catch 
+            {
+                return "Error saving video file";
+            }
         }
-        
+        public async Task<GlobalResponse> ApproveVideoAsync(string fileId)
+        {
+            try
+            {
+                var secretFile = await _secret.FindAsync(s => s.File_Id == fileId);
+                if (secretFile == null)
+                {
+                    return new GlobalResponse
+                    {
+                        HasError = true,
+                        message = "Secret file not found"
+                    };
+                }
+                secretFile.hasPermission = true;
+                secretFile.permissionEndDate = DateTime.Now.AddDays(1);
+                
+                await _secret.UpdateAsync(secretFile);
+
+                return new GlobalResponse
+                {
+                    HasError = false,
+                    message = "Secret file permission updated successfully"
+                };
+            }
+            catch 
+            {
+                
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "there is an error in approving the secret file"
+                };
+            }
+        }
+        public async Task<IEnumerable<GetSecretFIleDTO>> GetSecretFilesAsync(string token)
+        {
+            try
+            {
+                
+                if (string.IsNullOrEmpty(token))
+                {
+                    return Enumerable.Empty<GetSecretFIleDTO>();
+                }
+
+                string patientId = _jwtDecode.GetUserIdFromToken(token);
+
+                if (string.IsNullOrEmpty(patientId))
+                {
+                    return Enumerable.Empty<GetSecretFIleDTO>();
+                }
+
+                var patient = await _patient.GetByIdAsync(patientId);
+
+                if (patient == null)
+                {
+                    return Enumerable.Empty<GetSecretFIleDTO>();
+                }
+
+                var secretFiles = await _secret.WhereAsync(s => s.PatientId == patientId && s.hasPermission);
+
+                if (secretFiles == null || !secretFiles.Any())
+                {
+                    return Enumerable.Empty<GetSecretFIleDTO>();
+                }
+
+                var result = secretFiles.Select(s => new GetSecretFIleDTO
+                {
+                    SecretId = s.File_Id,
+                    FileName = s.FileName,
+                    File_Description = s.File_Description,
+                    DocumentUrl = GetMediaUrl(s.DocumentPath),
+                    HasError = false
+                }).ToList();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred in GetSecretFilesAsync: {ex.Message}");
+                return Enumerable.Empty<GetSecretFIleDTO>();
+            }
+        }
+
+
+
     }
 }
