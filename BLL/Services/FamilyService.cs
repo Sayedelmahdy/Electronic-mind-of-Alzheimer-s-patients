@@ -28,6 +28,7 @@ namespace BLL.Services
         private readonly IBaseRepository<Patient> _patient;
         private readonly IBaseRepository<Caregiver> _caregiver;
         private readonly IBaseRepository<Appointment> _Appointments;
+        private readonly IBaseRepository<Location> _location;
         private readonly IDecodeJwt _jwtDecode;
         private readonly IWebHostEnvironment _env;
         private readonly JWT _jwt;
@@ -44,6 +45,7 @@ namespace BLL.Services
             IBaseRepository<Caregiver>caregiver,     
 
             IBaseRepository<Appointment>appointment,
+            IBaseRepository<Location>location,
             IDecodeJwt jwtDecode,  
             IWebHostEnvironment env,
               IOptions<Mail> Mail,
@@ -66,6 +68,7 @@ namespace BLL.Services
             _mailService = mailService;
             _appointmentHub = appointmentHub;
             _userManager = user;
+            _location = location;
         }
 
         public async Task<string?> GetPatientCode(string token)
@@ -281,7 +284,9 @@ namespace BLL.Services
                 DiagnosisDate = addPatientDto.DiagnosisDate.ToDateTime(TimeOnly.MinValue),
                 PhoneNumber = addPatientDto.PhoneNumber,
                 FamilyCreatedId=FamilyId,
-                MaximumDistance = addPatientDto.MaximumDistance
+                MaximumDistance = addPatientDto.MaximumDistance,
+                MainLatitude = addPatientDto.MainLatitude,
+                MainLongitude = addPatientDto.MainLongitude,
             };
             var Created = await _userManager.CreateAsync(patient, addPatientDto.Password);
             if (Created == null || !Created.Succeeded)
@@ -604,6 +609,27 @@ namespace BLL.Services
                 HasError = false,
                 message = "Patient Assigned to Caregiver succesfully"
             };
+        }
+
+       
+        public async Task<IEnumerable<LocationDto>> GetPatientLocationsTodayAsync(string token)
+        {
+            string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
+            if (FamilyId == null)
+            {
+              
+            }
+            var Family = _family.GetById(FamilyId);
+            if (Family == null)
+            {
+                return Enumerable.Empty<LocationDto>();
+            }
+            var result = await _location.WhereAsync(p => p.PatientId == Family.PatientId && p.Timestamp.Date.Day == DateTime.Now.Date.Day && p.Timestamp.Date.Year == DateTime.Now.Date.Year && p.Timestamp.Date.Month == DateTime.Now.Date.Month);
+            return result.Select(p => new LocationDto
+            {
+                Latitude = p.Latitude,
+                Longitude = p.Longitude,
+            }).ToList();
         }
     }
 

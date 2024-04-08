@@ -1,4 +1,5 @@
-﻿using BLL.DTOs.FamilyDto;
+﻿using BLL.DTOs;
+using BLL.DTOs.FamilyDto;
 using BLL.Helper;
 using BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -92,5 +93,36 @@ namespace API.Controllers
             }
             return Ok(res.ToList());
         }
+        [HttpGet("GetAllGameScores")]
+        public async Task<IActionResult> GetAllGameScores()
+        {
+            var token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Invalid Token");
+            }
+            var res = await _patientService.GetGameScoresAsync(token);
+            if( res == null || res.GameScore == null || !res.GameScore.Any())
+            {
+                return NotFound("No Game Scores Yet .. ");
+            }
+            return Ok(res);
+        }
+        [HttpPost("AddGameScore")]
+        public async Task<IActionResult> AddGameScore([FromForm] PostGameScoreDto addGameScoreDto)
+        {
+            var token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Invalid Token");
+            }
+            var res = await _patientService.AddGameScoreAsync(token, addGameScoreDto);
+            if (res.HasError)
+            {
+                return BadRequest(res.message);
+            }
+            return Ok(res);
+        }
+
     }
 }

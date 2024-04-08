@@ -12,10 +12,11 @@ namespace DAL.Model
     {
         [Key]
         public string MarkId { get; set; } = Guid.NewGuid().ToString();
-        public Medication_Reminders medication_Reminder { get; set; }
-        [ForeignKey(nameof(Medication_Reminders))]
-        public int ReminderId { get; set; }
         public bool IsTaken { get; set; }
         public DateTime MarkTime { get; set; }
+
+        [ForeignKey(nameof(Medication_Reminders))]
+        public string ReminderId { get; set; }
+        public Medication_Reminders medication_Reminder { get; set; }
     }
 }

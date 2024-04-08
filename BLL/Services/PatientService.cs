@@ -25,14 +25,19 @@ namespace BLL.Services
         public IHubContext<MedicineReminderHub> _hubContext { get; }
         private readonly IBaseRepository<Patient> _patient;
         private readonly IBaseRepository<Medication_Reminders> _medicines;
+        private readonly IBaseRepository<Mark_Medicine_Reminder> _Mark_Medicine_Reminder;
         private readonly IBaseRepository<Appointment> _appointments;
         private readonly IBaseRepository<Family> _family;
         private readonly IDecodeJwt _jwtDecode;
         private readonly IBaseRepository<Media> _media;
         private readonly Mail _mail;
         private readonly IWebHostEnvironment _env;
+
         private readonly IBaseRepository<SecretAndImportantFile> _secret;
         private readonly IMailService _mailService;
+
+        private readonly IBaseRepository<GameScore> _gameScore;
+
         public PatientService
             (
             IHubContext<MedicineReminderHub> hubContext, IDecodeJwt jwtDecode,
@@ -43,8 +48,13 @@ namespace BLL.Services
             IBaseRepository<Media> media,
              IWebHostEnvironment env,
               IOptions<Mail> Mail,
+
               IMailService mailService,
               IBaseRepository<SecretAndImportantFile> secret
+
+            IBaseRepository<GameScore> gameScore,
+            IBaseRepository<Mark_Medicine_Reminder>Mark_Medicine_Reminder
+
             )
         {
             _hubContext = hubContext;
@@ -56,8 +66,13 @@ namespace BLL.Services
             _media = media;
             _mail = Mail.Value;
             _env = env;
+
             _secret = secret;
             _mailService = mailService;
+
+            _gameScore = gameScore;
+            _Mark_Medicine_Reminder = Mark_Medicine_Reminder;
+
         }
 
 
@@ -196,24 +211,202 @@ namespace BLL.Services
             }).ToList();
             return res;
         }
-        private string GetMediaUrl(string imagePath)
+       
+        public async Task<GlobalResponse> AddGameScoreAsync(string token, PostGameScoreDto gameScoreDto)
         {
-            // Assuming imagePath contains the relative path to the Media within the web root
-            // Construct the URL based on your application's routing configuration
-            string baseUrl = _mail.ServerLink; // Replace with your actual base URL
-            string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
-
-            return $"{baseUrl}/{relativePath}";
+            string? PatientId = _jwtDecode.GetUserIdFromToken(token);
+            if (PatientId == null)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "Invalid patient Id !"
+                };
+            }
+            var gamescore = new GameScore
+            {
+                GameScoreName = gameScoreDto.GameScoreName,
+                DifficultyGame = gameScoreDto.DifficultyGame,
+                PatientScore = gameScoreDto.PatientScore,
+                MaxScore = gameScoreDto.MaxScore,
+                PatientId = PatientId
+            };
+            await _gameScore.AddAsync(gamescore);
+            string message = gameScoreDto.PatientScore >= gameScoreDto.MaxScore / 2 ? "Congratulations! You did a great job" : "Hard luck! But don't give up, try again ";
+            return new GlobalResponse
+            {
+                HasError = false,
+                message = message
+            };
         }
 
-        public Task<GlobalResponse> AddGameScoreAsync(string token, PostGameScoreDto gameScoreDto)
+        public async Task<GetGameScoresDto> GetGameScoresAsync(string token)
         {
-            throw new NotImplementedException();
+            string? PatientId = _jwtDecode.GetUserIdFromToken(token);
+            if (PatientId == null)
+            {
+                return null;
+            }
+            var gamescores = _gameScore.Where(s => s.PatientId == PatientId).ToList();
+
+            if (gamescores == null)
+            {
+                return null;
+            }
+            Dictionary<Difficulty, (int wins, int losses)> difficultyState = new Dictionary<Difficulty, (int wins, int losses)>();
+
+
+            var groupedGamescores = gamescores.GroupBy(s => s.DifficultyGame);
+            int recommendedDifficulty = 0;
+
+            foreach ( var group in groupedGamescores)
+            {
+                var diff = group.Key;
+
+
+                int wins = 0;
+                int losses = 0;
+
+                foreach (var score in group)
+                {
+                    if(score.PatientScore >= score.MaxScore / 2)
+                    {
+                        wins++;
+                        losses = 0;
+                    }
+                    else
+                    {
+                        losses++;
+                    }
+                }
+                difficultyState.Add(diff, (wins, losses));
+            }
+            if (difficultyState.ContainsKey(Difficulty.Easy))
+            {
+                if(difficultyState[Difficulty.Easy].wins > 0)
+                {
+                    recommendedDifficulty = (int)Difficulty.Meduim;
+                }
+                else
+                {
+                    recommendedDifficulty = (int)Difficulty.Easy;
+                }
+            }
+
+             if (difficultyState.ContainsKey(Difficulty.Meduim))
+            {
+                if (difficultyState[Difficulty.Meduim].wins > difficultyState[Difficulty.Meduim].losses && difficultyState[Difficulty.Meduim].wins > 0)
+                {
+                    recommendedDifficulty = (int)Difficulty.Hard;
+                    
+                }
+                else if(difficultyState[Difficulty.Meduim].wins < difficultyState[Difficulty.Meduim].losses && difficultyState[Difficulty.Meduim].losses > 1)
+                {
+                    recommendedDifficulty = (int)Difficulty.Easy;
+                    
+                }
+            }
+             if (difficultyState.ContainsKey(Difficulty.Hard))
+            {
+                if (difficultyState[Difficulty.Hard].wins > 0 && difficultyState[Difficulty.Hard].wins > difficultyState[Difficulty.Hard].losses)
+                {
+                    recommendedDifficulty = (int)Difficulty.Hard;
+                    
+                }
+                if(difficultyState[Difficulty.Hard].losses > 1 && difficultyState[Difficulty.Hard].wins < difficultyState[Difficulty.Hard].losses)
+                {
+                    recommendedDifficulty = (int)Difficulty.Meduim;
+                    
+                    
+                }
+                
+            }
+            var gameScoresDto = gamescores.Select(s => new GameScoreDto
+            {
+                GameScoreId = s.GameScoreId,
+                GameScoreName = s.GameScoreName,
+                DifficultyGame = s.DifficultyGame,
+                PatientScore = s.PatientScore,
+                MaxScore = s.MaxScore,
+            }).ToList();
+            if(gameScoresDto == null)
+            {
+                return null;
+            }
+            return new GetGameScoresDto
+            {
+                GameScore = gameScoresDto,
+                RecomendationDifficulty = recommendedDifficulty
+            };
+        }
+        public async Task<GetGameScoresDto> GetGameScoresAsync2(string token)
+        {
+            int recommendedDifficulty = 1;
+            string? PatientId = _jwtDecode.GetUserIdFromToken(token);
+            if (PatientId == null)
+            {
+                return null;
+            }
+            var gamescores = _gameScore.Where(s => s.PatientId == PatientId).ToList();
+
+            if (gamescores == null)
+            {
+                return null;
+            }
+            var gameScoresDto = gamescores.Select(s => new GameScoreDto
+            {
+                GameScoreId = s.GameScoreId,
+                GameScoreName = s.GameScoreName,
+                DifficultyGame = s.DifficultyGame,
+                PatientScore = s.PatientScore,
+                MaxScore = s.MaxScore,
+            }).ToList();
+            Dictionary<Difficulty, double> winRates = new Dictionary<Difficulty, double>
+            {
+                        { Difficulty.Easy, CalculateWinRate(gameScoresDto, Difficulty.Easy) },
+                        { Difficulty.Meduim, CalculateWinRate(gameScoresDto, Difficulty.Meduim) },
+                        { Difficulty.Hard, CalculateWinRate(gameScoresDto, Difficulty.Hard) }
+            };
+          
+            var highestWinRateDifficulty = winRates.OrderByDescending(kv => kv.Value).First().Key;
+
+          
+            var totalGamesPlayed = new Dictionary<Difficulty, int>
+            {
+                { Difficulty.Easy, gameScoresDto.Count(s => s.DifficultyGame == Difficulty.Easy) },
+                { Difficulty.Meduim, gameScoresDto.Count(s => s.DifficultyGame == Difficulty.Meduim) },
+                { Difficulty.Hard, gameScoresDto.Count(s => s.DifficultyGame == Difficulty.Hard) }
+            };
+            if (highestWinRateDifficulty == Difficulty.Easy)
+            {
+                recommendedDifficulty = totalGamesPlayed[Difficulty.Meduim] > totalGamesPlayed[Difficulty.Hard] ?
+                                         (int)Difficulty.Meduim : (int)Difficulty.Hard;
+            }
+            else if (highestWinRateDifficulty == Difficulty.Meduim)
+            {
+                recommendedDifficulty = totalGamesPlayed[Difficulty.Easy] > totalGamesPlayed[Difficulty.Hard] ?
+                                         (int)Difficulty.Easy : (int)Difficulty.Hard;
+            }
+            else
+            {
+                recommendedDifficulty = totalGamesPlayed[Difficulty.Easy] > totalGamesPlayed[Difficulty.Meduim] ?
+                                         (int)Difficulty.Easy : (int)Difficulty.Meduim;
+            }
+            return new GetGameScoresDto
+            {
+                GameScore = gameScoresDto,
+                RecomendationDifficulty = recommendedDifficulty
+            };
         }
 
-        public Task<GetGameScoresDto> GetGameScoresDto(string token)
+        private double CalculateWinRate(List<GameScoreDto> gameScoresDto, Difficulty difficulty)
         {
-            throw new NotImplementedException();
+           
+            var filteredGameScores = gameScoresDto.Where(gs => gs.DifficultyGame == difficulty);      
+            int totalGamesPlayed = filteredGameScores.Count();     
+            int totalWins = filteredGameScores.Count(gs => gs.PatientScore > gs.MaxScore / 2);
+            double winRate = totalGamesPlayed > 0 ? (double)totalWins / totalGamesPlayed : 0;
+            return winRate;
         }
 
         public async Task<GlobalResponse> AddSecretFileAsync(string token, PostSecretFileDto secretFileDto)
@@ -410,6 +603,7 @@ namespace BLL.Services
                 };
             }
         }
+
         public async Task<IEnumerable<GetSecretFIleDTO>> GetSecretFilesAsync(string token)
         {
             try
@@ -459,6 +653,123 @@ namespace BLL.Services
             }
         }
 
+
+
+
+        public async Task<GlobalResponse> MarkMedicationReminderAsync(string token, MarkMedictaionDto markMedictaionDto)
+        {
+            string? PatientId = _jwtDecode.GetUserIdFromToken(token);
+            if (PatientId == null)
+            {
+                return new GlobalResponse()
+                {
+                        HasError = true,
+                        message = "Invalid Patient Id"
+                };
+            }
+            var reminder = await _medicines.FindAsync(i => i.Reminder_ID == markMedictaionDto.MedictaionId && i.Patient_Id == PatientId);
+            if (reminder == null)
+            {
+                return new GlobalResponse()
+                {
+                    HasError = true,
+                    message = "Medication Reminder with This Id is Not found "
+                };
+            }
+
+            var MarkMedctaion = new Mark_Medicine_Reminder
+            {
+                ReminderId = markMedictaionDto.MedictaionId,
+                IsTaken = markMedictaionDto.IsTaken,
+                MarkTime = DateTime.Now
+            };
+
+            await _Mark_Medicine_Reminder.AddAsync(MarkMedctaion);
+
+            return new GlobalResponse()
+            {
+                HasError = false,
+                message = "Medication Reminder Marked Successfully ."
+            };
+           
+            
+        }
+
+        public async Task<IEnumerable<GetFamiliesDto>> GetFamiliesAsync(string token)
+        {
+            string? PatientId = _jwtDecode.GetUserIdFromToken(token);
+            if (PatientId == null)
+            {
+                return Enumerable.Empty<GetFamiliesDto>();
+            }
+            var families = await _family.WhereAsync(s => s.PatientId == PatientId);
+            if (families == null || families.Count() == 0)
+            {
+                return Enumerable.Empty<GetFamiliesDto>();
+            }
+            return families.Select(s => new GetFamiliesDto
+            {
+                FamilyId = s.Id,
+                FamilyName = s.FullName,
+                Relationility = s.Relationility,
+                HisImageUrl = (s.imageUrl == null) ? "" : GetMediaUrl(s.imageUrl),
+            }).ToList();
+        }
+
+        public async Task<GetFamilyLocationDto?> GetFamilyLocation(string token, string familyId)
+        {
+            string? PatientId = _jwtDecode.GetUserIdFromToken(token);
+            if (PatientId == null)
+            {
+                return new GetFamilyLocationDto()
+                {
+                    Code= StatusCodes.Status400BadRequest,
+                    Message = "Invalid Patient Id"
+                };
+            }
+            var family = await _family.GetByIdAsync(familyId);
+            if (family == null)
+            {
+                return new GetFamilyLocationDto()
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid Family Id"
+                };
+            }
+            if (family.PatientId != PatientId)
+            {
+                return new GetFamilyLocationDto()
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid Family Id"
+                };
+            }
+           if (family.MainLatitude == null || family.MainLongitude == null)
+            {
+                return new GetFamilyLocationDto()
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Family Location Not Found"
+                };
+            }
+            return new GetFamilyLocationDto
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Family Location Found",
+                Latitude = family.MainLatitude,
+                Longitude = family.MainLongitude
+            };
+    
+        }
+        private string GetMediaUrl(string imagePath)
+        {
+            // Assuming imagePath contains the relative path to the Media within the web root
+            // Construct the URL based on your application's routing configuration
+            string baseUrl = _mail.ServerLink; // Replace with your actual base URL
+            string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
+
+            return $"{baseUrl}/{relativePath}";
+        }
 
 
     }

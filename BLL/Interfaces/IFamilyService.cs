@@ -14,10 +14,12 @@ namespace BLL.Interfaces
     {
         Task<GlobalResponse> AssignPatientToFamily(string token , AssignPatientDto assignPatientDto);
         Task<string?> GetPatientCode(string token);
+      
+        Task<IEnumerable<LocationDto>> GetPatientLocationsTodayAsync(string token);
         Task<GlobalResponse> AssignPatientToCaregiver (string token,string CaregiverCode);
         Task<GlobalResponse> AddPatientAsync(string token,AddPatientDto addPatientDto);
         Task<GetPatientProfile> GetPatientProfile(string token);
-        Task<GetPatientProfile> UpdatePatientProfileAsync(string token , UpdatePatientProfileDto updatePatientProfileDto);
+        Task<GetPatientProfile?> UpdatePatientProfileAsync(string token , UpdatePatientProfileDto updatePatientProfileDto);
         Task<IEnumerable<GetMediaDto>> GetMediaForFamilyAsync(string token);
         Task<GlobalResponse> UploadMediaAsync(string token, AddMediaDto addPictureDto) ;
         Task<GlobalResponse> AddAppointmentAsync(string token , AddAppointmentDto addAppointmentDto);
