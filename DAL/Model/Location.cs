@@ -14,9 +14,10 @@ namespace DAL.Model
         public string LocationId { get; set; } = Guid.NewGuid().ToString();
         public double Longitude { get; set; }
         public double Latitude { get; set; }
-        public DateTime Timestamp { get; set; }
-        public User user { get; set; }
-        [ForeignKey(nameof(User))]
-        public string UserId { get; set; }
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow.AddHours(2);
+
+        public Patient patient { get; set; }
+        [ForeignKey(nameof(Patient))]
+        public string PatientId { get; set; }
     }
 }

@@ -3,18 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SignalR Message Listener</title>
+    <title>Patient SignalR Test</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="lib/microsoft/signalr/dist/browser/signalr.js"></script>
+</head>
+<body>
+    <h1>Patient SignalR Test</h1>
+    <label for="latitude">Latitude:</label>
+    <input type="text" id="latitude" value="0"><br><br>
+    <label for="longitude">Longitude:</label>
+    <input type="text" id="longitude" value="0"><br><br>
+    <button id="sendGpsButton">Send GPS to Families</button>
+
     <script>
-        $(function () {
-            // Initialize SignalR connection
-            let acces = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4OTU4MWYzMy0xYjA5LTRmZDctOWM5Yi02YzM2YzNlYTllYWMiLCJlbWFpbCI6InNzMDEwOTMzMDczOTdAZ21haWwuY29tIiwiRnVsbE5hbWUiOiLYs9mK2K8g2YXYsdmK2LYg2KjYp9mE2K3YqCIsIlBob25lTnVtYmVyIjoiMDExMjQyNjgxNzciLCJ1aWQiOiI2N2Q3YzZhYy02YWI1LTQ0MDYtOTllZS0zYzc4NjhmYmYzMzEiLCJyb2xlcyI6IlBhdGllbnQiLCJleHAiOjE3MTkzNDcxNDUsImlzcyI6IkFydE9mQ29kaW5nIiwiYXVkIjoiQWx6aGVpbWFyQXBwIn0.BTx82D3bi9k_KAHb_SuVxWXPtPjbfRQpyKnYJ5rpw8o"
+        document.addEventListener("DOMContentLoaded", function () {
+            let acces = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhYTc3YzkxNC0wODcxLTQ0N2QtOTkxYy0zYjVhNjI2M2IzNDAiLCJlbWFpbCI6ImVzbGFtYWhtZWR3b3JrNEBnbWFpbC5jb20iLCJGdWxsTmFtZSI6Itit2KfYstmFINmF2YbYtdmBINiy2YrYstmIIiwiUGhvbmVOdW1iZXIiOiIwMTExMTExMTExMiIsInVpZCI6IjEwMjIxZDliLTFjNjktNDUxZS05MGZjLWZiOTY1NmZmYmRkNyIsIlVzZXJBdmF0YXIiOiJodHRwczovL2VsZWN0cm9uaWNtaW5kb2ZhbHpoZWltZXJwYXRpZW50cy5henVyZXdlYnNpdGVzLm5ldC9EOi9Qcm9qZWN0cy9HcmFkdWF0aW9uIFByb2plY3QvRWxlY3Ryb25pYy1taW5kLW9mLUFsemhlaW1lci1zLXBhdGllbnRzL0FQSS93d3dyb290L1VzZXIgQXZhdGFyLzEwMjIxZDliLTFjNjktNDUxZS05MGZjLWZiOTY1NmZmYmRkN19hZTllNGMxMS0xNjk1LTQ0NTMtYmJlNy1jNWUyNTIyOWE1NTUuanBnIiwicm9sZXMiOiJQYXRpZW50IiwiZXhwIjoxNzIwMzg2Nzc2LCJpc3MiOiJBcnRPZkNvZGluZyIsImF1ZCI6IkFsemhlaW1hckFwcCJ9.FeGErDUmdJ5yV5sgFYvPcSGauxuKc_ATub8mQhH94rs";
             var connection = new signalR.HubConnectionBuilder()
-                .withUrl("hubs/medicineReminder", { accessTokenFactory: () => acces }) // Adjust the URL to match your SignalR endpoint
+                .withUrl("/hubs/GPS", { accessTokenFactory: () => acces }) // Adjust the URL to match your SignalR endpoint
                 .configureLogging(signalR.LogLevel.Information)
                 .build();
-           
+
             // Start the connection
             connection.start().then(function () {
                 console.log("SignalR connected");
@@ -25,19 +33,21 @@
             // Listen for "ReceiveMedicineReminder" event
             connection.on("ReceiveMedicineReminder", function (message) {
                 // Display the message
-                $("#messages").append("<p><strong>Message:</strong> " + message + "</p>");
-         /*       $("#messages").append("<p><strong>Dosage:</strong> " + medication.dosage + "</p>");
-                $("#messages").append("<p><strong>Start Date:</strong> " + medication.startDate + "</p>");
-                $("#messages").append("<p><strong>Repeater:</strong> " + medication.repeater + "</p>");
-                $("#messages").append("<p><strong>Time Period:</strong> " + medication.time_Period + "</p>");*/
+                var messageElement = document.createElement("p");
+                messageElement.innerHTML = "<strong>Message:</strong> " + message;
+                document.body.appendChild(messageElement);
+            });
+
+            // Event handler for sending GPS data to families
+            document.getElementById("sendGpsButton").addEventListener("click", function () {
+                var latitude = parseFloat(document.getElementById("latitude").value);
+                var longitude = parseFloat(document.getElementById("longitude").value);
+                console.log("Sended Succ");
+                connection.invoke("SendGPSToFamilies", latitude, longitude).catch(function (err) {
+                    console.error(err.toString());
+                });
             });
         });
     </script>
-</head>
-<body>
-    <h1>SignalR Message Listener</h1>
-    <div id="messages">
-        <!-- Messages will be displayed here -->
-    </div>
 </body>
 </html>

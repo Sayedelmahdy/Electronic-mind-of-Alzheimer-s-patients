@@ -21,6 +21,8 @@ namespace DAL.Model
         public virtual Caregiver caregiver { get; set; }
         public virtual ICollection<Report> Reports { get; set; }
         public virtual ICollection<GameScore> GameScores { get; set; }
+        public virtual ICollection<SecretAndImportantFile> SecretAndImportantFiles { get; set; }
+        public virtual ICollection<Location> Locations { get; set; }
         #endregion
     }
 }

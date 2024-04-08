@@ -20,6 +20,8 @@ namespace DAL.Model
         public string PhoneNumber {  get; set; }
        
         public string? imageUrl { get; set; }
+        public double MainLongitude { get; set; } = 0;
+        public double MainLatitude { get; set; } = 0;
         public override string? UserName { get => base.UserName; set => base.UserName = value; }
         #endregion
 

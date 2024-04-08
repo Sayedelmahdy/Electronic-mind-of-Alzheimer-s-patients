@@ -25,7 +25,11 @@ namespace BLL.DTOs.AuthenticationDto
         [Required]
         public string PhoneNumber { get; set; }
         [Required]
-        public int Age { get; set; } 
+        public int Age { get; set; }
+        [Required]
+        public double MainLongitude { get; set; }
+        [Required]
+        public double MainLatitude { get; set; }
         [Required(ErrorMessage = "Please select a file.")]
         [DataType(DataType.Upload)]
         [AllowedExtensions(new string[] { ".jpg", ".png", ".jpeg", ".mp4", ".mkv" }, ErrorMessage = "Valid file extensions are: .jpg, .png, .jpeg, .mp4, .mkv")]
