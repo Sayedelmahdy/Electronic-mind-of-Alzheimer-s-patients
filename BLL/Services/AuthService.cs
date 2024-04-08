@@ -173,6 +173,8 @@ namespace BLL.Services
                         FullName = model.FullName,
                         Age = model.Age,
                         UserName = model.Email.Split('@')[0],
+                        MainLatitude = model.MainLatitude,
+                        MainLongitude = model.MainLongitude,
                         };
                    
                              result = await _userManager.CreateAsync(family, model.Password);
@@ -222,6 +224,8 @@ namespace BLL.Services
                             FullName = model.FullName,
                             Age = model.Age,
                             UserName = model.Email.Split('@')[0],
+                            MainLatitude = model.MainLatitude,
+                            MainLongitude = model.MainLongitude,
 
                         };
                         result = await _userManager.CreateAsync(caregiver, model.Password);

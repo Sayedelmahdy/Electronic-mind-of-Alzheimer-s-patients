@@ -166,5 +166,6 @@ app.MapRazorPages();
 app.MapControllers();
 app.MapHub<MedicineReminderHub>("hubs/medicineReminder");
 app.MapHub<AppointmentHub>("hubs/Appointment");
+app.MapHub<GPSHub>("hubs/GPS");
 
 app.Run();

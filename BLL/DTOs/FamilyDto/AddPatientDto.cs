@@ -23,6 +23,11 @@ namespace BLL.DTOs.FamilyDto
         [Required]
         public int Age { get; set; }
         [Required]
+        public double MainLongitude { get; set; }
+        [Required]
+        public double MainLatitude { get; set; }
+        [Required]
+
         public IFormFile Avatar { get; set; }
         [Required]
        public string relationality { get; set; }
