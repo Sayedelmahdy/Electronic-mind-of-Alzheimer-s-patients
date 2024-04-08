@@ -30,16 +30,18 @@ namespace BLL.Services
         private readonly IBaseRepository<Media> _media;
         private readonly Mail _mail;
         private readonly IWebHostEnvironment _env;
+        private readonly IBaseRepository<SecretAndImportantFile> _secret;
         public PatientService
             (
             IHubContext<MedicineReminderHub> hubContext, IDecodeJwt jwtDecode,
-            IBaseRepository<Patient>patient,
-            IBaseRepository<Medication_Reminders>medicines ,
-            IBaseRepository<Appointment>appointments,
-            IBaseRepository<Family>family,
-            IBaseRepository<Media>media,
+            IBaseRepository<Patient> patient,
+            IBaseRepository<Medication_Reminders> medicines,
+            IBaseRepository<Appointment> appointments,
+            IBaseRepository<Family> family,
+            IBaseRepository<Media> media,
              IWebHostEnvironment env,
-              IOptions<Mail> Mail
+              IOptions<Mail> Mail,
+              IBaseRepository<SecretAndImportantFile> secret
             )
         {
             _hubContext = hubContext;
@@ -51,14 +53,15 @@ namespace BLL.Services
             _media = media;
             _mail = Mail.Value;
             _env = env;
+            _secret = secret;
         }
 
-       
+
         public async Task<GetPatientProfileDto> GetPatientProfileAsync(string token)
         {
             string? patientid = _jwtDecode.GetUserIdFromToken(token);
 
-            if(patientid == null)
+            if (patientid == null)
             {
                 return new GetPatientProfileDto
                 {
@@ -67,7 +70,7 @@ namespace BLL.Services
                 };
             }
             var patinet = await _patient.GetByIdAsync(patientid);
-            if( patinet == null)
+            if (patinet == null)
             {
                 return new GetPatientProfileDto
                 {
@@ -89,27 +92,27 @@ namespace BLL.Services
         public async Task<IEnumerable<GetAppointmentDto>> GetAppointmentAsync(string token)
         {
             string PatientId = _jwtDecode.GetUserIdFromToken(token);
-            if(PatientId == null)
+            if (PatientId == null)
             {
                 return Enumerable.Empty<GetAppointmentDto>();
             }
             var patient = await _patient.GetByIdAsync(PatientId);
-            if(patient == null)
+            if (patient == null)
             {
                 return Enumerable.Empty<GetAppointmentDto>();
             }
-          var appointments =  _appointments.Include(s=>s.family).Where(s=>s.PatientId== PatientId);
-            if(appointments == null)
+            var appointments = _appointments.Include(s => s.family).Where(s => s.PatientId == PatientId);
+            if (appointments == null)
             {
                 return Enumerable.Empty<GetAppointmentDto>();
             }
-            return appointments.Select(s=> new GetAppointmentDto
+            return appointments.Select(s => new GetAppointmentDto
             {
-                AppointmentId=s.AppointmentId,
-                Date=s.Date,
-                Location= s.Location,
-                Notes=s.Notes,
-                FamilyNameWhoCreatedAppointemnt=s.family.FullName,
+                AppointmentId = s.AppointmentId,
+                Date = s.Date,
+                Location = s.Location,
+                Notes = s.Notes,
+                FamilyNameWhoCreatedAppointemnt = s.family.FullName,
             }).ToList();
         }
         public async Task<IEnumerable<MedicationReminderGetDto>> GetMedicationRemindersAsync(string token)
@@ -119,8 +122,8 @@ namespace BLL.Services
             {
                 return Enumerable.Empty<MedicationReminderGetDto>();
             }
-            var medicines = await _medicines.WhereAsync(s=>s.Patient_Id== PatientId);
-            if(medicines == null)
+            var medicines = await _medicines.WhereAsync(s => s.Patient_Id == PatientId);
+            if (medicines == null)
             {
                 return Enumerable.Empty<MedicationReminderGetDto>();
             }
@@ -177,7 +180,7 @@ namespace BLL.Services
             {
                 return Enumerable.Empty<GetMediaforPatientDto>();
             }
-            var media =await _media.Include(s => s.patient).Include(s=>s.family).Where(s => s.PatientId == PatientId).ToListAsync();
+            var media = await _media.Include(s => s.patient).Include(s => s.family).Where(s => s.PatientId == PatientId).ToListAsync();
             var res = media.Select(s => new GetMediaforPatientDto
             {
                 Caption = s.Caption,
@@ -185,7 +188,7 @@ namespace BLL.Services
                 MediaId = s.Media_Id,
                 Uploaded_date = s.Upload_Date,
                 MediaExtension = s.Extension,
-                FamilyNameWhoUpload=s.family.FullName
+                FamilyNameWhoUpload = s.family.FullName
             }).ToList();
             return res;
         }
@@ -209,10 +212,65 @@ namespace BLL.Services
             throw new NotImplementedException();
         }
 
-        public Task<GlobalResponse> AddSecretFileAsync(string token, PostSecretFileDto secretFileDto)
+        public async Task<GlobalResponse> AddSecretFileAsync(string token, PostSecretFileDto secretFileDto)
         {
-            throw new NotImplementedException();
+            try
+            {
+                string patientId = _jwtDecode.GetUserIdFromToken(token);
+                if (patientId == null)
+                {
+                    return new GlobalResponse
+                    {
+                        HasError = true,
+                        message = "Invalid patient ID"
+                    };
+                }           
+                string fileID = Guid.NewGuid().ToString();
+                string filepath = Path.Combine( patientId, $"{patientId }_{fileID}{Path.GetExtension(secretFileDto.FileName)}");
+                string directorypath = Path.Combine(_env.WebRootPath, patientId);
+                if (!Directory.Exists(directorypath))
+                {
+                    Directory.CreateDirectory(directorypath);
+                }
+                using (FileStream filestream = File.Create(Path.Combine(_env.WebRootPath, filepath)))
+                {
+                    await secretFileDto.File.CopyToAsync(filestream);
+                    filestream.Flush();
+                }
+                
+                
+                var secretFile = new SecretAndImportantFile
+                {
+                    File_Id = fileID,
+                    FileName = secretFileDto.FileName,
+                    File_Description = secretFileDto.File_Description,
+                    DocumentPath = Path.Combine(_env.WebRootPath, filepath),
+                    permissionEndDate = DateTime.Now.AddDays(1),
+                   
+                };
+
+                
+                await _secret.AddAsync(secretFile);
+
+                return new GlobalResponse
+                {
+                    HasError = false,
+                    message = "Secret file added successfully"
+                };
+            }
+            catch
+            {
+              
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "An error occurred while adding the secret file",
+                  
+                };
+            }
         }
+
+
 
         public Task<GlobalResponse> AskToViewSecretFileAsync(string token)
         {
@@ -223,5 +281,6 @@ namespace BLL.Services
         {
             throw new NotImplementedException();
         }
+        
     }
 }
