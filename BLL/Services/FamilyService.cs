@@ -319,7 +319,7 @@ namespace BLL.Services
                 addPatientDto.Avatar.CopyTo(filestream);
                 filestream.Flush();
             }
-            patient.imageUrl = Path.Combine(_env.WebRootPath, filePath);
+            patient.imageUrl =  filePath;
             await _userManager.UpdateAsync(patient);
 
             var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(patient);
@@ -547,7 +547,7 @@ namespace BLL.Services
             {
                 Media_Id = MediaId,
                 Caption = addMediaDto.Caption,
-                Image_Path = Path.Combine(_env.WebRootPath, filePath),
+                Image_Path = filePath,
                 Upload_Date = DateTime.UtcNow,
                 Extension = Path.GetExtension(addMediaDto.MediaFile.FileName),
                 FamilyId = FamilyId,
