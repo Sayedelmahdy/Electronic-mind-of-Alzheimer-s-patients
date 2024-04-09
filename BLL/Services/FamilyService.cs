@@ -70,20 +70,26 @@ namespace BLL.Services
             _userManager = user;
             _location = location;
         }
-
+        /// <summary>
+        /// Retrieves the patient code associated with the provided token.
+        /// </summary>
+        /// <returns>
+        /// If successful, returns the patient code. Otherwise, returns a BadRequest response with an error message.
+        /// </returns>
         public async Task<string?> GetPatientCode(string token)
         {
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
             if (FamilyId == null)
             {
-              return  null;
+                return null;
             }
-           var Family = await _family.GetByIdAsync(FamilyId);
-            
+            var Family = await _family.GetByIdAsync(FamilyId);
+
 
             return Family?.PatientId;
 
         }
+
         public async Task<GetPatientProfile?> UpdatePatientProfileAsync(string token, UpdatePatientProfileDto updatePatientProfileDto)
         {
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
@@ -502,9 +508,6 @@ namespace BLL.Services
             }).ToList();
             return res;
         }
-
-     
-      
 
         public async Task<GlobalResponse> UploadMediaAsync(string token, AddMediaDto addMediaDto)
         {
