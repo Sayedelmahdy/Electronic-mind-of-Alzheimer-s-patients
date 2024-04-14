@@ -514,8 +514,8 @@ namespace BLL.Services
                     File_Description = secretFileDto.File_Description,
                     DocumentPath = Path.Combine(_env.WebRootPath, filepath),
                     permissionEndDate = DateTime.Now.AddDays(1),
-                    hasPermission = true
-                   
+                    hasPermission = true,
+                    PatientId=patientId
                 };
 
                 
