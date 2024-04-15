@@ -29,6 +29,6 @@ namespace BLL.Interfaces
         Task<GlobalResponse> AskToViewSecretFileAsync(string token, IFormFile videoFile);
         Task<IEnumerable<GetSecretFIleDTO>> GetSecretFilesAsync(string token);
         Task<GlobalResponse> ApproveVideoAsync(string fileId);
-
+        
     }
 }

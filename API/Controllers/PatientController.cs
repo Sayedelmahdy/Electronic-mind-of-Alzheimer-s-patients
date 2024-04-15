@@ -116,6 +116,21 @@ namespace API.Controllers
             }
             return Ok(res.message);
         }
+        [HttpPost("AskToSeeSecretFile")]
+        public async Task<IActionResult> AskToSeeSecretFile([FromForm] IFormFile Video)
+        {
+            var token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Invalid Token");
+            }
+            var res = await _patientService.AskToViewSecretFileAsync(token, Video);
+            if (res.HasError)
+            {
+                return BadRequest(res.message);
+            }
+            return Ok(res.message);
+        }
 
         [HttpGet("GetSecretFile")]
         public async Task<IActionResult> GetSecretFile()

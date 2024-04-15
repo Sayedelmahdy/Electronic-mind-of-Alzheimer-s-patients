@@ -593,7 +593,7 @@ namespace BLL.Services
                         return new GlobalResponse
                         {
                             HasError = false,
-                            message = $"Video uploaded successfully for review. File ID: {filepath}"
+                            message = $"Video uploaded successfully for review"
                         };
                     }
                     else
