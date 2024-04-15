@@ -21,8 +21,8 @@ namespace DAL.Model
     }
     public enum Difficulty
     {
-        Easy,
-        Meduim,
-        Hard
+        Easy = 0,
+        Meduim =1,
+        Hard =2
     }
 }

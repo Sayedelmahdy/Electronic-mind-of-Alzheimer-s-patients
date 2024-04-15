@@ -51,6 +51,8 @@ namespace API.Controllers
         [HttpPost("AddMedicationReminder/{patientId}")]
         public async Task<IActionResult> AddMedicationReminder([FromBody] MedicationReminderPostDto medicationReminderDto, string patientId)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             var token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
@@ -137,6 +139,8 @@ namespace API.Controllers
         [HttpPost("CreateReport")]
         public async Task<IActionResult> CreateReport([FromBody] ReportCardDto reportCardDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             var token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {

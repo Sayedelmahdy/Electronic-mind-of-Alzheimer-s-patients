@@ -85,6 +85,8 @@ namespace API.Controllers
         [HttpPut("AssignPatientToFamily")]
         public async Task<IActionResult> AssignPatientToFamily(AssignPatientDto assignPatientDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
@@ -141,6 +143,8 @@ namespace API.Controllers
         [HttpPost("AddPatient")]
         public async Task<IActionResult> AddPatient([FromForm] AddPatientDto addPatientDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
@@ -196,6 +200,8 @@ namespace API.Controllers
         [HttpPut("UpdatePatientProfile")]
         public async Task<IActionResult> UpdatePatientProfile(UpdatePatientProfileDto updatePatientProfileDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
@@ -255,6 +261,8 @@ namespace API.Controllers
         [HttpPost("UploadMedia")]
         public async Task<IActionResult> UploadMedia([FromForm] AddMediaDto addMediaDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
@@ -286,6 +294,8 @@ namespace API.Controllers
         [HttpPost("AddAppointment")]
         public async Task<IActionResult> AddAppointment (AddAppointmentDto addAppointmentDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {

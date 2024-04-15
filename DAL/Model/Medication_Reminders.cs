@@ -31,16 +31,16 @@ namespace DAL.Model
     }
     public enum RepeatType
     {
-        Once,
-        Twice,
-        Three_Times,
-        Four_Times
+        Once=0,
+        Twice=1,
+        Three_Times=2,
+        Four_Times=3
     }
     public enum MedcineType
     {
-        Bottle,
-        Pill,
-        Syringe,
-        Tablet,
+        Bottle=0,
+        Pill=1,
+        Syringe=2,
+        Tablet=3,
     }
 }

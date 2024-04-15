@@ -54,6 +54,8 @@ namespace API.Controllers
         [HttpPut("UpdatePatientProfile")]
         public async Task<IActionResult> UpdatePatientProfile([FromBody] UpdatePatientProfileDto updatePatientProfileDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             var token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
@@ -104,6 +106,8 @@ namespace API.Controllers
         [HttpPost("AddSecretFile")]
         public async Task<IActionResult> AddSecretFile([FromForm] PostSecretFileDto addSecretFileDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             var token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
@@ -119,6 +123,8 @@ namespace API.Controllers
         [HttpPost("AskToSeeSecretFile")]
         public async Task<IActionResult> AskToSeeSecretFile([FromForm] IFormFile Video)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             var token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
@@ -210,6 +216,8 @@ namespace API.Controllers
         [HttpPost("AddGameScore")]
         public async Task<IActionResult> AddGameScore([FromBody] PostGameScoreDto addGameScoreDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             var token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {

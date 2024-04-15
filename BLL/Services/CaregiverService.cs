@@ -93,7 +93,18 @@ namespace BLL.Services
                 
                
             };
-            var JsonMedication = JsonConvert.SerializeObject(medication); // serialize the medication
+            var JsonMedicationData = new
+            {
+                MedicationId = medication.Reminder_ID,
+                Medication_Name = mediceneDto.Medication_Name,
+                Dosage = mediceneDto.Dosage,
+                Repeater = mediceneDto.Repeater,
+                StartDate = mediceneDto.StartDate,
+                EndDate = mediceneDto.EndDate,
+                MedcineType = mediceneDto.MedcineType
+
+            };
+            var JsonMedication = JsonConvert.SerializeObject(JsonMedicationData); // serialize the medication
             await _medication_Reminders.AddAsync(medication);
             await _medicineHub.Clients.Group(patientId).SendAsync("ReceiveMedicineReminder","Medication Added" ,JsonMedication);
             return new GlobalResponse
