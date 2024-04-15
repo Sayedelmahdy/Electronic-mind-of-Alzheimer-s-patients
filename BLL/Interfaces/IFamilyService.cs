@@ -25,6 +25,7 @@ namespace BLL.Interfaces
         Task<GlobalResponse> AddAppointmentAsync(string token , AddAppointmentDto addAppointmentDto);
         Task<IEnumerable<GetAppointmentDto>> GetPatientAppointmentsAsync(string token);
         Task<GlobalResponse> DeleteAppointmentAsync(string token , string AppointmentId);
+        Task<IEnumerable<GetReportDto>> GetPatientReportsAsync(string token);
         
     }
 }

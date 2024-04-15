@@ -10,10 +10,9 @@ namespace DAL.Model
     public class GameScore
     {
         public string GameScoreId { get; set; }=Guid.NewGuid().ToString();
-        public string GameScoreName { get; set;}
         public Difficulty DifficultyGame { get; set; }
         public int PatientScore { get; set; }
-        public int MaxScore { get; set; }
+       
         #region Navigation Property
         public Patient patient { get; set; }
         [ForeignKey(nameof(Patient))]

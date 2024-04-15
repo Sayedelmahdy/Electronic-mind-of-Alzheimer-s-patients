@@ -36,6 +36,7 @@ namespace BLL.Services
         private readonly IHubContext<AppointmentHub> _appointmentHub;
         private readonly IBaseRepository<Media> _Media;
         private readonly UserManager<User> _userManager;
+        private readonly IBaseRepository<Report> _report;
         private readonly Mail _mail;
 
         public FamilyService(
@@ -52,7 +53,8 @@ namespace BLL.Services
               IOptions<JWT> JWT,
               IMailService mailService,
               IHubContext<AppointmentHub> appointmentHub,
-            UserManager<User> user
+            UserManager<User> user,
+            IBaseRepository<Report> report
             )
         {
             _Media = Media;
@@ -69,6 +71,7 @@ namespace BLL.Services
             _appointmentHub = appointmentHub;
             _userManager = user;
             _location = location;
+            _report = report;
         }
         /// <summary>
         /// Retrieves the patient code associated with the provided token.
@@ -620,7 +623,7 @@ namespace BLL.Services
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
             if (FamilyId == null)
             {
-              
+                return Enumerable.Empty<LocationDto>();
             }
             var Family = _family.GetById(FamilyId);
             if (Family == null)
@@ -632,7 +635,36 @@ namespace BLL.Services
             {
                 Latitude = p.Latitude,
                 Longitude = p.Longitude,
+                TimeStamp = p.Timestamp,
+               
             }).ToList();
+        }
+
+        public async Task<IEnumerable<GetReportDto>> GetPatientReportsAsync(string token)
+        {
+            string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
+            if (FamilyId == null)
+            {
+                return Enumerable.Empty<GetReportDto>();
+            }
+            var Family = _family.GetById(FamilyId);
+            if (Family == null)
+            {
+                return Enumerable.Empty<GetReportDto>();
+            }
+            var result = await _report.WhereAsync(p => p.PatientId == Family.PatientId);
+            if (result==null || !result.Any())
+            {
+                return Enumerable.Empty<GetReportDto>();
+            }
+            return result.Select(p => new GetReportDto
+            {
+                FromDate = p.FromDate.ToString("yyyy-MM-dd"),
+                ReportContent = p.ReportContent,
+                ToDate = p.ToDate.ToString("yyyy-MM-dd"),
+                ReportId = p.ReportId,
+            }).ToList();
+
         }
     }
 

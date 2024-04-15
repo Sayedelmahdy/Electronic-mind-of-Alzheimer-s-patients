@@ -193,7 +193,7 @@ namespace API.Controllers
             return Ok(res);
         }
         [HttpPost("AddGameScore")]
-        public async Task<IActionResult> AddGameScore([FromForm] PostGameScoreDto addGameScoreDto)
+        public async Task<IActionResult> AddGameScore([FromBody] PostGameScoreDto addGameScoreDto)
         {
             var token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)

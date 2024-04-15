@@ -13,7 +13,8 @@ namespace DAL.Model
         public int MaximumDistance { get; set; }
         public string? FamilyCreatedId { get; set; }
 
-
+        public int CurrentScore { get; set; }
+        public int MaximumScore { get; set; }
         #region Navigation Prop
         [ForeignKey(nameof(Caregiver))]
         public string? CaregiverID { get; set; }

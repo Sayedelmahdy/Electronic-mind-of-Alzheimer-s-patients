@@ -10,9 +10,9 @@ namespace BLL.DTOs
     public class GameScoreDto
     {
         public string GameScoreId { get; set; }
-        public string GameScoreName { get; set; }
+       
         public Difficulty DifficultyGame { get; set; }
         public int PatientScore { get; set; }
-        public int MaxScore { get; set; }
+       
     }
 }

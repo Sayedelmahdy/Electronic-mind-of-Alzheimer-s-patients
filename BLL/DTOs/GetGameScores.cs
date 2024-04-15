@@ -9,6 +9,7 @@ namespace BLL.DTOs
 {
     public class GetGameScoresDto
     {
+       
         public int RecomendationDifficulty { get; set; }
         public ICollection<GameScoreDto> GameScore { get; set; }
     }

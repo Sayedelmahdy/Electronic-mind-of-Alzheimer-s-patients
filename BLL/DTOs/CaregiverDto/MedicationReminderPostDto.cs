@@ -13,10 +13,10 @@ namespace BLL.DTOs.CaregiverDto
         public string Medication_Name { get; set; }
 
         public string Dosage { get; set; }
-        public DateTime StartDate { get; set; }
-
+        public MedcineType MedcineType { get; set; }
         public RepeatType Repeater { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
 
-        public string Time_Period { get; set; }
     }
 }
