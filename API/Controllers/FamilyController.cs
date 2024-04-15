@@ -350,6 +350,26 @@ namespace API.Controllers
                 return BadRequest(res);
             return Ok(res); 
         }
+        /// <summary>
+        /// Retrieves the reports associated with the patient of the authenticated family.
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("GetPatientReports")]
+       public async Task<IActionResult> GetPatientReports()
+        {
+            string? token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Token invaild");
+            }
+            var res = await _familyService.GetPatientReportsAsync(token);
+            if (res.Count() == 0)
+            {
+                return NotFound("No Reports");
+            }
+            return Ok(res);
+        }
 
     }
 }

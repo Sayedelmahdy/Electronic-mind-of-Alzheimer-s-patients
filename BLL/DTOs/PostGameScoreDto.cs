@@ -9,10 +9,10 @@ namespace BLL.DTOs
 {
     public class PostGameScoreDto
     {
-        public string GameScoreName { get; set; }
+     
         public Difficulty DifficultyGame { get; set; }
         public int PatientScore { get; set; }
-        public int MaxScore { get; set; }
+      
         
     }
 }

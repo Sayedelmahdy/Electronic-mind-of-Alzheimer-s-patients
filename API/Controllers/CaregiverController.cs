@@ -78,6 +78,7 @@ namespace API.Controllers
             }
             return Ok(res.ToList());
         }
+      /*
         [HttpPut("UpdateMedicationReminderForPatient/{ReminderId}")]
         public async Task<IActionResult> UpdateMedicationReminder(string ReminderId, [FromBody] MedicationReminderUpdateDto medication)
         {
@@ -92,7 +93,7 @@ namespace API.Controllers
                 return BadRequest(res.message);
             }
             return Ok(res.message);
-        }
+        }*/
         [HttpDelete("DeleteMedicationReminder/{ReminderID}")]
         public async Task<IActionResult> DeleteMedicationReminder(string ReminderID)
         {
