@@ -1,11 +1,12 @@
-﻿using DAL.Model;
+﻿using BLL.DTOs.PatientDto;
+using DAL.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.DTOs
+namespace BLL.DTOs.PatientDto
 {
     public class GetGameScoresDto
     {

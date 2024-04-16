@@ -159,7 +159,19 @@ var app = builder.Build();
 
 }*/
 app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwaggerUI();
+}
+
+if (app.Environment.IsProduction())
+{
+    app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Electronic mind of Alzheimer's patients v1");
+    c.RoutePrefix = string.Empty;
+});
+}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

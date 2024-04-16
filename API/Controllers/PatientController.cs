@@ -1,5 +1,6 @@
 ﻿using BLL.DTOs;
 using BLL.DTOs.FamilyDto;
+using BLL.DTOs.PatientDto;
 using BLL.Helper;
 using BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;

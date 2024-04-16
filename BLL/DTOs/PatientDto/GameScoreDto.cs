@@ -1,21 +1,18 @@
 ﻿using DAL.Model;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.DTOs
+namespace BLL.DTOs.PatientDto
 {
-    public class PostGameScoreDto
+    public class GameScoreDto
     {
+        public string GameScoreId { get; set; }
 
-        [Required]
         public Difficulty DifficultyGame { get; set; }
-        [Required]
         public int PatientScore { get; set; }
-      
-        
+
     }
 }

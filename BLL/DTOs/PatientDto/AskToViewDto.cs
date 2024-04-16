@@ -7,16 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.DTOs
+namespace BLL.DTOs.PatientDto
 {
-    public class PostSecretFileDto
+    public class AskToViewDto
     {
-        [Required]
-        public string FileName { get; set; }
-        [Required]
-        public string File_Description { get; set; }
-        [Required]
+        [Required(ErrorMessage = "Please select a file.")]
+        [DataType(DataType.Upload)]
         [MaxFileSize(50 * 1024 * 1024, ErrorMessage = "File size cannot exceed 50 MB.")]
-        public IFormFile File { get; set; } // IFormFile
+        public IFormFile Video { get; set; }
     }
 }

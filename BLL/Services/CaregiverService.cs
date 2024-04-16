@@ -1,6 +1,7 @@
 ﻿
 using BLL.DTOs;
 using BLL.DTOs.CaregiverDto;
+using BLL.DTOs.PatientDto;
 using BLL.Helper;
 using BLL.Hubs;
 using BLL.Interfaces;

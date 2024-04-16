@@ -737,18 +737,18 @@ namespace BLL.Services
                     {
                         Code = StatusCodes.Status403Forbidden,
                         NeedToConfirm = true,
-                        SecretFiles = Enumerable.Empty<GetSecretFIleDTO>(),
+                        SecretFiles = Enumerable.Empty<GetSecretFileDto>(),
                     };
                 }
 
-                var result = secretFiles.Select(s => new GetSecretFIleDTO
+                var result = secretFiles.Select(s => new GetSecretFileDto
                 {
                     SecretId = s.File_Id,
                     FileName = s.FileName,
                     File_Description = s.File_Description,
                     DocumentUrl = GetMediaUrl(s.DocumentPath),
                     DocumentExtension = s.DocumentExtension,
-                    HasError = false
+                  
                 }).ToList();
 
                 return new GetAllSecretFileDto
