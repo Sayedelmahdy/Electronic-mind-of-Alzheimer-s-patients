@@ -16,6 +16,7 @@ namespace DAL.Model
         public string FileName { get; set; }
         public string File_Description { get; set; }
         public string DocumentPath { get; set; }
+        public string DocumentExtension { get; set; }
         public bool hasPermission { get; set; } = false;
         public DateTime permissionEndDate { get; set; }
         #region Navigation Prop

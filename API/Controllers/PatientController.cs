@@ -121,7 +121,7 @@ namespace API.Controllers
             return Ok(res.message);
         }
         [HttpPost("AskToSeeSecretFile")]
-        public async Task<IActionResult> AskToSeeSecretFile([FromForm] IFormFile Video)
+        public async Task<IActionResult> AskToSeeSecretFile([FromForm] AskToViewDto askToViewDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -130,7 +130,7 @@ namespace API.Controllers
             {
                 return BadRequest("Invalid Token");
             }
-            var res = await _patientService.AskToViewSecretFileAsync(token, Video);
+            var res = await _patientService.AskToViewSecretFileAsync(token, askToViewDto.Video);
             if (res.HasError)
             {
                 return BadRequest(res.message);
@@ -147,11 +147,11 @@ namespace API.Controllers
                 return BadRequest("Invalid Token");
             }
             var res = await _patientService.GetSecretFilesAsync(token);
-            if (!res.Any() || res == null)
+            if (res == null)
             {
-                return NotFound("Have No Secret Files :)");
+                return NotFound("No Secret Files Found");
             }
-            return Ok(res.ToList());
+            return StatusCode(res.Code,res);
         }
         [HttpGet("GetAllAppointments")]
         public async Task<IActionResult> GetAllAppointments()

@@ -529,7 +529,8 @@ namespace BLL.Services
                     File_Id = fileID,
                     FileName = secretFileDto.FileName,
                     File_Description = secretFileDto.File_Description,
-                    DocumentPath = Path.Combine(_env.WebRootPath, filepath),
+                    DocumentPath =  filepath,
+                    DocumentExtension = Path.GetExtension(secretFileDto.FileName),
                     permissionEndDate = DateTime.Now.AddDays(1),
                     hasPermission = true,
                     PatientId=patientId
@@ -690,35 +691,54 @@ namespace BLL.Services
             }
         }
 
-        public async Task<IEnumerable<GetSecretFIleDTO>> GetSecretFilesAsync(string token)
+        public async Task<GetAllSecretFileDto?> GetSecretFilesAsync(string token)
         {
-            try
-            {
-                
+            
                 if (string.IsNullOrEmpty(token))
                 {
-                    return Enumerable.Empty<GetSecretFIleDTO>();
+                    return new GetAllSecretFileDto
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                    };
                 }
 
                 string patientId = _jwtDecode.GetUserIdFromToken(token);
 
                 if (string.IsNullOrEmpty(patientId))
                 {
-                    return Enumerable.Empty<GetSecretFIleDTO>();
+                    return new GetAllSecretFileDto
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                    };
                 }
 
                 var patient = await _patient.GetByIdAsync(patientId);
 
                 if (patient == null)
                 {
-                    return Enumerable.Empty<GetSecretFIleDTO>();
+                    return new GetAllSecretFileDto
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                    };
                 }
 
-                var secretFiles = await _secret.WhereAsync(s => s.PatientId == patientId && s.hasPermission);
+                var secretFiles = await _secret.WhereAsync(s => s.PatientId == patientId);
 
                 if (secretFiles == null || !secretFiles.Any())
                 {
-                    return Enumerable.Empty<GetSecretFIleDTO>();
+                    return new GetAllSecretFileDto
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                    };
+                }
+                if (secretFiles.Any(f=>f.hasPermission == false))
+                {
+                    return new GetAllSecretFileDto
+                    {
+                        Code = StatusCodes.Status403Forbidden,
+                        NeedToConfirm = true,
+                        SecretFiles = Enumerable.Empty<GetSecretFIleDTO>(),
+                    };
                 }
 
                 var result = secretFiles.Select(s => new GetSecretFIleDTO
@@ -727,16 +747,18 @@ namespace BLL.Services
                     FileName = s.FileName,
                     File_Description = s.File_Description,
                     DocumentUrl = GetMediaUrl(s.DocumentPath),
+                    DocumentExtension = s.DocumentExtension,
                     HasError = false
                 }).ToList();
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"An error occurred in GetSecretFilesAsync: {ex.Message}");
-                return Enumerable.Empty<GetSecretFIleDTO>();
-            }
+                return new GetAllSecretFileDto
+                {
+                    Code = StatusCodes.Status200OK,
+                    SecretFiles = result,
+                    NeedToConfirm = false
+                    
+                };
+            
         }
 
 
