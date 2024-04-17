@@ -511,7 +511,7 @@ namespace BLL.Services
                     };
                 }           
                 string fileID = Guid.NewGuid().ToString();
-                string filepath = Path.Combine( patientId, $"{patientId }_{fileID}{Path.GetExtension(secretFileDto.FileName)}");
+                string filepath = Path.Combine( patientId, $"{patientId }_{fileID}{Path.GetExtension(secretFileDto.File.FileName)}");
                 string directorypath = Path.Combine(_env.WebRootPath, patientId,"SecretFiles");
                 if (!Directory.Exists(directorypath))
                 {
@@ -530,9 +530,9 @@ namespace BLL.Services
                     FileName = secretFileDto.FileName,
                     File_Description = secretFileDto.File_Description,
                     DocumentPath =  filepath,
-                    DocumentExtension = Path.GetExtension(secretFileDto.FileName),
+                    DocumentExtension = Path.GetExtension(secretFileDto.File.FileName),
                     permissionEndDate = DateTime.Now.AddDays(1),
-                    hasPermission = true,
+                   
                     PatientId=patientId
                 };
 
@@ -669,7 +669,7 @@ namespace BLL.Services
                         message = "Secret file not found"
                     };
                 }
-                secretFile.hasPermission = true;
+               
                 secretFile.permissionEndDate = DateTime.Now.AddDays(1);
                 
                 await _secret.UpdateAsync(secretFile);
