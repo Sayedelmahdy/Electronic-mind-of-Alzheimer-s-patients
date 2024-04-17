@@ -11,7 +11,7 @@ namespace BLL.DTOs.PatientDto
     {
         [JsonIgnore]
         public int Code { get; set; }
-        public bool NeedToConfirm { get; set; }
+       
         public IEnumerable<GetSecretFileDto> SecretFiles { get; set; }
     }
 }

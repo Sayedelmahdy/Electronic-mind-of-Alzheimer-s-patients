@@ -731,23 +731,16 @@ namespace BLL.Services
                         Code = StatusCodes.Status404NotFound,
                     };
                 }
-                if (secretFiles.Any(f=>f.hasPermission == false))
-                {
-                    return new GetAllSecretFileDto
-                    {
-                        Code = StatusCodes.Status403Forbidden,
-                        NeedToConfirm = true,
-                        SecretFiles = Enumerable.Empty<GetSecretFileDto>(),
-                    };
-                }
+               
 
                 var result = secretFiles.Select(s => new GetSecretFileDto
                 {
                     SecretId = s.File_Id,
                     FileName = s.FileName,
                     File_Description = s.File_Description,
-                    DocumentUrl = GetMediaUrl(s.DocumentPath),
-                    DocumentExtension = s.DocumentExtension,
+                    NeedToConfirm = !s.hasPermission,
+                    DocumentUrl = s.hasPermission==true? GetMediaUrl(s.DocumentPath) : null,
+                    DocumentExtension = s.hasPermission==true? s.DocumentExtension : null,
                   
                 }).ToList();
 
@@ -755,8 +748,6 @@ namespace BLL.Services
                 {
                     Code = StatusCodes.Status200OK,
                     SecretFiles = result,
-                    NeedToConfirm = false
-                    
                 };
             
         }

@@ -39,6 +39,12 @@ builder.Services.AddSwaggerGen(option =>
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     option.IncludeXmlComments(xmlPath);
     option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
+    option.AddSignalRSwaggerGen(_ =>
+    {
+        _.UseHubXmlCommentsSummaryAsTagDescription = true;
+        _.UseHubXmlCommentsSummaryAsTag = true;
+        _.UseXmlComments(xmlPath);
+    });
     option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
@@ -158,6 +164,10 @@ var app = builder.Build();
 {
 
 }*/
+app.MapHub<MedicineReminderHub>("hubs/medicineReminder");
+app.MapHub<AppointmentHub>("hubs/Appointment");
+app.MapHub<GPSHub>("hubs/GPS");
+
 app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
@@ -180,8 +190,5 @@ app.UseAuthorization();
 app.UseAuthorization();
 app.MapRazorPages();
 app.MapControllers();
-app.MapHub<MedicineReminderHub>("hubs/medicineReminder");
-app.MapHub<AppointmentHub>("hubs/Appointment");
-app.MapHub<GPSHub>("hubs/GPS");
 
 app.Run();
