@@ -243,7 +243,7 @@ namespace BLL.Services
             var gameScoreDtos = gameScores.Select(gs => new GameScoreDto
             {
                 GameScoreId = gs.GameScoreId,
-               
+                GameDate = gs.GameDate,
                 DifficultyGame = gs.DifficultyGame,
                 PatientScore = gs.PatientScore,
                 
