@@ -13,6 +13,6 @@ namespace BLL.DTOs.PatientDto
 
         public Difficulty DifficultyGame { get; set; }
         public int PatientScore { get; set; }
-
+        public DateTime GameDate { get; set; }
     }
 }

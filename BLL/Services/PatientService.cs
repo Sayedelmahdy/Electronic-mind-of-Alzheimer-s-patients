@@ -237,7 +237,8 @@ namespace BLL.Services
             {
                 DifficultyGame = gameScoreDto.DifficultyGame,
                 PatientScore = gameScoreDto.PatientScore,
-                PatientId = PatientId
+                PatientId = PatientId,
+                GameDate = DateTime.UtcNow.AddHours(2)
             };
             await _gameScore.AddAsync(gamescore);
             int score = 0;
@@ -450,7 +451,55 @@ namespace BLL.Services
              }*/
         #endregion
 
-     
+        public async Task<RecommendedScoreDto?> GetRecommendedScoreAsync(string token)
+        {
+            string? PatientId = _jwtDecode.GetUserIdFromToken(token);
+            if (PatientId == null)
+            {
+                return null;
+            }
+            var Patient = await _patient.GetByIdAsync(PatientId);
+            if (Patient == null)
+            {
+                return null;
+            }
+
+            var gameScoresDto = new ScoreDto
+            {
+                CurrentScore = Patient.CurrentScore,
+                MaxScore = Patient.MaximumScore,
+            };
+            if (gameScoresDto == null)
+            {
+                return null;
+            }
+            if (Patient.CurrentScore >= 200 && Patient.CurrentScore < 400)
+            {
+                return new RecommendedScoreDto
+                {
+                    Score = gameScoresDto,
+                    RecommendedScore = 1
+                };
+            }
+            else if (Patient.CurrentScore >= 400)
+            {
+                return new RecommendedScoreDto
+                {
+                    Score = gameScoresDto,
+                    RecommendedScore = 2
+                };
+            }
+            else
+            {
+                return new RecommendedScoreDto
+                {
+                    Score = gameScoresDto,
+                    RecommendedScore = 0
+                };
+            }
+
+        }
+
         public async Task<GetGameScoresDto?> GetGameScoresAsync(string token)
         {
             string? PatientId = _jwtDecode.GetUserIdFromToken(token);
@@ -468,6 +517,7 @@ namespace BLL.Services
                 GameScoreId = s.GameScoreId,
                 DifficultyGame = s.DifficultyGame,
                 PatientScore = s.PatientScore,
+                GameDate = s.GameDate,
             }).ToList();
             if (Patient.CurrentScore >=200 && Patient.CurrentScore < 400)
             {
