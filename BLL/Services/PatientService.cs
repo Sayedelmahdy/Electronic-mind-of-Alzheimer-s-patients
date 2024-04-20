@@ -157,7 +157,7 @@ namespace BLL.Services
                 MedcineType = s.Medcine_Type
             }).ToList();
         }
-        public async Task<GlobalResponse> UpdateProfileAsync(string token, UpdatePatientProfileDto updatePatientProfile)
+        public async Task<GlobalResponse> UpdateProfileAsync(string token, UpdateMyProfileDto updatePatientProfile)
         {
             string PatientId = _jwtDecode.GetUserIdFromToken(token);
             if (PatientId == null)
@@ -179,8 +179,7 @@ namespace BLL.Services
             }
             patient.Age = updatePatientProfile.Age;
             patient.PhoneNumber = updatePatientProfile.PhoneNumber;
-            patient.DiagnosisDate = updatePatientProfile.DiagnosisDate.ToDateTime(TimeOnly.MinValue);
-            patient.MaximumDistance = updatePatientProfile.MaximumDistance;
+           
             await _patient.UpdateAsync(patient);
             return new GlobalResponse
             {
