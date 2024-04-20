@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 
 namespace BLL.Services
 {
+
     public class CaregiverService : ICaregiverService
     {
         private readonly IBaseRepository<Patient> _patient;
@@ -32,7 +33,9 @@ namespace BLL.Services
 
       
 
-        public CaregiverService(
+        public CaregiverService
+            (
+
             IBaseRepository<Patient> patient,
             IDecodeJwt jwtDecode,
             IBaseRepository<Medication_Reminders> medication_Reminders,
@@ -40,6 +43,7 @@ namespace BLL.Services
             IBaseRepository<Caregiver> caregiver,
             IBaseRepository<Report> report,
             IHubContext<MedicineReminderHub> medicineHub
+
             )
         {
             _patient = patient;
@@ -50,6 +54,7 @@ namespace BLL.Services
             _report = report;
             _medicineHub = medicineHub;
         }
+
         public async Task<string?> GetCaregiverCode(string token)
         {
             string CaregiverCode= _jwtDecode.GetUserIdFromToken(token);
@@ -266,7 +271,7 @@ namespace BLL.Services
                 message = "Report Created Succuessfully ." 
             };
         }
-        public async Task<IEnumerable<GetReportDto>> getallReport(string token, string patientid )
+        public async Task<IEnumerable<GetReportDto>> getallReport(string token, string patientid)
         {
             string? caregiverId = _jwtDecode.GetUserIdFromToken(token);
             if (string.IsNullOrEmpty(caregiverId))
@@ -274,14 +279,14 @@ namespace BLL.Services
                 return Enumerable.Empty<GetReportDto>();
             }
 
-            var allreport = await _report.WhereAsync(s =>s.CaregiverId == caregiverId && s.PatientId == patientid);
+            var allreport = await _report.WhereAsync(s => s.CaregiverId == caregiverId && s.PatientId == patientid);
 
-            if (allreport.Count() ==0 || !allreport.Any())
+            if (allreport.Count() == 0 || !allreport.Any())
             {
                 return Enumerable.Empty<GetReportDto>();
             }
 
-            var result = allreport.Select(d=> new GetReportDto 
+            var result = allreport.Select(d => new GetReportDto
             {
                 FromDate = d.FromDate.Date.ToShortDateString(),
                 ReportContent = d.ReportContent,
@@ -292,6 +297,16 @@ namespace BLL.Services
 
 
         }
+        /// <summary>
+        /// Deletes a report.
+        /// </summary>
+        /// <param name="ReportId">The unique identifier of the report to delete.</param>
+        /// <returns>
+        /// Returns a success message if the report is deleted successfully. If the token is invalid, a 400 Bad Request response is returned. If there is any error during report deletion, a 400 Bad Request response with an error message is returned.
+        /// </returns>
+        /// <remarks>
+        /// This endpoint allows caregivers to delete a report identified by its unique identifier. The request must include a valid authentication token for authorization. If the token is missing or invalid, a 400 Bad Request response is returned. The caregiver associated with the token must have permission to delete the specified report. If the report does not exist or the caregiver does not have permission to delete it, a 400 Bad Request response with an error message is returned.
+        /// </remarks>
         public async Task<GlobalResponse> DeleteReport(string token, string reportId)
         {
             string? caregiverId = _jwtDecode.GetUserIdFromToken(token);
