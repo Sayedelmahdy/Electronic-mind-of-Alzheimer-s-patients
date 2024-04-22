@@ -82,7 +82,7 @@ namespace API.Controllers
         /// If the profile is updated successfully, returns a success message in the response body. If the token is invalid, the patient is not found, or the update fails, returns a BadRequest response with an error message.
         /// </returns>
         [HttpPut("UpdatePatientProfile")]
-        public async Task<IActionResult> UpdatePatientProfile([FromBody] UpdatePatientProfileDto updatePatientProfileDto)
+        public async Task<IActionResult> UpdatePatientProfile([FromBody] UpdateMyProfileDto updatePatientProfileDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
