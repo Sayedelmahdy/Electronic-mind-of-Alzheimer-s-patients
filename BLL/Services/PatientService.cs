@@ -281,6 +281,7 @@ namespace BLL.Services
             }
             patient.CurrentScore += score;
             patient.MaximumScore = (patient.CurrentScore > patient.MaximumScore) ? patient.CurrentScore : patient.MaximumScore;
+            await _patient.UpdateAsync(patient);
             var message = $"Your score is {score} and your current score is {patient.CurrentScore} and your maximum score is {patient.MaximumScore}";
             return new GlobalResponse
             {
@@ -450,7 +451,7 @@ namespace BLL.Services
              }*/
         #endregion
 
-        public async Task<RecommendedScoreDto?> GetRecommendedScoreAsync(string token)
+        public async Task<CurrentAndMaxScoreDto?> GetRecommendedScoreAsync(string token)
         {
             string? PatientId = _jwtDecode.GetUserIdFromToken(token);
             if (PatientId == null)
@@ -474,26 +475,26 @@ namespace BLL.Services
             }
             if (Patient.CurrentScore >= 200 && Patient.CurrentScore < 400)
             {
-                return new RecommendedScoreDto
+                return new CurrentAndMaxScoreDto
                 {
                     Score = gameScoresDto,
-                    RecommendedScore = 1
+                    RecommendedGameDifficulty = 1
                 };
             }
             else if (Patient.CurrentScore >= 400)
             {
-                return new RecommendedScoreDto
+                return new CurrentAndMaxScoreDto
                 {
                     Score = gameScoresDto,
-                    RecommendedScore = 2
+                    RecommendedGameDifficulty = 2
                 };
             }
             else
             {
-                return new RecommendedScoreDto
+                return new CurrentAndMaxScoreDto
                 {
                     Score = gameScoresDto,
-                    RecommendedScore = 0
+                    RecommendedGameDifficulty = 0
                 };
             }
 
