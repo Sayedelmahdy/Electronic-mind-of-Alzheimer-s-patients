@@ -411,6 +411,20 @@ namespace API.Controllers
             }
             return Ok(res);
         }
-
+        [HttpGet("GetCurrentAndMaxScore")]
+        public async Task<IActionResult> GetCurrentAndMaxScore()
+        {
+            var token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null) 
+            {
+                return BadRequest("Invalid Token");
+            }
+            var res = await _patientService.GetRecommendedScoreAsync(token);
+            if (res == null)
+            {
+                return NotFound("No Game Scores Yet .. ");
+            }
+            return Ok(res);
+        }
     }
 }
