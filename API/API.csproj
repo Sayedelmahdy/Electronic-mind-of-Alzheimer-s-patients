@@ -20,7 +20,6 @@
     <PackageReference Include="Serilog" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="SignalRSwaggerGen" Version="4.5.0" />
-    <PackageReference Include="SignalRSwaggerGen.Core" Version="1.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
