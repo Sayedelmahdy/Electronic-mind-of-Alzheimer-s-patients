@@ -12,8 +12,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -911,6 +914,150 @@ namespace BLL.Services
             };
     
         }
+        
+       
+
+        public async Task<RecognitionResult> ImageRecognition(PostImageRecognitionDto postImageRecognitionDto,string token)
+        {
+            var Response = await RecognizeImage(postImageRecognitionDto, _jwtDecode.GetUserIdFromToken(token));
+            JObject jsonObject = JObject.Parse(Response);
+            JArray recognitionResults = (JArray)jsonObject["recognition_results"];
+            RecognitionResult recognitionResult = new RecognitionResult();
+            var PatinetId = _jwtDecode.GetUserIdFromToken(token);
+            string MediaId = Guid.NewGuid().ToString();
+
+            string filePath = Path.Combine("ImagesBeforeRecognitionResult", $"{MediaId}{Path.GetExtension(postImageRecognitionDto.Image.FileName)}");
+            string directoryPath = Path.Combine(_env.WebRootPath, "ImagesBeforeRecognitionResult");
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+            using (FileStream filestream = File.Create(Path.Combine(_env.WebRootPath, filePath)))
+            {
+                postImageRecognitionDto.Image.CopyTo(filestream);
+                filestream.Flush();
+            }
+            StringFormat format = new StringFormat();
+            format.LineAlignment = StringAlignment.Center;
+            format.Alignment = StringAlignment.Center;
+            Bitmap image = new Bitmap(Path.Combine(_env.WebRootPath, filePath));
+            using (Graphics graphics = Graphics.FromImage(image))
+            {
+                // Font settings
+                Font font = new Font("Arial", 35, FontStyle.Bold);
+                SolidBrush brush = new SolidBrush(Color.Red);
+                List<PersonInImage> personsInImage = new List<PersonInImage>();
+                foreach (JObject result in recognitionResults)
+                {
+                    string identifiedName = result.Value<string>("identified_name");
+                    var familyMember = _family.Find(i => i.Id == identifiedName);
+                    if (identifiedName != "Unknown")
+                    {
+                        // Retrieve real name from database based on identified name
+                        var PersonInImage = new PersonInImage
+                        {
+                            FamilyName = familyMember.FullName,
+                            FamilyLatitude = familyMember.MainLatitude,
+                            FamilyLongitude = familyMember.MainLongitude,
+                            FamilyPhoneNumber = familyMember.PhoneNumber,
+                            RelationalityOfThisPatient = familyMember.Relationility,
+                            FamilyAvatarUrl = GetMediaUrl(familyMember.imageUrl),
+
+                        };
+                        personsInImage.Add(PersonInImage);
+                      
+                        
+                        string realName = familyMember.FullName;
+                       
+                        // Draw real name onto image
+                        JArray faceLocation = (JArray)result["face_location"];
+                        var x = (faceLocation[1].Value<int>() + faceLocation[3].Value<int>()) / 2;
+                       // int x = faceLocation[0].Value<int>()+20;
+                        int y = faceLocation[2].Value<int>()+150; // Offset to draw text below the face
+                        graphics.DrawString(realName, font, brush, x, y, format);
+                    }
+                    else
+                    {
+                        var PersonInImage = new PersonInImage
+                        {
+                            FamilyName = "Unknown",
+                            FamilyLatitude = null ,
+                            FamilyLongitude = null,
+                            FamilyPhoneNumber = "Unknown",
+                            RelationalityOfThisPatient = "Unknown",
+                            FamilyAvatarUrl = "Unknown",
+
+                        };
+                        personsInImage.Add(PersonInImage);
+                        JArray faceLocation = (JArray)result["face_location"];
+                        var x = (faceLocation[1].Value<int>() + faceLocation[3].Value<int>()) / 2;
+                        int y = faceLocation[2].Value<int>() + 150; // Offset to draw text below the face
+                        graphics.DrawString("Unknown", font, brush, x, y, format);
+                    }
+                }
+                string MediaId2 = Guid.NewGuid().ToString();
+              
+                
+                string filePath2 = Path.Combine("PhotoAfterRecognition", $"{MediaId}.jpg");
+                string directoryPath2 = Path.Combine(_env.WebRootPath, "PhotoAfterRecognition");
+                if (!Directory.Exists(directoryPath2))
+                {
+                    Directory.CreateDirectory(directoryPath2);
+                }
+                using (FileStream filestream2 = File.Create(Path.Combine(_env.WebRootPath, filePath2)))
+                {
+                    image.Save(filestream2, ImageFormat.Jpeg);
+                }
+                recognitionResult.PersonsInImage = personsInImage;
+                recognitionResult.ImageAfterResultUrl = GetMediaUrl(filePath2);
+                recognitionResult.GlobalResponse = new GlobalResponse { HasError = false, message = "Image recognition successful" };
+                return recognitionResult;
+            }
+        }
+        private async Task< string> RecognizeImage(PostImageRecognitionDto postImageRecognitionDto,string PatinetId)
+        {
+            string endpoint = "https://b08f-197-36-173-147.ngrok-free.app/recognize_faces";
+
+            using (HttpClient httpClient = new HttpClient())
+            {
+               
+                var multipartContent = new MultipartFormDataContent();
+
+                // Add patient_id and family_member_id as query parameters
+                var queryParameters = new System.Collections.Generic.Dictionary<string, string>
+                {
+                    { "patient_id", PatinetId },
+               
+                };
+
+                // Add the image as a stream content
+                multipartContent.Add(new StreamContent(postImageRecognitionDto.Image.OpenReadStream()), "image", "image.jpg");
+
+                // Build query string
+                var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+                foreach (var param in queryParameters)
+                {
+                    queryString[param.Key] = param.Value;
+                }
+
+                var fullUrl = endpoint + "?" + queryString;
+
+                // Send the request
+                var response = await httpClient.PostAsync(fullUrl, multipartContent);
+                string responseBody = await response.Content.ReadAsStringAsync();
+                // Handle the response
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("Image registered successfully.");
+                    return responseBody;
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to register image. Status code: {response.StatusCode}");
+                    return responseBody;
+                }
+            }
+        }
         private string GetMediaUrl(string imagePath)
         {
             // Assuming imagePath contains the relative path to the Media within the web root
@@ -920,7 +1067,5 @@ namespace BLL.Services
 
             return $"{baseUrl}/{relativePath}";
         }
-
-
     }
 }

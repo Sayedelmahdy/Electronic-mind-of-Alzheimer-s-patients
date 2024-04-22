@@ -163,6 +163,7 @@ namespace BLL.Services
         }
         public async Task<GlobalResponse> AddPatientAsync(string token, AddPatientDto addPatientDto)
         {
+
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
             if (FamilyId == null)
             {
@@ -347,7 +348,17 @@ namespace BLL.Services
             family.PatientId = patient.Id;
             
             await _family.UpdateAsync(family);
-            // todo : send image to Ai for recognition
+
+            var Result = await RegisterFamilyToAi(family);
+            if (!Result)
+            {
+
+                return new GlobalResponse()
+                {
+                    HasError = true,
+                    message = "something went wrong now get back after sometime"
+                };
+            }
             return new GlobalResponse
             {
                 HasError = false,
@@ -395,7 +406,16 @@ namespace BLL.Services
             family.PatientId = assignPatientDto.PatientCode;
             family.Relationility = assignPatientDto.relationility;
             await  _family.UpdateAsync(family) ;
-            // todo : send image to Ai for recognition
+           var result = await RegisterFamilyToAi(family);
+            if (!result)
+            {
+                return new GlobalResponse()
+                {
+                    HasError = true,
+                    message = "something went wrong now get back after sometime"
+                };
+            }
+
             return new GlobalResponse
             {
                 HasError = false,
@@ -665,6 +685,54 @@ namespace BLL.Services
                 ReportId = p.ReportId,
             }).ToList();
 
+        }
+
+        private async Task< bool> RegisterFamilyToAi(Family family)
+        {
+            string endpoint = "https://b08f-197-36-173-147.ngrok-free.app/register_image";
+
+            using (HttpClient httpClient = new HttpClient())
+            {
+                // Read the image bytes
+                byte[] imageBytes = File.ReadAllBytes(Path.Combine(_env.WebRootPath, family.imageUrl));
+
+                // Create multipart form-data content
+                var multipartContent = new MultipartFormDataContent();
+
+                // Add patient_id and family_member_id as query parameters
+                var queryParameters = new System.Collections.Generic.Dictionary<string, string>
+            {
+                { "patient_id", family.PatientId },
+                { "family_member_id", family.Id }
+            };
+
+                // Add the image as a stream content
+                multipartContent.Add(new StreamContent(new MemoryStream(imageBytes)), "image", "image.jpg");
+
+                // Build query string
+                var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+                foreach (var param in queryParameters)
+                {
+                    queryString[param.Key] = param.Value;
+                }
+
+                var fullUrl = endpoint + "?" + queryString;
+
+                // Send the request
+                var response = await httpClient.PostAsync(fullUrl, multipartContent);
+
+                // Handle the response
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("Image registered successfully.");
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to register image. Status code: {response.StatusCode}");
+                    return false;
+                }
+            }
         }
     }
 
