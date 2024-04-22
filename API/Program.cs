@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.SignalR;
 using System.Text;
 using System.Threading.RateLimiting;
 using BLL.Hubs;
+using System.Reflection;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,7 +35,16 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSwaggerGen(option =>
 {
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    option.IncludeXmlComments(xmlPath);
     option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
+    option.AddSignalRSwaggerGen(_ =>
+    {
+        _.UseHubXmlCommentsSummaryAsTagDescription = true;
+        _.UseHubXmlCommentsSummaryAsTag = true;
+        _.UseXmlComments(xmlPath);
+    });
     option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
@@ -154,8 +164,24 @@ var app = builder.Build();
 {
 
 }*/
+app.MapHub<MedicineReminderHub>("hubs/medicineReminder");
+app.MapHub<AppointmentHub>("hubs/Appointment");
+app.MapHub<GPSHub>("hubs/GPS");
+
 app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwaggerUI();
+}
+
+if (app.Environment.IsProduction())
+{
+    app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Electronic mind of Alzheimer's patients v1");
+    c.RoutePrefix = string.Empty;
+});
+}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -164,8 +190,5 @@ app.UseAuthorization();
 app.UseAuthorization();
 app.MapRazorPages();
 app.MapControllers();
-app.MapHub<MedicineReminderHub>("hubs/medicineReminder");
-app.MapHub<AppointmentHub>("hubs/Appointment");
-app.MapHub<GPSHub>("hubs/GPS");
 
 app.Run();

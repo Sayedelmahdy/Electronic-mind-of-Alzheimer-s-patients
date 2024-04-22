@@ -153,10 +153,11 @@ namespace BLL.Services
                 StartDate = s.StartDate,
                 Dosage = s.Dosage,
                 Repeater = s.Repeater,
-                Time_Period = s.Time_Period,
+                EndDate = s.EndDate,
+                MedcineType = s.Medcine_Type
             }).ToList();
         }
-        public async Task<GlobalResponse> UpdateProfileAsync(string token, UpdatePatientProfileDto updatePatientProfile)
+        public async Task<GlobalResponse> UpdateProfileAsync(string token, UpdateMyProfileDto updatePatientProfile)
         {
             string PatientId = _jwtDecode.GetUserIdFromToken(token);
             if (PatientId == null)
@@ -178,8 +179,7 @@ namespace BLL.Services
             }
             patient.Age = updatePatientProfile.Age;
             patient.PhoneNumber = updatePatientProfile.PhoneNumber;
-            patient.DiagnosisDate = updatePatientProfile.DiagnosisDate.ToDateTime(TimeOnly.MinValue);
-            patient.MaximumDistance = updatePatientProfile.MaximumDistance;
+           
             await _patient.UpdateAsync(patient);
             return new GlobalResponse
             {
@@ -223,16 +223,65 @@ namespace BLL.Services
                     message = "Invalid patient Id !"
                 };
             }
+            var patient = await _patient.GetByIdAsync(PatientId);
+            if (patient == null)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "No Patient With this ID!"
+                };
+            }
             var gamescore = new GameScore
             {
-                GameScoreName = gameScoreDto.GameScoreName,
                 DifficultyGame = gameScoreDto.DifficultyGame,
                 PatientScore = gameScoreDto.PatientScore,
-                MaxScore = gameScoreDto.MaxScore,
-                PatientId = PatientId
+                PatientId = PatientId,
+                GameDate = DateTime.UtcNow.AddHours(2)
             };
             await _gameScore.AddAsync(gamescore);
-            string message = gameScoreDto.PatientScore >= gameScoreDto.MaxScore / 2 ? "Congratulations! You did a great job" : "Hard luck! But don't give up, try again ";
+            int score = 0;
+            if (gameScoreDto.DifficultyGame == Difficulty.Easy)
+            {
+               
+                if (gameScoreDto.PatientScore >= 3)
+                {
+                    score = gameScoreDto.PatientScore*10;
+                }
+                else
+                {
+                    score = (3-gameScoreDto.PatientScore)*-10 ;
+                }
+
+                
+            }
+            else if (gameScoreDto.DifficultyGame == Difficulty.Meduim)
+            {
+                if (gameScoreDto.PatientScore >= 6)
+                {
+                    score = gameScoreDto.PatientScore * 10;
+                }
+                else
+                {
+                    score = (6 - gameScoreDto.PatientScore) * -10;
+                }
+
+            }
+            else if (gameScoreDto.DifficultyGame == Difficulty.Hard)
+            {
+                if (gameScoreDto.PatientScore >= 9)
+                {
+                    score = gameScoreDto.PatientScore * 10;
+                }
+                else
+                {
+                    score = (9 - gameScoreDto.PatientScore) * -10;
+
+                }
+            }
+            patient.CurrentScore += score;
+            patient.MaximumScore = (patient.CurrentScore > patient.MaximumScore) ? patient.CurrentScore : patient.MaximumScore;
+            var message = $"Your score is {score} and your current score is {patient.CurrentScore} and your maximum score is {patient.MaximumScore}";
             return new GlobalResponse
             {
                 HasError = false,
@@ -401,83 +450,100 @@ namespace BLL.Services
              }*/
         #endregion
 
-     
-        public Task<GetGameScoresDto> GetGameScoresAsync(string token)
+        public async Task<RecommendedScoreDto?> GetRecommendedScoreAsync(string token)
         {
             string? PatientId = _jwtDecode.GetUserIdFromToken(token);
             if (PatientId == null)
             {
                 return null;
             }
-            var gamescores = _gameScore.Where(s => s.PatientId == PatientId).ToList();
-
-            if (gamescores == null)
+            var Patient = await _patient.GetByIdAsync(PatientId);
+            if (Patient == null)
             {
                 return null;
             }
-            var gameScoresDto = gamescores.Select(s => new GameScoreDto
+
+            var gameScoresDto = new ScoreDto
             {
-                GameScoreId = s.GameScoreId,
-                GameScoreName = s.GameScoreName,
-                DifficultyGame = s.DifficultyGame,
-                PatientScore = s.PatientScore,
-                MaxScore = s.MaxScore
-            }).ToList();
-            var winRates = new Dictionary<Difficulty, double>
-            {
-                { Difficulty.Easy, CalculateWinRate(gameScoresDto, Difficulty.Easy) },
-                { Difficulty.Meduim, CalculateWinRate(gameScoresDto, Difficulty.Meduim) },
-                { Difficulty.Hard, CalculateWinRate(gameScoresDto, Difficulty.Hard) }
+                CurrentScore = Patient.CurrentScore,
+                MaxScore = Patient.MaximumScore,
             };
-
-
-            int recommendedDifficulty = 0;
-            if (winRates[Difficulty.Easy] > 0.7)
+            if (gameScoresDto == null)
             {
-                recommendedDifficulty = (int)Difficulty.Meduim;
+                return null;
             }
-            if (winRates[Difficulty.Meduim] > 0.6)
+            if (Patient.CurrentScore >= 200 && Patient.CurrentScore < 400)
             {
-                recommendedDifficulty = (int)Difficulty.Hard;
+                return new RecommendedScoreDto
+                {
+                    Score = gameScoresDto,
+                    RecommendedScore = 1
+                };
             }
-             if (winRates[Difficulty.Hard] < 0.4) 
+            else if (Patient.CurrentScore >= 400)
             {
-                
-                if (winRates[Difficulty.Meduim] > 0.4)
+                return new RecommendedScoreDto
                 {
-                    recommendedDifficulty = (int)Difficulty.Hard; 
-                    winRates[Difficulty.Hard] = 0;
-                }
-               
-                else
-                {
-                    recommendedDifficulty = (int)Difficulty.Meduim; 
-                }
-               
-
+                    Score = gameScoresDto,
+                    RecommendedScore = 2
+                };
             }
             else
             {
-                recommendedDifficulty = CalculateWinRate(gameScoresDto, Difficulty.Easy) > CalculateWinRate(gameScoresDto, Difficulty.Meduim)  ?
-                                         (int)Difficulty.Easy : (int)Difficulty.Meduim;
+                return new RecommendedScoreDto
+                {
+                    Score = gameScoresDto,
+                    RecommendedScore = 0
+                };
             }
 
-            return Task.FromResult(new GetGameScoresDto
-            {
-                GameScore = gameScoresDto,
-                RecomendationDifficulty = recommendedDifficulty
-            });
-
         }
-        private double CalculateWinRate(List<GameScoreDto> gameScoresDto, Difficulty difficulty)
+
+        public async Task<GetGameScoresDto?> GetGameScoresAsync(string token)
         {
-            var filteredGameScores = gameScoresDto.Where(gs => gs.DifficultyGame == difficulty);
-            int totalGamesPlayed = filteredGameScores.Count();
-            int totalWins = filteredGameScores.Count(gs => gs.PatientScore > gs.MaxScore / 2);
-            double winRate = totalGamesPlayed > 0 ? (double)totalWins / totalGamesPlayed : 0;
-            return winRate;
+            string? PatientId = _jwtDecode.GetUserIdFromToken(token);
+            if (PatientId == null)
+            {
+                return null;
+            }
+            var Patient = await _patient.GetByIdAsync(PatientId);
+            if (Patient == null)
+            {
+                return null;
+            }
+            var gamescores = _gameScore.Where(s => s.PatientId == PatientId).Select(s => new GameScoreDto
+            {
+                GameScoreId = s.GameScoreId,
+                DifficultyGame = s.DifficultyGame,
+                PatientScore = s.PatientScore,
+                GameDate = s.GameDate,
+            }).ToList();
+            if (Patient.CurrentScore >=200 && Patient.CurrentScore < 400)
+            {
+                return new GetGameScoresDto
+                {
+                    GameScore = gamescores,
+                    RecomendationDifficulty = 1
+                };
+            }
+            else if (Patient.CurrentScore >= 400)
+            {
+                return new GetGameScoresDto()
+                {
+                    GameScore = gamescores,
+                    RecomendationDifficulty = 2
+                };
+            }
+            else
+            {
+                return new GetGameScoresDto
+                {
+                    GameScore = gamescores,
+                    RecomendationDifficulty = 0
+                };
+            }
         }
-
+       
 
         public async Task<GlobalResponse> AddSecretFileAsync(string token, PostSecretFileDto secretFileDto)
 
@@ -494,7 +560,7 @@ namespace BLL.Services
                     };
                 }           
                 string fileID = Guid.NewGuid().ToString();
-                string filepath = Path.Combine( patientId, $"{patientId }_{fileID}{Path.GetExtension(secretFileDto.FileName)}");
+                string filepath = Path.Combine( patientId, $"{patientId }_{fileID}{Path.GetExtension(secretFileDto.File.FileName)}");
                 string directorypath = Path.Combine(_env.WebRootPath, patientId,"SecretFiles");
                 if (!Directory.Exists(directorypath))
                 {
@@ -512,10 +578,11 @@ namespace BLL.Services
                     File_Id = fileID,
                     FileName = secretFileDto.FileName,
                     File_Description = secretFileDto.File_Description,
-                    DocumentPath = Path.Combine(_env.WebRootPath, filepath),
+                    DocumentPath =  filepath,
+                    DocumentExtension = Path.GetExtension(secretFileDto.File.FileName),
                     permissionEndDate = DateTime.Now.AddDays(1),
-                    hasPermission = true
                    
+                    PatientId=patientId
                 };
 
                 
@@ -538,8 +605,6 @@ namespace BLL.Services
                 };
             }
         }
-
-
 
         public async Task<GlobalResponse> AskToViewSecretFileAsync(string token, IFormFile videoFile)
         {
@@ -578,7 +643,7 @@ namespace BLL.Services
                         return new GlobalResponse
                         {
                             HasError = false,
-                            message = $"Video uploaded successfully for review. File ID: {filepath}"
+                            message = $"Video uploaded successfully for review"
                         };
                     }
                     else
@@ -653,7 +718,7 @@ namespace BLL.Services
                         message = "Secret file not found"
                     };
                 }
-                secretFile.hasPermission = true;
+               
                 secretFile.permissionEndDate = DateTime.Now.AddDays(1);
                 
                 await _secret.UpdateAsync(secretFile);
@@ -675,53 +740,65 @@ namespace BLL.Services
             }
         }
 
-        public async Task<IEnumerable<GetSecretFIleDTO>> GetSecretFilesAsync(string token)
+        public async Task<GetAllSecretFileDto?> GetSecretFilesAsync(string token)
         {
-            try
-            {
-                
+            
                 if (string.IsNullOrEmpty(token))
                 {
-                    return Enumerable.Empty<GetSecretFIleDTO>();
+                    return new GetAllSecretFileDto
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                    };
                 }
 
                 string patientId = _jwtDecode.GetUserIdFromToken(token);
 
                 if (string.IsNullOrEmpty(patientId))
                 {
-                    return Enumerable.Empty<GetSecretFIleDTO>();
+                    return new GetAllSecretFileDto
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                    };
                 }
 
                 var patient = await _patient.GetByIdAsync(patientId);
 
                 if (patient == null)
                 {
-                    return Enumerable.Empty<GetSecretFIleDTO>();
+                    return new GetAllSecretFileDto
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                    };
                 }
 
-                var secretFiles = await _secret.WhereAsync(s => s.PatientId == patientId && s.hasPermission);
+                var secretFiles = await _secret.WhereAsync(s => s.PatientId == patientId);
 
                 if (secretFiles == null || !secretFiles.Any())
                 {
-                    return Enumerable.Empty<GetSecretFIleDTO>();
+                    return new GetAllSecretFileDto
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                    };
                 }
+               
 
-                var result = secretFiles.Select(s => new GetSecretFIleDTO
+                var result = secretFiles.Select(s => new GetSecretFileDto
                 {
                     SecretId = s.File_Id,
                     FileName = s.FileName,
                     File_Description = s.File_Description,
-                    DocumentUrl = GetMediaUrl(s.DocumentPath),
-                    HasError = false
+                    NeedToConfirm = !s.hasPermission,
+                    DocumentUrl = s.hasPermission==true? GetMediaUrl(s.DocumentPath) : null,
+                    DocumentExtension = s.hasPermission==true? s.DocumentExtension : null,
+                  
                 }).ToList();
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"An error occurred in GetSecretFilesAsync: {ex.Message}");
-                return Enumerable.Empty<GetSecretFIleDTO>();
-            }
+                return new GetAllSecretFileDto
+                {
+                    Code = StatusCodes.Status200OK,
+                    SecretFiles = result,
+                };
+            
         }
 
 
@@ -751,7 +828,7 @@ namespace BLL.Services
             var MarkMedctaion = new Mark_Medicine_Reminder
             {
                 
-                ReminderId = markMedictaionDto.MedictaionId,
+                MedicationReminderId = markMedictaionDto.MedictaionId,
                 IsTaken = markMedictaionDto.IsTaken,
                 MarkTime = DateTime.Now,
                 

@@ -1,6 +1,7 @@
 ﻿using BLL.DTOs;
 using BLL.DTOs.AuthenticationDto;
 using BLL.DTOs.CaregiverDto;
+using BLL.DTOs.PatientDto;
 using DAL.Model;
 using System;
 using System.Collections.Generic;

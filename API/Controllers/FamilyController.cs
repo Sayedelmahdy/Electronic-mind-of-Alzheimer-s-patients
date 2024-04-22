@@ -85,6 +85,8 @@ namespace API.Controllers
         [HttpPut("AssignPatientToFamily")]
         public async Task<IActionResult> AssignPatientToFamily(AssignPatientDto assignPatientDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
@@ -141,6 +143,8 @@ namespace API.Controllers
         [HttpPost("AddPatient")]
         public async Task<IActionResult> AddPatient([FromForm] AddPatientDto addPatientDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
@@ -196,6 +200,8 @@ namespace API.Controllers
         [HttpPut("UpdatePatientProfile")]
         public async Task<IActionResult> UpdatePatientProfile(UpdatePatientProfileDto updatePatientProfileDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
@@ -255,6 +261,8 @@ namespace API.Controllers
         [HttpPost("UploadMedia")]
         public async Task<IActionResult> UploadMedia([FromForm] AddMediaDto addMediaDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
@@ -286,6 +294,8 @@ namespace API.Controllers
         [HttpPost("AddAppointment")]
         public async Task<IActionResult> AddAppointment (AddAppointmentDto addAppointmentDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
@@ -349,6 +359,26 @@ namespace API.Controllers
             if (res.HasError)
                 return BadRequest(res);
             return Ok(res); 
+        }
+        /// <summary>
+        /// Retrieves the reports associated with the patient of the authenticated family.
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("GetPatientReports")]
+       public async Task<IActionResult> GetPatientReports()
+        {
+            string? token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Token invaild");
+            }
+            var res = await _familyService.GetPatientReportsAsync(token);
+            if (res.Count() == 0)
+            {
+                return NotFound("No Reports");
+            }
+            return Ok(res);
         }
 
     }

@@ -28,7 +28,7 @@ namespace DAL.Context
         public virtual DbSet<Appointment> Appointments { get; set; }
         
         public virtual DbSet<Location> Locations { get; set; }
-        public virtual DbSet<Mark_Medicine_Reminder> Mark_Medicine_Reminders { get; set; }
+        public virtual DbSet<Mark_Medicine_Reminder> MarkMedicineReminders { get; set; }
         public virtual DbSet<Medication_Reminders> Medication_Reminders { get; set; }
         public virtual DbSet<Note> Notes { get; set; }
         public virtual DbSet<Media> Medias { get; set; }

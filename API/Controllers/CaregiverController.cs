@@ -1,5 +1,4 @@
 ﻿using BLL.Helper;
-using BLL.DTOs;
 using BLL.DTOs.CaregiverDto;
 using BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -88,6 +87,8 @@ namespace API.Controllers
         [HttpPost("AddMedicationReminder/{patientId}")]
         public async Task<IActionResult> AddMedicationReminder([FromBody] MedicationReminderPostDto medicationReminderDto, string patientId)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             var token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
@@ -129,35 +130,8 @@ namespace API.Controllers
             }
             return Ok(res.ToList());
         }
-        /// <summary>
-        /// Controller endpoint to update a medication reminder for a specific patient.
-        /// </summary>
-        /// <param name="ReminderId">The ID of the medication reminder to be updated.</param>
-        /// <param name="medication">The data transfer object containing updated information about the medication reminder.</param>
-        /// <remarks>
-        /// This endpoint allows caregivers to update medication reminders for their assigned patients. 
-        /// Caregivers must provide a valid authentication token to access this endpoint.
-        /// The endpoint verifies the caregiver's authorization and the existence of the medication reminder before updating it.
-        /// </remarks>
-        /// <returns>
-        /// Returns Ok if the medication reminder is updated successfully. 
-        /// Returns BadRequest if the token is invalid or if there is an error in the request body.
-        /// </returns>
-        [HttpPut("UpdateMedicationReminderForPatient/{ReminderId}")]
-        public async Task<IActionResult> UpdateMedicationReminder(string ReminderId, [FromBody] MedicationReminderUpdateDto medication)
-        {
-            var token = HttpContextHelper.GetToken(this.HttpContext);
-            if (token == null)
-            {
-                return BadRequest("Invalid Token");
-            }
-            var res = await _caregiverService.UpdateMedicationReminderAsync(token, ReminderId, medication);
-            if (res.HasError)
-            {
-                return BadRequest(res.message);
-            }
-            return Ok(res.message);
-        }
+
+     
         /// <summary>
         /// Controller endpoint to delete a medication reminder.
         /// </summary>
@@ -244,6 +218,8 @@ namespace API.Controllers
         [HttpPost("CreateReport")]
         public async Task<IActionResult> CreateReport([FromBody] ReportCardDto reportCardDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             var token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {

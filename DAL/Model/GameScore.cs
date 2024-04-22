@@ -10,10 +10,10 @@ namespace DAL.Model
     public class GameScore
     {
         public string GameScoreId { get; set; }=Guid.NewGuid().ToString();
-        public string GameScoreName { get; set;}
         public Difficulty DifficultyGame { get; set; }
         public int PatientScore { get; set; }
-        public int MaxScore { get; set; }
+        public DateTime GameDate { get; set; }
+       
         #region Navigation Property
         public Patient patient { get; set; }
         [ForeignKey(nameof(Patient))]
@@ -22,8 +22,8 @@ namespace DAL.Model
     }
     public enum Difficulty
     {
-        Easy,
-        Meduim,
-        Hard
+        Easy = 0,
+        Meduim =1,
+        Hard =2
     }
 }

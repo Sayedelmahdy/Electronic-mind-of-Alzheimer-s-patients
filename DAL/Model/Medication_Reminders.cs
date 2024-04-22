@@ -15,9 +15,11 @@ namespace DAL.Model
         public string Reminder_ID { get; set; } = Guid.NewGuid().ToString();
         public string Medication_Name { get; set; }
         public string Dosage { get; set; }
+        public MedcineType Medcine_Type { get; set; }
         public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
         public RepeatType Repeater { get; set; }
-        public string Time_Period { get; set; }
+       
         public Caregiver caregiver { get; set; }
         [ForeignKey(nameof(Caregiver))]
         public string Caregiver_Id { get; set; }//اللي عملها 
@@ -29,9 +31,16 @@ namespace DAL.Model
     }
     public enum RepeatType
     {
-        Once,
-        Twice,
-        Three_Times,
-        Four_Times
+        Once=0,
+        Twice=1,
+        Three_Times=2,
+        Four_Times=3
+    }
+    public enum MedcineType
+    {
+        Bottle=0,
+        Pill=1,
+        Syringe=2,
+        Tablet=3,
     }
 }

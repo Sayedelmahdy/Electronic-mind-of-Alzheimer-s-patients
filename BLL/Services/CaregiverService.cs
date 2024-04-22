@@ -1,6 +1,7 @@
 ﻿
 using BLL.DTOs;
 using BLL.DTOs.CaregiverDto;
+using BLL.DTOs.PatientDto;
 using BLL.Helper;
 using BLL.Hubs;
 using BLL.Interfaces;
@@ -93,10 +94,25 @@ namespace BLL.Services
                 Caregiver_Id = caregiverId,
                 Repeater = mediceneDto.Repeater,
                 StartDate = mediceneDto.StartDate,
-                Time_Period = mediceneDto.Time_Period,
+                EndDate = mediceneDto.EndDate,
+                Medcine_Type = mediceneDto.MedcineType,
+                
+               
             };
+            var JsonMedicationData = new
+            {
+                MedicationId = medication.Reminder_ID,
+                Medication_Name = mediceneDto.Medication_Name,
+                Dosage = mediceneDto.Dosage,
+                Repeater = mediceneDto.Repeater,
+                StartDate = mediceneDto.StartDate,
+                EndDate = mediceneDto.EndDate,
+                MedcineType = mediceneDto.MedcineType
+
+            };
+            var JsonMedication = JsonConvert.SerializeObject(JsonMedicationData); // serialize the medication
             await _medication_Reminders.AddAsync(medication);
-            await _medicineHub.Clients.Group(patientId).SendAsync("ReceiveMedicineReminder", "Medicine Added Successfully");
+            await _medicineHub.Clients.Group(patientId).SendAsync("ReceiveMedicineReminder","Medication Added" ,JsonMedication);
             return new GlobalResponse
             {
                 HasError = false,
@@ -118,7 +134,9 @@ namespace BLL.Services
                     message = "Medication Reminder with This Id is Not found "
                 };
             }
+            
             await _medication_Reminders.DeleteAsync(reminder);
+            await _medicineHub.Clients.Group(reminder.Patient_Id).SendAsync("ReceiveMedicineReminder", "Medication Deleted", reminderId);
             return new GlobalResponse
             {
                 HasError = false,
@@ -174,7 +192,8 @@ namespace BLL.Services
                     StartDate=s.StartDate,
                     Dosage=s.Dosage,
                     Repeater=s.Repeater,
-                    Time_Period=s.Time_Period
+                   EndDate=s.EndDate,
+                   MedcineType=s.Medcine_Type,
                 }).ToList();
             if (!res.Any())
             {
@@ -199,7 +218,9 @@ namespace BLL.Services
             medicine.StartDate = UpdateMedicationReminderDto.StartDate;
             medicine.Dosage= UpdateMedicationReminderDto.Dosage;
             medicine.Repeater= UpdateMedicationReminderDto.Repeater;
-            medicine.Time_Period = UpdateMedicationReminderDto.Time_Period;
+            medicine.EndDate = UpdateMedicationReminderDto.EndDate;
+            medicine.Medcine_Type = UpdateMedicationReminderDto.MedcineType;
+            
             await _medication_Reminders.UpdateAsync(medicine);
             return new GlobalResponse
             {
@@ -227,10 +248,10 @@ namespace BLL.Services
             var gameScoreDtos = gameScores.Select(gs => new GameScoreDto
             {
                 GameScoreId = gs.GameScoreId,
-                GameScoreName = gs.GameScoreName,
+                GameDate = gs.GameDate,
                 DifficultyGame = gs.DifficultyGame,
                 PatientScore = gs.PatientScore,
-                MaxScore = gs.MaxScore
+                
             });
 
             return gameScoreDtos;

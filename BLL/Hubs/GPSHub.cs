@@ -4,6 +4,7 @@ using DAL.Interfaces;
 using DAL.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
+using SignalRSwaggerGen.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,12 @@ using System.Threading.Tasks;
 
 namespace BLL.Hubs
 {
+    /// <summary>
+    /// gps hub for patient and family when patient location change it will send message to family
+    /// but if the change is greater than the MaxDistance it will send message his family
+    /// and if patient dissconnect it will remove from group and send message to family on 'ReceivePatientDisconnect'
+    /// </summary>
+    [SignalRHub]
     public class GPSHub:Hub
     {
         private readonly IDecodeJwt _decodeJwt;
@@ -29,7 +36,7 @@ namespace BLL.Hubs
             _family = FamilyRepository;
             _decodeJwt = decodeJwt;
         }
-
+        [SignalRMethod("SendGPSToFamilies")]
         public async Task SendGPSToFamilies( double Latitude, double Longitude)
         {
             var httpContext = Context.GetHttpContext();
@@ -85,6 +92,13 @@ namespace BLL.Hubs
             await base.OnConnectedAsync();
 
         }
+        /// <summary>
+        /// when patient disconnect from hub it will remove from group 
+        /// and send message to family on 'ReceivePatientDisconnect'
+        /// </summary>
+        /// <param name="exception"></param>
+        /// <returns></returns>
+        [SignalRMethod("ReceivePatientDisconnect")]
         public async override Task OnDisconnectedAsync(Exception? exception)
         {
             var httpContext = Context.GetHttpContext();

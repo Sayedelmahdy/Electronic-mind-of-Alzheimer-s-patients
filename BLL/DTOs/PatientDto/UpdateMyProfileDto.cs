@@ -5,13 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.DTOs.FamilyDto
+namespace BLL.DTOs.PatientDto
 {
-    public class AssignPatientDto
+    public class UpdateMyProfileDto
     {
         [Required]
-        public string PatientCode { get; set; }
+        public string PhoneNumber { get; set; }
         [Required]
-        public string relationility {  get; set; }
+        public int Age { get; set; }
     }
 }

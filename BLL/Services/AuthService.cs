@@ -199,7 +199,7 @@ namespace BLL.Services
                                 model.Avatar.CopyTo(filestream);
                                 filestream.Flush();
                             }
-                            family.imageUrl = Path.Combine(_env.WebRootPath, filePath);
+                            family.imageUrl =  filePath;
                             await _userManager.UpdateAsync(family);
                             
                             var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(family);
@@ -252,7 +252,7 @@ namespace BLL.Services
                         model.Avatar.CopyTo(filestream);
                         filestream.Flush();
                     }
-                    caregiver.imageUrl = Path.Combine(_env.WebRootPath, filePath);
+                    caregiver.imageUrl =  filePath;
                     await _userManager.UpdateAsync(caregiver);
                     var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(caregiver);
                     
