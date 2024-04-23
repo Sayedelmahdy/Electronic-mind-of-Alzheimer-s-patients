@@ -19,6 +19,7 @@ using System.Text;
 using System.Threading.RateLimiting;
 using BLL.Hubs;
 using System.Reflection;
+using API.Middlewares;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -189,6 +190,7 @@ app.UseRouting();
 app.UseAuthorization();
 app.UseAuthorization();
 app.MapRazorPages();
+app.UseLoggingMiddleware();
 app.MapControllers();
 
 app.Run();

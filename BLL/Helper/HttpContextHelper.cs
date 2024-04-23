@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace BLL.Helper
 {
@@ -23,6 +24,25 @@ namespace BLL.Helper
                 token = token.Substring("Bearer ".Length).Trim();
             }
             return token;
+        }
+        public static string? GetUserIdFromToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+
+            if (tokenHandler.CanReadToken(token))
+            {
+                var jwtToken = tokenHandler.ReadJwtToken(token);
+
+
+                var userId = jwtToken.Payload["uid"]?.ToString();
+
+                return userId;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }
