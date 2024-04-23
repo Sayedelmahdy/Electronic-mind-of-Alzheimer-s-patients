@@ -10,7 +10,7 @@ namespace DAL.Model
     public class Family:User
     {
         public string? Relationility { get; set; }
-       
+        public string? DescriptionForPatient { get; set; }
 
         #region Navigation Prop
         [ForeignKey(nameof(Patient))]

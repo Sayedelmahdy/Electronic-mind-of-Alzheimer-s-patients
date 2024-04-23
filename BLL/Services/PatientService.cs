@@ -32,6 +32,7 @@ namespace BLL.Services
         private readonly IBaseRepository<Mark_Medicine_Reminder> _Mark_Medicine_Reminder;
         private readonly IBaseRepository<Appointment> _appointments;
         private readonly IBaseRepository<Family> _family;
+        private readonly IBaseRepository<PersonWithoutAccount> _person;
         private readonly IDecodeJwt _jwtDecode;
         private readonly IBaseRepository<Media> _media;
         private readonly Mail _mail;
@@ -50,17 +51,17 @@ namespace BLL.Services
             IBaseRepository<Appointment> appointments,
             IBaseRepository<Family> family,
             IBaseRepository<Media> media,
-             IWebHostEnvironment env,
-              IOptions<Mail> Mail,
-
-              IMailService mailService,
-              IBaseRepository<SecretAndImportantFile> secret,
-
+            IWebHostEnvironment env,
+            IOptions<Mail> Mail,
+            IMailService mailService,
+            IBaseRepository<SecretAndImportantFile> secret,
             IBaseRepository<GameScore> gameScore,
-            IBaseRepository<Mark_Medicine_Reminder>Mark_Medicine_Reminder
+            IBaseRepository<Mark_Medicine_Reminder>Mark_Medicine_Reminder,
+            IBaseRepository<PersonWithoutAccount>person
 
             )
         {
+            _person = person;
             _hubContext = hubContext;
             _jwtDecode = jwtDecode;
             _patient = patient;
@@ -862,13 +863,31 @@ namespace BLL.Services
             {
                 return Enumerable.Empty<GetFamiliesDto>();
             }
-            return families.Select(s => new GetFamiliesDto
+            List<GetFamiliesDto>result = new List<GetFamiliesDto>();
+            var Families = families.Select(s => new GetFamiliesDto
             {
                 FamilyId = s.Id,
                 FamilyName = s.FullName,
                 Relationility = s.Relationility,
                 HisImageUrl = (s.imageUrl == null) ? "" : GetMediaUrl(s.imageUrl),
+                FamilyDescriptionForPatient = s.DescriptionForPatient
+
             }).ToList();
+            result.AddRange(Families);
+          var person= await _person.WhereAsync(i=>i.PatientId==PatientId);
+            if (person != null)
+            {
+                var persons = person.Select(s => new GetFamiliesDto()
+                {
+                    FamilyId = s.Id,
+                    FamilyName = s.FullName,
+                    Relationility = s.Relationility,
+                    HisImageUrl = (s.imageUrl == null) ? "" : GetMediaUrl(s.imageUrl),
+                    FamilyDescriptionForPatient = s.DescriptionForPatient
+                } ).ToList();
+                result.AddRange(persons);
+            }
+            return result;
         }
 
         public async Task<GetFamilyLocationDto?> GetFamilyLocation(string token, string familyId)
@@ -885,18 +904,39 @@ namespace BLL.Services
             var family = await _family.GetByIdAsync(familyId);
             if (family == null)
             {
-                return new GetFamilyLocationDto()
+                var person = await _person.GetByIdAsync(familyId);
+                if (person == null)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Message = "Invalid Family Id"
+                    return new GetFamilyLocationDto()
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Invalid Family Id"
+                    };
+                }
+
+                if (person.PatientId != PatientId)
+                {
+                    return new GetFamilyLocationDto()
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Patient Id Not Found"
+                    };
+                }
+                return new GetFamilyLocationDto
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Family Location Found",
+                    Latitude = person.MainLatitude,
+                    Longitude = person.MainLongitude
                 };
+
             }
             if (family.PatientId != PatientId)
             {
                 return new GetFamilyLocationDto()
                 {
                     Code = StatusCodes.Status400BadRequest,
-                    Message = "Invalid Family Id"
+                    Message = "Patient Id Not Found"
                 };
             }
            if (family.MainLatitude == null || family.MainLongitude == null)
@@ -944,9 +984,30 @@ namespace BLL.Services
                         List<PersonInImage> personsInImage = new List<PersonInImage>();
                         foreach (JObject result in recognitionResults)
                         {
+                            bool IsPersonWithoutAccount = false;
+                            string? realName = null;
                             string identifiedName = result.Value<string>("identified_name");
-                            var familyMember = _family.Find(i => i.Id == identifiedName);
-                            string? realName = familyMember?.FullName ?? "Unknown";
+                            Family? familyMember = null;
+                            PersonWithoutAccount? person = null;
+                            if (identifiedName!="Unknown")
+                            {
+                                familyMember = _family.Find(i => i.Id == identifiedName);
+                                if (familyMember == null)
+                                {
+                                     person = _person.Find(i => i.Id == identifiedName);
+                                    realName = person?.FullName;
+                                    IsPersonWithoutAccount = true;
+                                }
+                                else
+                                {
+                                    realName = familyMember.FullName;
+                                }
+                            }
+                            else
+                            {
+                                realName = "Unknown";
+                            }
+                           
                             JArray faceLocation = (JArray)result["face_location"];
 
                             // Calculate the rectangle coordinates
@@ -979,7 +1040,7 @@ namespace BLL.Services
 
                           
                             
-                            if (identifiedName != "Unknown")
+                            if (IsPersonWithoutAccount == false && realName!="Unknown")
                             {
                              
                                 var PersonInImage = new PersonInImage
@@ -990,7 +1051,22 @@ namespace BLL.Services
                                     FamilyPhoneNumber = familyMember.PhoneNumber,
                                     RelationalityOfThisPatient = familyMember.Relationility,
                                     FamilyAvatarUrl = GetMediaUrl(familyMember.imageUrl),
-
+                                    DescriptionForPatient = familyMember.DescriptionForPatient
+                                };
+                                graphics.DrawString(realName, font, brush, x, y, format);
+                                personsInImage.Add(PersonInImage);
+                            }
+                            else if (IsPersonWithoutAccount == true && realName != "Unknown")
+                            {
+                                var PersonInImage = new PersonInImage
+                                {
+                                    FamilyName = person.FullName,
+                                    FamilyLatitude = person.MainLatitude,
+                                    FamilyLongitude = person.MainLongitude,
+                                    FamilyPhoneNumber = person.PhoneNumber,
+                                    RelationalityOfThisPatient = person.Relationility,
+                                    FamilyAvatarUrl = GetMediaUrl(person.imageUrl),
+                                    DescriptionForPatient = person.DescriptionForPatient
                                 };
                                 graphics.DrawString(realName, font, brush, x, y, format);
                                 personsInImage.Add(PersonInImage);
@@ -1041,7 +1117,7 @@ namespace BLL.Services
         }
         private async Task< string> RecognizeImage(PostImageRecognitionDto postImageRecognitionDto,string PatinetId)
         {
-            string endpoint = "https://b08f-197-36-173-147.ngrok-free.app/recognize_faces";
+            string endpoint = "https://evident-moving-bonefish.ngrok-free.app/recognize_faces";
 
             using (HttpClient httpClient = new HttpClient())
             {

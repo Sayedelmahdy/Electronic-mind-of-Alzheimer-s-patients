@@ -11,6 +11,7 @@ namespace BLL.DTOs.PatientDto
         public string FamilyId { get; set; }
         public string FamilyName { get; set; }
         public string? Relationility { get; set; }
+        public string? FamilyDescriptionForPatient { get; set; }
         public string? HisImageUrl { get; set; }
         
     }

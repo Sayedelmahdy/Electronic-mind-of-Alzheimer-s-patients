@@ -13,5 +13,7 @@ namespace BLL.DTOs.FamilyDto
         public string PatientCode { get; set; }
         [Required]
         public string relationility {  get; set; }
+      
+        public string? DescriptionForPatient { get; set; }
     }
 }

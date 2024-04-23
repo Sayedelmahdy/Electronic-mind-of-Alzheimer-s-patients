@@ -34,7 +34,9 @@ namespace BLL.DTOs.FamilyDto
 
         public IFormFile Avatar { get; set; }
         [Required]
-       public string relationality { get; set; }
+        public string relationality { get; set; }
+       
+        public string? DescriptionForPatient { get; set; }
         [Required]
         public DateOnly DiagnosisDate { get; set; }
         [Required]

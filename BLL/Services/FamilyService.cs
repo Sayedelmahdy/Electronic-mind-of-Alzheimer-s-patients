@@ -29,6 +29,7 @@ namespace BLL.Services
         private readonly IBaseRepository<Caregiver> _caregiver;
         private readonly IBaseRepository<Appointment> _Appointments;
         private readonly IBaseRepository<Location> _location;
+        private readonly IBaseRepository<PersonWithoutAccount> _personWithoutAccount;
         private readonly IDecodeJwt _jwtDecode;
         private readonly IWebHostEnvironment _env;
         private readonly JWT _jwt;
@@ -54,9 +55,11 @@ namespace BLL.Services
               IMailService mailService,
               IHubContext<AppointmentHub> appointmentHub,
             UserManager<User> user,
-            IBaseRepository<Report> report
+            IBaseRepository<Report> report,
+            IBaseRepository<PersonWithoutAccount> personWithoutAccount
             )
         {
+            _personWithoutAccount = personWithoutAccount;
             _Media = Media;
             _family = family;
             _patient = patient;
@@ -346,10 +349,11 @@ namespace BLL.Services
             }
             family.Relationility = addPatientDto.relationality;
             family.PatientId = patient.Id;
+            family.DescriptionForPatient = addPatientDto.DescriptionForPatient;
             
             await _family.UpdateAsync(family);
 
-            var Result = await RegisterFamilyToAi(family);
+            var Result = await RegisterFamilyToAi(family.PatientId,family.Id,family.imageUrl);
             if (!Result)
             {
 
@@ -405,8 +409,9 @@ namespace BLL.Services
             }
             family.PatientId = assignPatientDto.PatientCode;
             family.Relationility = assignPatientDto.relationility;
+            family.DescriptionForPatient = assignPatientDto.DescriptionForPatient;
             await  _family.UpdateAsync(family) ;
-           var result = await RegisterFamilyToAi(family);
+           var result = await RegisterFamilyToAi(family.PatientId, family.Id, family.imageUrl);
             if (!result)
             {
                 return new GlobalResponse()
@@ -686,15 +691,75 @@ namespace BLL.Services
             }).ToList();
 
         }
-
-        private async Task< bool> RegisterFamilyToAi(Family family)
+        public async Task<GlobalResponse> AddPersonWithoutAccount(string token, AddPersonWithoutAccountDto addPersonWithoutAccountDto)
         {
-            string endpoint = "https://b08f-197-36-173-147.ngrok-free.app/register_image";
+            string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
+            if (FamilyId == null)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "Token is not valid"
+                };
+            }
+            var Family = _family.GetById(FamilyId);
+            if (Family == null)
+            {
+                return new GlobalResponse()
+                {
+                    HasError = true,
+                    message = "Family Not Found"
+                };
+            }
+            if (Family.PatientId == null)
+            {
+                return new GlobalResponse()
+                {
+                   HasError = true,
+                   message = "This Family doesn't have patient yet"
+                };
+            }
+            string MediaId = Guid.NewGuid().ToString();
+
+            string filePath = Path.Combine("User Avatar", $"{MediaId}{Path.GetExtension(addPersonWithoutAccountDto.AvatarImage.FileName)}");
+            string directoryPath = Path.Combine(_env.WebRootPath, "User Avatar");
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+            using (FileStream filestream = File.Create(Path.Combine(_env.WebRootPath, filePath)))
+            {
+                addPersonWithoutAccountDto.AvatarImage.CopyTo(filestream);
+                filestream.Flush();
+            }
+            var Person = new PersonWithoutAccount
+            {
+                PatientId = Family.PatientId,
+                FullName = addPersonWithoutAccountDto.FullName,
+                DescriptionForPatient = addPersonWithoutAccountDto.DescriptionForPatient,
+                MainLatitude = addPersonWithoutAccountDto.MainLatitude,
+                MainLongitude = addPersonWithoutAccountDto.MainLongitude,
+                PhoneNumber = addPersonWithoutAccountDto.PhoneNumber,
+                imageUrl = filePath,
+                Relationility = addPersonWithoutAccountDto.Relationility,
+
+            };
+            await _personWithoutAccount.AddAsync(Person);
+            await RegisterFamilyToAi(Person.PatientId, Person.Id, Person.imageUrl);
+            return new GlobalResponse
+            {
+                HasError = false,
+                message = "Person Added Succesfully"
+            };
+        }
+        private async Task< bool> RegisterFamilyToAi(string PatientId,string UserId,string ImagePath)
+        {
+            string endpoint = "https://evident-moving-bonefish.ngrok-free.app/register_image";
 
             using (HttpClient httpClient = new HttpClient())
             {
                 // Read the image bytes
-                byte[] imageBytes = File.ReadAllBytes(Path.Combine(_env.WebRootPath, family.imageUrl));
+                byte[] imageBytes = File.ReadAllBytes(Path.Combine(_env.WebRootPath, ImagePath));
 
                 // Create multipart form-data content
                 var multipartContent = new MultipartFormDataContent();
@@ -702,8 +767,8 @@ namespace BLL.Services
                 // Add patient_id and family_member_id as query parameters
                 var queryParameters = new System.Collections.Generic.Dictionary<string, string>
             {
-                { "patient_id", family.PatientId },
-                { "family_member_id", family.Id }
+                { "patient_id", PatientId },
+                { "family_member_id", UserId }
             };
 
                 // Add the image as a stream content
@@ -734,6 +799,8 @@ namespace BLL.Services
                 }
             }
         }
+
+        
     }
 
 }

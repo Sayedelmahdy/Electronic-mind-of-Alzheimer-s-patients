@@ -46,6 +46,34 @@ namespace API.Controllers
             return Ok(new { Code = res });
         }
         /// <summary>
+        /// Endpoint to add a new person to a Patient without requiring them to have an account.
+        /// </summary>
+        /// <param name="addPersonWithoutAccountDto">Data transfer object containing information about the person to be added.</param>
+        /// <remarks>
+        /// This endpoint allows for the addition of a person to a Patient without the need for the person to have their own user account. 
+        /// It requires a valid token for authentication and authorization purposes.
+        /// </remarks>
+        /// <returns>
+        /// IActionResult representing the result of the operation. Returns a BadRequest response if the token is invalid or if there are errors in the request. 
+        /// Returns an Ok response if the person is added successfully.
+        /// </returns>
+        [HttpPost("AddPersonWithoutAccount")]
+        public async Task<IActionResult> AddPersonWithoutAccount([FromForm]AddPersonWithoutAccountDto addPersonWithoutAccountDto)
+        {
+            string? token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Token invaild");
+            }
+            var res = await _familyService.AddPersonWithoutAccount(token, addPersonWithoutAccountDto);
+            if (res.HasError)
+            {
+                return BadRequest(res);
+            }
+            return Ok(res);
+
+        }
+        /// <summary>
         /// Retrieves the locations of patients for the current day.
         /// </summary>
         /// <param name="">The HTTP context.</param>
