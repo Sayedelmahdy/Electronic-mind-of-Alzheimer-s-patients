@@ -1035,9 +1035,12 @@ namespace BLL.Services
                         {
                             Directory.CreateDirectory(directoryPath2);
                         }
+                        ImageCodecInfo jpegCodec = GetEncoderInfo(ImageFormat.Jpeg);
+                        EncoderParameters encoderParameters = new EncoderParameters(1);
+                        encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 35L);
                         using (FileStream filestream2 = File.Create(Path.Combine(_env.WebRootPath, filePath2)))
                         {
-                            image.Save(filestream2, ImageFormat.Jpeg);
+                            image.Save(filestream2, jpegCodec, encoderParameters);
                         }
 
                         recognitionResult.PersonsInImage = personsInImage;
@@ -1109,6 +1112,18 @@ namespace BLL.Services
             float ratio = width / textSize.Width;
             float newSize = (font.Size * ratio)+8;
             return newSize;
+        }
+        private ImageCodecInfo GetEncoderInfo(ImageFormat format)
+        {
+            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
+            foreach (ImageCodecInfo codec in codecs)
+            {
+                if (codec.FormatID == format.Guid)
+                {
+                    return codec;
+                }
+            }
+            return null;
         }
     }
 }
