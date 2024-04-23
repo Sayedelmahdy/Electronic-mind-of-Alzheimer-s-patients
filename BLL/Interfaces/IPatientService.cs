@@ -14,7 +14,7 @@ namespace BLL.Interfaces
 {
     public interface IPatientService
     {
-       
+        Task<RecognitionResult> ImageRecognition (PostImageRecognitionDto postImageRecognitionDto,string token);
         Task<GetPatientProfileDto> GetPatientProfileAsync(string token);
         Task<IEnumerable<GetFamiliesDto>> GetFamiliesAsync(string token);
         Task<GetFamilyLocationDto?> GetFamilyLocation(string token, string familyId);
@@ -26,7 +26,7 @@ namespace BLL.Interfaces
         Task<GlobalResponse> AddGameScoreAsync(string token, PostGameScoreDto gameScoreDto);
         Task<GetGameScoresDto?> GetGameScoresAsync(string token);
         Task<GlobalResponse> AddSecretFileAsync(string token, PostSecretFileDto secretFileDto);
-        Task<RecommendedScoreDto?> GetRecommendedScoreAsync(string token);
+        Task<CurrentAndMaxScoreDto?> GetRecommendedScoreAsync(string token);
         Task<GlobalResponse> AskToViewSecretFileAsync(string token, IFormFile videoFile);
         Task<GetAllSecretFileDto?> GetSecretFilesAsync(string token);
         Task<GlobalResponse> ApproveVideoAsync(string fileId);

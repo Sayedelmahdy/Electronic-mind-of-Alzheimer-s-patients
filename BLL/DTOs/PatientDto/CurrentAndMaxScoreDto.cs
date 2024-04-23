@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace BLL.DTOs.PatientDto
 {
-    public class RecommendedScoreDto
+    public class CurrentAndMaxScoreDto
     {
         public ScoreDto Score { get; set; }
-        public int RecommendedScore { get; set; }
+        public int RecommendedGameDifficulty { get; set; }
         
     }
 }
