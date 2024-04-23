@@ -25,7 +25,7 @@ using API.Middlewares;
 var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
+    .MinimumLevel.Error()
     .WriteTo.File("./Log/LoggingFile-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 // Add services to the container.
