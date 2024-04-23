@@ -19,6 +19,22 @@ namespace API.Controllers
         {
             _patientService = patientService;
         }
+        [HttpPost("RecognizeFaces")]
+        public async Task<IActionResult> RecognizeFaces([FromForm] PostImageRecognitionDto postImageRecognitionDto)
+        {
+            var token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Invalid Token");
+            }
+            var res = await _patientService.ImageRecognition(postImageRecognitionDto, token);
+            if (res.GlobalResponse.HasError)
+            {
+                return BadRequest(res.GlobalResponse.message);
+            }
+            return Ok(res);
+
+        }
         /// <summary>
         /// Retrieves the profile of the patient .
         /// </summary>
