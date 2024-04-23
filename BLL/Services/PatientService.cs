@@ -924,20 +924,7 @@ namespace BLL.Services
             JObject jsonObject = JObject.Parse(Response);
             JArray recognitionResults = (JArray)jsonObject["recognition_results"];
             RecognitionResult recognitionResult = new RecognitionResult();
-            /*var PatinetId = _jwtDecode.GetUserIdFromToken(token);
-            string MediaId = Guid.NewGuid().ToString();
-
-            string filePath = Path.Combine("ImagesBeforeRecognitionResult", $"{MediaId}{Path.GetExtension(postImageRecognitionDto.Image.FileName)}");
-            string directoryPath = Path.Combine(_env.WebRootPath, "ImagesBeforeRecognitionResult");
-            if (!Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
-            using (FileStream filestream = File.Create(Path.Combine(_env.WebRootPath, filePath)))
-            {
-                postImageRecognitionDto.Image.CopyTo(filestream);
-                filestream.Flush();
-            }*/
+      
             if (postImageRecognitionDto.Image != null && postImageRecognitionDto.Image.Length > 0)
             {
                 using (var memoryStream = new MemoryStream())
@@ -950,7 +937,7 @@ namespace BLL.Services
                     Bitmap image = new Bitmap(memoryStream);
                     using (Graphics graphics = Graphics.FromImage(image))
                     {
-                        // Font settings
+                        
                         Font font = new Font("Arial", 30, FontStyle.Bold);
                         SolidBrush brush = new SolidBrush(Color.Cyan);
                         List<PersonInImage> personsInImage = new List<PersonInImage>();
@@ -960,18 +947,19 @@ namespace BLL.Services
                             var familyMember = _family.Find(i => i.Id == identifiedName);
                             string? realName = familyMember?.FullName ?? "Unknown";
                             JArray faceLocation = (JArray)result["face_location"];
+
                             // Calculate the rectangle coordinates
                             int left = faceLocation[3].Value<int>();
                             int top = faceLocation[0].Value<int>();
                             int width = faceLocation[2].Value<int>() - faceLocation[0].Value<int>();
                             int height = faceLocation[1].Value<int>() - faceLocation[3].Value<int>();
 
-                            Color fillColor = Color.FromArgb(30, Color.Cyan); // Adjust the alpha (transparency) as needed
+                            Color fillColor = Color.FromArgb(30, Color.Cyan); 
                             SolidBrush fillBrush = new SolidBrush(fillColor);
 
                             // Create a dashed or dotted pen for the border
-                            Pen borderPen = new Pen(Color.Cyan, 1.5f); // Adjust the color and width as needed
-                            borderPen.DashStyle = DashStyle.Dash; // Change to DashStyle.Dot for dotted lines
+                            Pen borderPen = new Pen(Color.Cyan, 1.5f); 
+                            borderPen.DashStyle = DashStyle.Dash; 
 
                             graphics.FillRectangle(fillBrush, left, top, width, height);
 
@@ -988,14 +976,11 @@ namespace BLL.Services
                             // Create font with adjusted size
                             font = new Font("Arial", fontSize, FontStyle.Bold);
 
-                            /*// Calculate text position below the rectangle
-                            float x = left + width / 2;
-                            float y = top + height + 20; // Offset to draw text below the rectangle*/
-
+                          
                             
                             if (identifiedName != "Unknown")
                             {
-                                // Retrieve real name from database based on identified name
+                             
                                 var PersonInImage = new PersonInImage
                                 {
                                     FamilyName = familyMember.FullName,
@@ -1062,17 +1047,17 @@ namespace BLL.Services
                
                 var multipartContent = new MultipartFormDataContent();
 
-                // Add patient_id and family_member_id as query parameters
+                
                 var queryParameters = new System.Collections.Generic.Dictionary<string, string>
                 {
                     { "patient_id", PatinetId },
                
                 };
 
-                // Add the image as a stream content
+                
                 multipartContent.Add(new StreamContent(postImageRecognitionDto.Image.OpenReadStream()), "image", "image.jpg");
 
-                // Build query string
+             
                 var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
                 foreach (var param in queryParameters)
                 {
@@ -1081,27 +1066,26 @@ namespace BLL.Services
 
                 var fullUrl = endpoint + "?" + queryString;
 
-                // Send the request
+             
                 var response = await httpClient.PostAsync(fullUrl, multipartContent);
                 string responseBody = await response.Content.ReadAsStringAsync();
-                // Handle the response
+                
                 if (response.IsSuccessStatusCode)
                 {
-                    Console.WriteLine("Image registered successfully.");
+                   
                     return responseBody;
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to register image. Status code: {response.StatusCode}");
+                    
                     return responseBody;
                 }
             }
         }
         private string GetMediaUrl(string imagePath)
         {
-            // Assuming imagePath contains the relative path to the Media within the web root
-            // Construct the URL based on your application's routing configuration
-            string baseUrl = _mail.ServerLink; // Replace with your actual base URL
+            
+            string baseUrl = _mail.ServerLink; 
             string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
 
             return $"{baseUrl}/{relativePath}";
