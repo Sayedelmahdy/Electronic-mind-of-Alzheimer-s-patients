@@ -16,6 +16,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
@@ -923,7 +924,7 @@ namespace BLL.Services
             JObject jsonObject = JObject.Parse(Response);
             JArray recognitionResults = (JArray)jsonObject["recognition_results"];
             RecognitionResult recognitionResult = new RecognitionResult();
-            var PatinetId = _jwtDecode.GetUserIdFromToken(token);
+            /*var PatinetId = _jwtDecode.GetUserIdFromToken(token);
             string MediaId = Guid.NewGuid().ToString();
 
             string filePath = Path.Combine("ImagesBeforeRecognitionResult", $"{MediaId}{Path.GetExtension(postImageRecognitionDto.Image.FileName)}");
@@ -936,83 +937,118 @@ namespace BLL.Services
             {
                 postImageRecognitionDto.Image.CopyTo(filestream);
                 filestream.Flush();
-            }
-            StringFormat format = new StringFormat();
-            format.LineAlignment = StringAlignment.Center;
-            format.Alignment = StringAlignment.Center;
-            Bitmap image = new Bitmap(Path.Combine(_env.WebRootPath, filePath));
-            using (Graphics graphics = Graphics.FromImage(image))
+            }*/
+            if (postImageRecognitionDto.Image != null && postImageRecognitionDto.Image.Length > 0)
             {
-                // Font settings
-                Font font = new Font("Arial", 35, FontStyle.Bold);
-                SolidBrush brush = new SolidBrush(Color.Red);
-                List<PersonInImage> personsInImage = new List<PersonInImage>();
-                foreach (JObject result in recognitionResults)
+                using (var memoryStream = new MemoryStream())
                 {
-                    string identifiedName = result.Value<string>("identified_name");
-                    var familyMember = _family.Find(i => i.Id == identifiedName);
-                    if (identifiedName != "Unknown")
+                    postImageRecognitionDto.Image.CopyTo(memoryStream);
+                    memoryStream.Position = 0; // Reset stream position
+                    StringFormat format = new StringFormat();
+                    format.LineAlignment = StringAlignment.Center;
+                    format.Alignment = StringAlignment.Center;
+                    Bitmap image = new Bitmap(memoryStream);
+                    using (Graphics graphics = Graphics.FromImage(image))
                     {
-                        // Retrieve real name from database based on identified name
-                        var PersonInImage = new PersonInImage
+                        // Font settings
+                        Font font = new Font("Arial", 30, FontStyle.Bold);
+                        SolidBrush brush = new SolidBrush(Color.Cyan);
+                        List<PersonInImage> personsInImage = new List<PersonInImage>();
+                        foreach (JObject result in recognitionResults)
                         {
-                            FamilyName = familyMember.FullName,
-                            FamilyLatitude = familyMember.MainLatitude,
-                            FamilyLongitude = familyMember.MainLongitude,
-                            FamilyPhoneNumber = familyMember.PhoneNumber,
-                            RelationalityOfThisPatient = familyMember.Relationility,
-                            FamilyAvatarUrl = GetMediaUrl(familyMember.imageUrl),
+                            string identifiedName = result.Value<string>("identified_name");
+                            var familyMember = _family.Find(i => i.Id == identifiedName);
+                            string? realName = familyMember?.FullName ?? "Unknown";
+                            JArray faceLocation = (JArray)result["face_location"];
+                            // Calculate the rectangle coordinates
+                            int left = faceLocation[3].Value<int>();
+                            int top = faceLocation[0].Value<int>();
+                            int width = faceLocation[2].Value<int>() - faceLocation[0].Value<int>();
+                            int height = faceLocation[1].Value<int>() - faceLocation[3].Value<int>();
 
-                        };
-                        personsInImage.Add(PersonInImage);
-                      
-                        
-                        string realName = familyMember.FullName;
-                       
-                        // Draw real name onto image
-                        JArray faceLocation = (JArray)result["face_location"];
-                        var x = (faceLocation[1].Value<int>() + faceLocation[3].Value<int>()) / 2;
-                       // int x = faceLocation[0].Value<int>()+20;
-                        int y = faceLocation[2].Value<int>()+150; // Offset to draw text below the face
-                        graphics.DrawString(realName, font, brush, x, y, format);
-                    }
-                    else
-                    {
-                        var PersonInImage = new PersonInImage
+                            Color fillColor = Color.FromArgb(30, Color.Cyan); // Adjust the alpha (transparency) as needed
+                            SolidBrush fillBrush = new SolidBrush(fillColor);
+
+                            // Create a dashed or dotted pen for the border
+                            Pen borderPen = new Pen(Color.Cyan, 1.5f); // Adjust the color and width as needed
+                            borderPen.DashStyle = DashStyle.Dash; // Change to DashStyle.Dot for dotted lines
+
+                            graphics.FillRectangle(fillBrush, left, top, width, height);
+
+                            // Draw border around the detected face with the specified pen
+                            graphics.DrawRectangle(borderPen, left, top, width, height);
+
+                            // Draw real name onto image
+                            var x = (faceLocation[1].Value<int>() + faceLocation[3].Value<int>()) / 2;
+                            int y = faceLocation[2].Value<int>() + 40; // Offset to draw text below the face
+
+                            // Calculate font size to fit the rectangle width
+                            float fontSize = FitFontSize(graphics, realName, font, width);
+
+                            // Create font with adjusted size
+                            font = new Font("Arial", fontSize, FontStyle.Bold);
+
+                            /*// Calculate text position below the rectangle
+                            float x = left + width / 2;
+                            float y = top + height + 20; // Offset to draw text below the rectangle*/
+
+                            
+                            if (identifiedName != "Unknown")
+                            {
+                                // Retrieve real name from database based on identified name
+                                var PersonInImage = new PersonInImage
+                                {
+                                    FamilyName = familyMember.FullName,
+                                    FamilyLatitude = familyMember.MainLatitude,
+                                    FamilyLongitude = familyMember.MainLongitude,
+                                    FamilyPhoneNumber = familyMember.PhoneNumber,
+                                    RelationalityOfThisPatient = familyMember.Relationility,
+                                    FamilyAvatarUrl = GetMediaUrl(familyMember.imageUrl),
+
+                                };
+                                graphics.DrawString(realName, font, brush, x, y, format);
+                                personsInImage.Add(PersonInImage);
+                            }
+                            else
+                            {
+                                var PersonInImage = new PersonInImage
+                                {
+                                    FamilyName = "Unknown",
+                                    FamilyLatitude = null,
+                                    FamilyLongitude = null,
+                                    FamilyPhoneNumber = "Unknown",
+                                    RelationalityOfThisPatient = "Unknown",
+                                    FamilyAvatarUrl = "Unknown",
+
+                                };
+                               
+                                graphics.DrawString("Unknown", font, brush, x, y, format);
+                                personsInImage.Add(PersonInImage);
+                            }
+                        }
+                        string MediaId2 = Guid.NewGuid().ToString();
+
+
+                        string filePath2 = Path.Combine("PhotoAfterRecognition", $"{MediaId2}.jpg");
+                        string directoryPath2 = Path.Combine(_env.WebRootPath, "PhotoAfterRecognition");
+                        if (!Directory.Exists(directoryPath2))
                         {
-                            FamilyName = "Unknown",
-                            FamilyLatitude = null ,
-                            FamilyLongitude = null,
-                            FamilyPhoneNumber = "Unknown",
-                            RelationalityOfThisPatient = "Unknown",
-                            FamilyAvatarUrl = "Unknown",
+                            Directory.CreateDirectory(directoryPath2);
+                        }
+                        using (FileStream filestream2 = File.Create(Path.Combine(_env.WebRootPath, filePath2)))
+                        {
+                            image.Save(filestream2, ImageFormat.Jpeg);
+                        }
 
-                        };
-                        personsInImage.Add(PersonInImage);
-                        JArray faceLocation = (JArray)result["face_location"];
-                        var x = (faceLocation[1].Value<int>() + faceLocation[3].Value<int>()) / 2;
-                        int y = faceLocation[2].Value<int>() + 150; // Offset to draw text below the face
-                        graphics.DrawString("Unknown", font, brush, x, y, format);
+                        recognitionResult.PersonsInImage = personsInImage;
+                        recognitionResult.ImageAfterResultUrl = GetMediaUrl(filePath2);
+                        recognitionResult.GlobalResponse = new GlobalResponse { HasError = false, message = "Image recognition successful" };
                     }
                 }
-                string MediaId2 = Guid.NewGuid().ToString();
-              
-                
-                string filePath2 = Path.Combine("PhotoAfterRecognition", $"{MediaId}.jpg");
-                string directoryPath2 = Path.Combine(_env.WebRootPath, "PhotoAfterRecognition");
-                if (!Directory.Exists(directoryPath2))
-                {
-                    Directory.CreateDirectory(directoryPath2);
-                }
-                using (FileStream filestream2 = File.Create(Path.Combine(_env.WebRootPath, filePath2)))
-                {
-                    image.Save(filestream2, ImageFormat.Jpeg);
-                }
-                recognitionResult.PersonsInImage = personsInImage;
-                recognitionResult.ImageAfterResultUrl = GetMediaUrl(filePath2);
-                recognitionResult.GlobalResponse = new GlobalResponse { HasError = false, message = "Image recognition successful" };
-                return recognitionResult;
+               
             }
+            return recognitionResult;
+
         }
         private async Task< string> RecognizeImage(PostImageRecognitionDto postImageRecognitionDto,string PatinetId)
         {
@@ -1066,6 +1102,13 @@ namespace BLL.Services
             string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
 
             return $"{baseUrl}/{relativePath}";
+        }
+        private float FitFontSize(Graphics graphics, string text, Font font, int width)
+        {
+            SizeF textSize = graphics.MeasureString(text, font);
+            float ratio = width / textSize.Width;
+            float newSize = (font.Size * ratio)+8;
+            return newSize;
         }
     }
 }
