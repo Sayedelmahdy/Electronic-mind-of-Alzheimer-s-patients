@@ -16,7 +16,7 @@ namespace BLL.Interfaces
     {
         Task<RecognitionResult> ImageRecognition (PostImageRecognitionDto postImageRecognitionDto,string token);
         Task<GetPatientProfileDto> GetPatientProfileAsync(string token);
-        Task<IEnumerable<GetFamiliesDto>> GetFamiliesAsync(string token);
+        Task<IEnumerable<GetFamiliesDto>> GetPatientRelatedMembersAsync(string token);
         Task<GetFamilyLocationDto?> GetFamilyLocation(string token, string familyId);
         Task<GlobalResponse> UpdateProfileAsync(string token, UpdateMyProfileDto updatePatientProfile);
         Task<IEnumerable<GetAppointmentDto>> GetAppointmentAsync(string token);

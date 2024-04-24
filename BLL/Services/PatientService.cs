@@ -851,7 +851,7 @@ namespace BLL.Services
             
         }
 
-        public async Task<IEnumerable<GetFamiliesDto>> GetFamiliesAsync(string token)
+        public async Task<IEnumerable<GetFamiliesDto>> GetPatientRelatedMembersAsync(string token)
         {
             string? PatientId = _jwtDecode.GetUserIdFromToken(token);
             if (PatientId == null)
