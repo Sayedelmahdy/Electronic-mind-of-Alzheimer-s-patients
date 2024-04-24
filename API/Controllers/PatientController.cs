@@ -5,6 +5,7 @@ using BLL.Helper;
 using BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -70,15 +71,15 @@ namespace API.Controllers
         /// <returns>
         /// If families are found, returns a list of `GetFamiliesDto` objects representing each family. If the token is invalid or no families are associated with the patient, returns a NotFound response.
         /// </returns>
-        [HttpGet("GetPatientFamilies")]
-        public async Task<IActionResult> GetPatientFamilies()
+        [HttpGet("GetPatientRelatedMembers")]
+        public async Task<IActionResult> GetPatientRelatedMembers()
         {
             var token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
                 return BadRequest("Invalid Token");
             }
-            var res = await _patientService.GetFamiliesAsync(token);
+            var res = await _patientService.GetPatientRelatedMembersAsync(token);
             if (!res.Any() || res == null)
             {
                 return NotFound("Have No Families :)");
