@@ -366,7 +366,15 @@ namespace BLL.Services
                 roleClaims.Add(new Claim("roles", role));
 
             var patient = _patient.Find(i=>i.Id==user.Id);
-           
+            var patientClaims = new List<Claim>();
+            if (patient != null)
+            {
+                 patientClaims = new List<Claim>
+                {
+                     new Claim("MaxDistance",patient.MaximumDistance.ToString())
+                };
+               
+            }
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
@@ -381,16 +389,10 @@ namespace BLL.Services
                 
             }
             .Union(userClaims)
-            .Union(roleClaims);
+            .Union(roleClaims)
+            .Union(patientClaims);
 
-            if (patient != null)
-            {
-                var patientClaims = new[]
-                {
-                     new Claim("MaxDistance",patient.MaximumDistance.ToString())
-                };
-                claims.Union(patientClaims);
-            }
+            
             var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
             var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
 
