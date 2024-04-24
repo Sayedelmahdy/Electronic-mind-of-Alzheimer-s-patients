@@ -28,6 +28,7 @@ namespace BLL.Services
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IMailService _mailService;
         private readonly IWebHostEnvironment _env;
+        private readonly IBaseRepository<Patient> _patient;
 
         private readonly JWT _jwt;
         private readonly Mail _mail;
@@ -35,10 +36,11 @@ namespace BLL.Services
             IOptions<Mail> Mail
             ,IMailService mailService
             , IWebHostEnvironment env
-
+            , IBaseRepository<Patient> patient
 
             )
         {
+            _patient = patient;
             _userManager = userManager;
             _roleManager = roleManager;
            _mailService = mailService;
@@ -363,6 +365,8 @@ namespace BLL.Services
             foreach (var role in roles)
                 roleClaims.Add(new Claim("roles", role));
 
+            var patient = _patient.Find(i=>i.Id==user.Id);
+           
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
@@ -371,11 +375,22 @@ namespace BLL.Services
                 new Claim("PhoneNumber",user.PhoneNumber),
                 new Claim("uid", user.Id),
                 new Claim ("UserAvatar",GetMediaUrl(user.imageUrl)),
+                new Claim("MainLatitude",user.MainLatitude.ToString()),
+                new Claim("MainLongitude",user.MainLongitude.ToString()),
+                 
                 
             }
             .Union(userClaims)
             .Union(roleClaims);
 
+            if (patient != null)
+            {
+                var patientClaims = new[]
+                {
+                     new Claim("MaxDistance",patient.MaximumDistance.ToString())
+                };
+                claims.Union(patientClaims);
+            }
             var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
             var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
 

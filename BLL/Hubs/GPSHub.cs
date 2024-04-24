@@ -54,10 +54,9 @@ namespace BLL.Hubs
                     if (patient!=null)
                     {
 
-                        if (Haversine(lat1: Latitude, lat2: patient.MainLatitude, lon1: Longitude, lon2: patient.MainLongitude) >= patient.MaximumDistance)
-                        {
-                            await Clients.Group(UserId).SendAsync("ReceiveGPSToFamilies", Latitude, Longitude);
-                        }
+                       
+                           await Clients.Group(UserId).SendAsync("ReceiveGPSToFamilies", Latitude, Longitude);
+                        
                         await _locationRepository.AddAsync(new Location
                         {
                             Latitude = Latitude,
