@@ -156,7 +156,17 @@ builder.Services.Configure<FormOptions>(x =>
     x.MultipartHeadersLengthLimit = int.MaxValue;
 });
 builder.Services.AddRazorPages();
-builder.Services.AddSignalR();
+builder.Services.AddSignalR().AddAzureSignalR("Endpoint=https://notificationalzheimer.service.signalr.net;AccessKey=YujUCHeAPIHNhjWcm3HcFpgR9gD+ijcZIe9q1iB/t2U=;Version=1.0;");
+builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
+    builder =>
+    {
+        builder
+        .WithOrigins("https://localhost:7174")
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials();
+        
+    }));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -164,9 +174,11 @@ var app = builder.Build();
 {
 
 }*/
+
 app.MapHub<MedicineReminderHub>("hubs/medicineReminder");
 app.MapHub<AppointmentHub>("hubs/Appointment");
 app.MapHub<GPSHub>("hubs/GPS");
+
 
 app.UseSwagger();
 if (app.Environment.IsDevelopment())
@@ -183,7 +195,7 @@ if (app.Environment.IsProduction())
     c.RoutePrefix = string.Empty;
 });
 }
-
+app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();

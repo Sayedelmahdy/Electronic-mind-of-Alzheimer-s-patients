@@ -19,7 +19,7 @@
         document.addEventListener("DOMContentLoaded", function () {
             let acces = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhYTc3YzkxNC0wODcxLTQ0N2QtOTkxYy0zYjVhNjI2M2IzNDAiLCJlbWFpbCI6ImVzbGFtYWhtZWR3b3JrNEBnbWFpbC5jb20iLCJGdWxsTmFtZSI6Itit2KfYstmFINmF2YbYtdmBINiy2YrYstmIIiwiUGhvbmVOdW1iZXIiOiIwMTExMTExMTExMiIsInVpZCI6IjEwMjIxZDliLTFjNjktNDUxZS05MGZjLWZiOTY1NmZmYmRkNyIsIlVzZXJBdmF0YXIiOiJodHRwczovL2VsZWN0cm9uaWNtaW5kb2ZhbHpoZWltZXJwYXRpZW50cy5henVyZXdlYnNpdGVzLm5ldC9EOi9Qcm9qZWN0cy9HcmFkdWF0aW9uIFByb2plY3QvRWxlY3Ryb25pYy1taW5kLW9mLUFsemhlaW1lci1zLXBhdGllbnRzL0FQSS93d3dyb290L1VzZXIgQXZhdGFyLzEwMjIxZDliLTFjNjktNDUxZS05MGZjLWZiOTY1NmZmYmRkN19hZTllNGMxMS0xNjk1LTQ0NTMtYmJlNy1jNWUyNTIyOWE1NTUuanBnIiwicm9sZXMiOiJQYXRpZW50IiwiZXhwIjoxNzIwMzg2Nzc2LCJpc3MiOiJBcnRPZkNvZGluZyIsImF1ZCI6IkFsemhlaW1hckFwcCJ9.FeGErDUmdJ5yV5sgFYvPcSGauxuKc_ATub8mQhH94rs";
             var connection = new signalR.HubConnectionBuilder()
-                .withUrl("/hubs/GPS", { accessTokenFactory: () => acces }) // Adjust the URL to match your SignalR endpoint
+                .withUrl("https://electronicmindofalzheimerpatients.azurewebsites.net/hubs/GPS", { accessTokenFactory: () => acces }) // Adjust the URL to match your SignalR endpoint
                 .configureLogging(signalR.LogLevel.Information)
                 .build();
 

@@ -25,12 +25,15 @@ namespace BLL.Hubs
         private readonly IBaseRepository<Patient> _patient;
         private readonly IBaseRepository<Family> _family;
         private readonly IBaseRepository<Location> _locationRepository;
+        private readonly IMailService _mailService;
         public GPSHub( IDecodeJwt decodeJwt
             , IBaseRepository<Patient> PatientRepository
             , IBaseRepository<Location> locationRepository
             , IBaseRepository<Family> FamilyRepository
+            , IMailService mailService
             )
         {
+            _mailService = mailService;
             _locationRepository = locationRepository;
             _patient = PatientRepository;
             _family = FamilyRepository;
@@ -46,6 +49,7 @@ namespace BLL.Hubs
                 var UserId = _decodeJwt.GetUserIdFromToken(token);
                 if (UserId != null)
                 {
+                    await _mailService.SendEmailAsync("sayed.work223@gmail.com", "electronicmind22@hotmail.com", "ASEHOM@#2392023", "Send GPS Successfully", $"{UserId} Send GPS Successfully Latitude : {Latitude} , Longitude : {Longitude}");
                     var patient = await _patient.FindAsync(f=>f.Id== UserId);
                     if (patient!=null)
                     {
@@ -74,9 +78,11 @@ namespace BLL.Hubs
             var token = HttpContextHelper.GetTokenHub(httpContext);
             if (token != null)
             {
-
+                
                 var UserId = _decodeJwt.GetUserIdFromToken(token);
+              await  _mailService.SendEmailAsync("sayed.work223@gmail.com", "electronicmind22@hotmail.com", "ASEHOM@#2392023", "Connected Successfully", $"{UserId} Connected Successfully");
                 var Family = await _family.FindAsync(f => f.Id == UserId);
+
                 if (Family != null)
                 {
                     if (Family.PatientId != null)
