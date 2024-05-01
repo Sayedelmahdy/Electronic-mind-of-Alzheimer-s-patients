@@ -1,5 +1,7 @@
-﻿using BLL.DTOs.AuthenticationDto;
+﻿using Azure;
+using BLL.DTOs.AuthenticationDto;
 using BLL.DTOs.FamilyDto;
+using BLL.DTOs.PatientDto;
 using BLL.Helper;
 using BLL.Interfaces;
 using DAL.Interfaces;
@@ -11,6 +13,8 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -211,8 +215,8 @@ namespace BLL.Services
                     
                             string url = $"{_mail.ServerLink}/api/Authentication/confirmemail?userid={family.Id}&token={validEmailToken}";
                            htmlContent = htmlContent.Replace("{FullName}", family.FullName).Replace("{url}", url);
-                            await _mailService.SendEmailAsync(family.Email, _mail.FromMail, _mail.Password,"Confirm your email", htmlContent);
-
+                            //await _mailService.SendEmailAsync(family.Email, _mail.FromMail, _mail.Password,"Confirm your email", htmlContent);
+                            //Todo: send email when project is ready
                    
                     }
 
@@ -263,8 +267,8 @@ namespace BLL.Services
 
                         string url = $"{_mail.ServerLink}/api/Authentication/confirmemail?userid={caregiver.Id}&token={validEmailToken}";
                       htmlContent = htmlContent.Replace("{FullName}", caregiver.FullName).Replace("{url}", url);
-                      await _mailService.SendEmailAsync(caregiver.Email, _mail.FromMail, _mail.Password, "Confirm your email", htmlContent);
-            
+                    //  await _mailService.SendEmailAsync(caregiver.Email, _mail.FromMail, _mail.Password, "Confirm your email", htmlContent);
+                    //Todo: send email when project is ready
                 }
                     else
                     return new RegisterAuthDto { Message = "Invalid Role" };
@@ -302,17 +306,14 @@ namespace BLL.Services
                 AuthDto.Message = "Email or Password is incorrect!";
                 return AuthDto;
             }
-            if (user.LockoutEnabled == true && user.LockoutEnd > DateTime.Now)
-            {
-                AuthDto.Message = "This User is Banned";
-                return AuthDto;
-            }
-            if (user.EmailConfirmed == false)
+          
+            //todo: check if email is confirmed when project is ready
+            /*if (user.EmailConfirmed == false)
             {
                 AuthDto.Message = "This User Need To Confirm Before Login ";
                 return AuthDto;
 
-            }
+            }*/
 
             var jwtSecurityToken = await CreateJwtToken(user);
             var rolesList = await _userManager.GetRolesAsync(user);
@@ -324,6 +325,7 @@ namespace BLL.Services
 
             return AuthDto;
         }
+
         public async Task<EmailConfirmation> ConfirmEmailAsync(string userId, string token)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -405,114 +407,7 @@ namespace BLL.Services
 
             return jwtSecurityToken;
         }
-       /* private RefreshToken GenerateRefreshToken()
-        {
-            var Random = new byte[32];
-            using var generator = new RNGCryptoServiceProvider();
-            generator.GetBytes(Random);
-            return new RefreshToken
-            {
-                Token = Convert.ToBase64String(Random),
-                ExpiresOn = DateTime.Now.AddDays(7),//numofdays
-                CreatedOn = DateTime.Now
-            };
-        }*/
-      /*  public async Task<AuthDto> RefreshTokenAsync(string Token)
-        {
-
-            var AuthDto = new AuthDto();
-
-            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == Token));
-
-            if (user == null)
-            {
-                AuthDto.Message = "Invalid token / Need To Login First";
-                return AuthDto;
-            }
-
-            var refreshToken = user.RefreshTokens.Single(t => t.Token == Token);
-
-            if (!refreshToken.IsActive)
-            {
-                AuthDto.Message = "Inactive token / Token Expaired You Need To login";
-                return AuthDto;
-            }
-
-            refreshToken.RevokedOn = DateTime.Now;
-
-            var newRefreshToken = GenerateRefreshToken();
-            user.RefreshTokens.Add(newRefreshToken);
-
-            await _userManager.UpdateAsync(user);
-
-            var jwtSecurityToken = await CreateJwtToken(user);
-            var rolesList = await _userManager.GetRolesAsync(user);
-
-            AuthDto.IsAuthenticated = true;
-            AuthDto.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
-            var NewRefreshToken = GenerateRefreshToken();
-            AuthDto.RefreshToken = NewRefreshToken.Token;
-            AuthDto.RefreshTokenExpiration = NewRefreshToken.ExpiresOn;
-            user.RefreshTokens.Add(NewRefreshToken);
-            await _userManager.UpdateAsync(user);
-            return AuthDto;
-        }*/
        
-        //test
-       /* public async Task<AuthDto> AddPatients( RegisterDto model, string username, string Relationility,DateTime DiagnosisDate)
-        {
-            Patient patient = new Patient
-            {
-                UserName = model.Username,
-                Email = model.Email,
-                PhoneNumber = model.PhoneNumber,
-                FullName = model.FullName,
-                BirthDate = model.BirthDate,
-                DiagnosisDate = DiagnosisDate
-                
-
-            };
-           var result = await _userManager.CreateAsync(patient, model.Password);
-            if (result == null || !result.Succeeded)
-            {
-                var errors = string.Empty;
-
-                foreach (var error in result.Errors)
-                    errors += $"{error.Description},";
-
-                return new AuthDto { Message = errors };
-            }
-            await _userManager.AddToRoleAsync(patient, "Patient"); 
-            var family = await _userManager.FindByNameAsync(username);
-            FamilyPatient familyPatient = new FamilyPatient
-            {
-               
-                Family = (Family)family,
-                Patient = patient,
-                Relationility = Relationility,  
-
-            };
-            _familyPatient.Add(familyPatient);
-            return new AuthDto { IsAuthenticated = true ,Message="Done",Token=null};
-
-
-        }*/
-        //Logout
-       /* public async Task<bool> RevokeTokenAsync(string Token)
-        {
-            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == Token));
-            if (user == null) return false;
-
-            var refreshToken = user.RefreshTokens.Single(t => t.Token == Token);
-
-            if (!refreshToken.IsActive) return false;
-            refreshToken.RevokedOn = DateTime.UtcNow;
-
-            await _userManager.UpdateAsync(user);
-            return true;
-        }
-*/
-        //forget password
         public async Task<ForgetPassword> ForgetPasswordAsync(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
@@ -730,6 +625,106 @@ namespace BLL.Services
             string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
             
             return $"{baseUrl}/{relativePath}";
+        }
+
+        public async Task<AuthDto> LoginWithFaceIdAsync(LoginWithFaceIdDto model)
+        {
+            var response = await FaceIDAi(model);
+            if (response == null)
+            {
+                return new AuthDto
+                {
+                    IsAuthenticated = false,
+                    Message = "Something went wrong while login with FaceId ,Ai Server is Down",
+
+                };
+            }
+            dynamic result = JsonConvert.DeserializeObject(response);
+            string status = result["status"];
+            if (status == "Authentication Failed")
+            {
+                return new AuthDto
+                {
+                    IsAuthenticated = false,
+                    Message = "Your FaceId is not registered with us,Please Try Again",
+                };
+            }
+            else if (status == "Error")
+            {
+                return new AuthDto()
+                {
+                    IsAuthenticated = false,
+                    Message = "Something went wrong while login with FaceId ,Ai Server has some problem",
+                };
+            }
+            else if (status == "Authenticated")
+            {
+                string patientId = result["patient_id"];
+                var user = await _userManager.FindByIdAsync(patientId);
+                if (user == null)
+                {
+                    return new AuthDto()
+                    {
+                        IsAuthenticated = false,
+                        Message = "Your FaceId is not registered with us,Please Try Again",
+                    };
+                }
+                //todo: check if email is confirmed when project is ready
+               /* if (user.EmailConfirmed == false)
+                {
+                    return new AuthDto()
+                    {
+                        IsAuthenticated = false,
+                        Message = "Please confirm your email first to login with FaceId",
+                    };
+
+                }
+*/              
+
+                var jwtSecurityToken = await CreateJwtToken(user);
+                var rolesList = await _userManager.GetRolesAsync(user);
+                return new AuthDto()
+                {
+                    IsAuthenticated = true,
+                    Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+                    Message = "Login Successful",
+                };
+            }
+            return new AuthDto
+            {
+                IsAuthenticated = false,
+                Message = "Something went wrong while login with FaceId ,Ai Server has some problem",
+            };
+            
+
+        }
+        private async Task<string?> FaceIDAi(LoginWithFaceIdDto model)
+        {
+            string endpoint = "https://evident-moving-bonefish.ngrok-free.app/login_patient";
+
+            using (HttpClient httpClient = new HttpClient())
+            {
+
+                var multipartContent = new MultipartFormDataContent();
+
+                multipartContent.Add(new StreamContent(model.Image.OpenReadStream()), "image", "image.jpg");    
+                
+
+
+                var response = await httpClient.PostAsync(endpoint, multipartContent);
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+
+                    return responseBody;
+                }
+                else
+                {
+
+                    return null;
+                }
+            }
         }
     }
 }

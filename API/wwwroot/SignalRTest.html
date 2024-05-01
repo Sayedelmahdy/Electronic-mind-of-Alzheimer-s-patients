@@ -17,9 +17,9 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            let acces = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhYTc3YzkxNC0wODcxLTQ0N2QtOTkxYy0zYjVhNjI2M2IzNDAiLCJlbWFpbCI6ImVzbGFtYWhtZWR3b3JrNEBnbWFpbC5jb20iLCJGdWxsTmFtZSI6Itit2KfYstmFINmF2YbYtdmBINiy2YrYstmIIiwiUGhvbmVOdW1iZXIiOiIwMTExMTExMTExMiIsInVpZCI6IjEwMjIxZDliLTFjNjktNDUxZS05MGZjLWZiOTY1NmZmYmRkNyIsIlVzZXJBdmF0YXIiOiJodHRwczovL2VsZWN0cm9uaWNtaW5kb2ZhbHpoZWltZXJwYXRpZW50cy5henVyZXdlYnNpdGVzLm5ldC9EOi9Qcm9qZWN0cy9HcmFkdWF0aW9uIFByb2plY3QvRWxlY3Ryb25pYy1taW5kLW9mLUFsemhlaW1lci1zLXBhdGllbnRzL0FQSS93d3dyb290L1VzZXIgQXZhdGFyLzEwMjIxZDliLTFjNjktNDUxZS05MGZjLWZiOTY1NmZmYmRkN19hZTllNGMxMS0xNjk1LTQ0NTMtYmJlNy1jNWUyNTIyOWE1NTUuanBnIiwicm9sZXMiOiJQYXRpZW50IiwiZXhwIjoxNzIwMzg2Nzc2LCJpc3MiOiJBcnRPZkNvZGluZyIsImF1ZCI6IkFsemhlaW1hckFwcCJ9.FeGErDUmdJ5yV5sgFYvPcSGauxuKc_ATub8mQhH94rs";
+            let acces = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZjBiYzEzMC1mNTMxLTQ2MzctYTY3Ni1iNzkyOGZlY2YwNzciLCJlbWFpbCI6ImVzbGFtYWhtZWR3b3JrNEBnbWFpbC5jb20iLCJGdWxsTmFtZSI6Itin2YTZhdix2YrYtiAvINiz2YrYryDYp9mE2YXZh9iv2YogIiwiUGhvbmVOdW1iZXIiOiIwMTI4MzQzOTIwMiIsInVpZCI6IjIxMjYwZjQ1LWViOTUtNDZiMy05M2Q0LTU5NGNjODkwMjUwOCIsIlVzZXJBdmF0YXIiOiJodHRwczovL2VsZWN0cm9uaWNtaW5kb2ZhbHpoZWltZXJwYXRpZW50cy5henVyZXdlYnNpdGVzLm5ldC9Vc2VyIEF2YXRhci8yMTI2MGY0NS1lYjk1LTQ2YjMtOTNkNC01OTRjYzg5MDI1MDhfMzE1MTBkZmUtYWEzMC00YmZkLTkyYWItYmRjOWRlNmYyYzJjLmpwZyIsIk1haW5MYXRpdHVkZSI6IjMwLjAwMTkxMiIsIk1haW5Mb25naXR1ZGUiOiIzMS4zMzQ3MzciLCJyb2xlcyI6IlBhdGllbnQiLCJNYXhEaXN0YW5jZSI6IjI1IiwiZXhwIjoxNzIyMjg5MDIwLCJpc3MiOiJBcnRPZkNvZGluZyIsImF1ZCI6IkFsemhlaW1hckFwcCJ9.HkxVhzShMRcgm2Z6CZ8TOkXhiXqcQyBF7OG_jM-I-K0";
             var connection = new signalR.HubConnectionBuilder()
-                .withUrl("https://electronicmindofalzheimerpatients.azurewebsites.net/hubs/GPS", { accessTokenFactory: () => acces }) // Adjust the URL to match your SignalR endpoint
+                .withUrl("https://electronicmindofalzheimerpatients.azurewebsites.net/hubs/Appointment", { accessTokenFactory: () => acces }) // Adjust the URL to match your SignalR endpoint
                 .configureLogging(signalR.LogLevel.Information)
                 .build();
 
@@ -30,12 +30,28 @@
                 console.error(err.toString());
             });
 
-            // Listen for "ReceiveMedicineReminder" event
-            connection.on("ReceiveMedicineReminder", function (message) {
-                // Display the message
+           // Listen for "ReceiveAppointment" event
+            connection.on("ReceiveAppointment", function (title, json) {
+                // Parse the JSON data
+                var appointmentData = JSON.parse(json);
+
+                // Create elements to display the appointment details
                 var messageElement = document.createElement("p");
-                messageElement.innerHTML = "<strong>Message:</strong> " + message;
+                var detailsElement = document.createElement("div");
+
+                // Set the inner HTML of the message element
+                messageElement.innerHTML = "<strong>" + title + "</strong>";
+
+                // Add details about the appointment
+                detailsElement.innerHTML = `<strong>Appointment ID:</strong> ${appointmentData.AppointmentId}<br>
+                                            <strong>Date:</strong> ${appointmentData.Date}<br>
+                                            <strong>Location:</strong> ${appointmentData.Location}<br>
+                                            <strong>Notes:</strong> ${appointmentData.Notes}<br>
+                                            <strong>Family Name:</strong> ${appointmentData.FamilyNameWhoCreatedAppointemnt}`;
+
+                // Append elements to the body of the document
                 document.body.appendChild(messageElement);
+                document.body.appendChild(detailsElement);
             });
 
             // Event handler for sending GPS data to families

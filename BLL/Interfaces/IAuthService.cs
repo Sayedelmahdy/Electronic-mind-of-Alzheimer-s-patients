@@ -19,6 +19,7 @@ namespace BLL.Interfaces
         Task<ChangePassword> ChangePasswordAsync(ChangePasswordDto changePasswordDto);
         Task<ResetPassword> ResetPasswordAsync(ResetPasswordDto model);
         Task<ForgetPassword> ForgetPasswordAsync(string email);
+        Task<AuthDto> LoginWithFaceIdAsync(LoginWithFaceIdDto model);
     }
 
 

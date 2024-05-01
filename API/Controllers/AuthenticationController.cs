@@ -130,6 +130,21 @@ namespace API.Controllers
             }
             return Ok(res);
         }
+       // [Authorize(Roles = "Patient")]
+        [HttpPost("LoginWithFaceId")]
+        public async Task<IActionResult> LoginWithFaceId([FromForm] LoginWithFaceIdDto loginWithFaceIdDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var res = await _authService.LoginWithFaceIdAsync(loginWithFaceIdDto);
+            if (!res.IsAuthenticated)
+            {
+                return BadRequest(res.Message);
+            }
+            return Ok(res);
+        }
 
     }
 }

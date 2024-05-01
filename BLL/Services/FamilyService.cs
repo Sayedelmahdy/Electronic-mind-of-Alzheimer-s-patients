@@ -1,18 +1,21 @@
 ﻿using BLL.DTOs;
 using BLL.DTOs.AuthenticationDto;
 using BLL.DTOs.FamilyDto;
+using BLL.DTOs.PatientDto;
 using BLL.Helper;
 using BLL.Hubs;
 using BLL.Interfaces;
 using DAL.Interfaces;
 using DAL.Model;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -328,7 +331,17 @@ namespace BLL.Services
             }
             patient.imageUrl =  filePath;
             await _userManager.UpdateAsync(patient);
-
+            var ResultOfAi = await RegisterPatientToAi(patient.Id, addPatientDto.Avatar);
+            if (!ResultOfAi)
+            {
+               File.Delete(Path.Combine(_env.WebRootPath, filePath));
+               await  _userManager.DeleteAsync(patient);
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "something went wrong now get back after sometime,Ai Service is down"
+                };
+            }
             var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(patient);
 
             var encodedEmailToken = Encoding.UTF8.GetBytes(confirmEmailToken);
@@ -336,31 +349,34 @@ namespace BLL.Services
 
             string url = $"{_mail.ServerLink}/api/Authentication/confirmemail?userid={patient.Id}&token={validEmailToken}";
             htmlContent = htmlContent.Replace("{FullName}", patient.FullName).Replace("{url}", url);
-            var res=  await _mailService.SendEmailAsync(patient.Email, _mail.FromMail, _mail.Password, "Confirm your email", htmlContent);
+            //var res=  await _mailService.SendEmailAsync(patient.Email, _mail.FromMail, _mail.Password, "Confirm your email", htmlContent);
+           //Todo: send email when project is ready
             var family = await _family.GetByIdAsync(FamilyId);
-            if (!res || family==null)
-            {
-             await  _userManager.DeleteAsync(patient);
-                return new GlobalResponse
-                {
-                    HasError = true,
-                    message = "something went wrong now get back after sometime"
-                };
-            }
+            /* if (!res || family==null)
+             {
+              await  _userManager.DeleteAsync(patient);
+                 return new GlobalResponse
+                 {
+                     HasError = true,
+                     message = "something went wrong now get back after sometime"
+                 };
+             }*/
+           
             family.Relationility = addPatientDto.relationality;
             family.PatientId = patient.Id;
             family.DescriptionForPatient = addPatientDto.DescriptionForPatient;
             
             await _family.UpdateAsync(family);
 
-            var Result = await RegisterFamilyToAi(family.PatientId,family.Id,family.imageUrl);
+            var Result = await RegisterFamilyToAi(family.PatientId, family.Id, family.imageUrl);
             if (!Result)
             {
-
+                File.Delete(Path.Combine(_env.WebRootPath, filePath));
+                await _userManager.DeleteAsync(patient);
                 return new GlobalResponse()
                 {
                     HasError = true,
-                    message = "something went wrong now get back after sometime"
+                    message = "something went wrong now get back after sometime ,Ai Service is down"
                 };
             }
             return new GlobalResponse
@@ -407,20 +423,22 @@ namespace BLL.Services
                     message = "invalid Patient Code"
                 };
             }
+            
             family.PatientId = assignPatientDto.PatientCode;
             family.Relationility = assignPatientDto.relationility;
             family.DescriptionForPatient = assignPatientDto.DescriptionForPatient;
             await  _family.UpdateAsync(family) ;
-           var result = await RegisterFamilyToAi(family.PatientId, family.Id, family.imageUrl);
+
+            var result = await RegisterFamilyToAi(family.PatientId, family.Id, family.imageUrl);
             if (!result)
             {
+
                 return new GlobalResponse()
                 {
                     HasError = true,
-                    message = "something went wrong now get back after sometime"
+                    message = "something went wrong now get back after sometime ,Ai Service is down"
                 };
             }
-
             return new GlobalResponse
             {
                 HasError = false,
@@ -478,8 +496,18 @@ namespace BLL.Services
                 FamilyId = family.Id,
                 PatientId = family.PatientId,
             };
+            var JsonAppointment = new
+            {
+                AppointmentId = appointment.AppointmentId,
+                Date = appointment.Date,
+                Location = appointment.Location,
+                Notes = appointment.Notes,
+                FamilyNameWhoCreatedAppointemnt = _family.GetById(appointment.FamilyId).FullName,
+
+            };
+            var Json = JsonConvert.SerializeObject(JsonAppointment);
             await _Appointments.AddAsync(appointment);
-            await _appointmentHub.Clients.Group(family.PatientId).SendAsync("ReceiveAppointment", "Appointment Added");
+            await _appointmentHub.Clients.Group(family.PatientId).SendAsync("ReceiveAppointment", "Appointment Added",Json);
             return new GlobalResponse
             {
                 HasError = false,
@@ -509,6 +537,9 @@ namespace BLL.Services
             }
            
             await _Appointments.DeleteAsync(Appointemnt);
+            var AppointmentJson = "{\"AppointmentId\":\""+Appointemnt.AppointmentId+"\"}";
+            var Json = JsonConvert.SerializeObject(AppointmentJson);
+            await _appointmentHub.Clients.Group(Appointemnt.PatientId).SendAsync("ReceiveAppointment", "Appointment deleted", Json);
             return new GlobalResponse
             {
                 HasError = false,
@@ -745,7 +776,17 @@ namespace BLL.Services
 
             };
             await _personWithoutAccount.AddAsync(Person);
-            await RegisterFamilyToAi(Person.PatientId, Person.Id, Person.imageUrl);
+            var result = await RegisterFamilyToAi(Person.PatientId, Person.Id, Person.imageUrl);
+            if (result == false)
+            {
+                File.Delete(Path.Combine(_env.WebRootPath, filePath));
+              await _personWithoutAccount.DeleteAsync(Person);
+                return new GlobalResponse()
+                {
+                    HasError = true,
+                    message = "something went wrong now get back after sometime ,Ai Service is down"
+                };
+            }
             return new GlobalResponse
             {
                 HasError = false,
@@ -799,8 +840,53 @@ namespace BLL.Services
                 }
             }
         }
+        private async Task<bool> RegisterPatientToAi(string PatientId, IFormFile Image)
+        {
+            string endpoint = "https://evident-moving-bonefish.ngrok-free.app/register_patient";
 
-        
+            using (HttpClient httpClient = new HttpClient())
+            {
+              
+
+                // Create multipart form-data content
+                var multipartContent = new MultipartFormDataContent();
+
+                // Add patient_id and family_member_id as query parameters
+                var queryParameters = new System.Collections.Generic.Dictionary<string, string>
+                {
+                    { "patient_id", PatientId },
+                   
+                };
+
+                // Add the image as a stream content
+                multipartContent.Add(new StreamContent(Image.OpenReadStream()), "image", "image.jpg");
+
+                // Build query string
+                var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+                foreach (var param in queryParameters)
+                {
+                    queryString[param.Key] = param.Value;
+                }
+
+                var fullUrl = endpoint + "?" + queryString;
+
+                // Send the request
+                var response = await httpClient.PostAsync(fullUrl, multipartContent);
+
+                // Handle the response
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("Image registered successfully.");
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to register image. Status code: {response.StatusCode}");
+                    return false;
+                }
+            }
+        }
+
     }
 
 }

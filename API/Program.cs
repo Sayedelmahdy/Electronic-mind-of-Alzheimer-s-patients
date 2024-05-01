@@ -79,8 +79,9 @@ builder.Services.AddDbContext<DBContext>(option =>
 });
 builder.Services.AddIdentity<User, IdentityRole>(option=>
 {
-    option.SignIn.RequireConfirmedEmail= true;
-    option.Tokens.EmailConfirmationTokenProvider = "emailconfirmation";
+     //option.SignIn.RequireConfirmedEmail= false; //Todo: Enable it when Prodcution Done
+    //option.Tokens.EmailConfirmationTokenProvider = "emailconfirmation";
+    
 }).AddEntityFrameworkStores<DBContext>().AddDefaultTokenProviders().AddTokenProvider<EmailTokenProvider<User>>("emailconfirmation");
 builder.Services.AddIdentityCore<Patient>(option =>
 {
@@ -137,7 +138,7 @@ builder.Services.AddRateLimiter(option =>
         partitionKey: Context.User.Identity?.ToString(),
         factory: op => new FixedWindowRateLimiterOptions
         {
-            PermitLimit = 5,
+            PermitLimit = 100,
             Window = TimeSpan.FromSeconds(10),
         }));
 });
@@ -156,7 +157,7 @@ builder.Services.Configure<FormOptions>(x =>
     x.MultipartHeadersLengthLimit = int.MaxValue;
 });
 builder.Services.AddRazorPages();
-builder.Services.AddSignalR().AddAzureSignalR("Endpoint=https://notificationalzheimer.service.signalr.net;AccessKey=YujUCHeAPIHNhjWcm3HcFpgR9gD+ijcZIe9q1iB/t2U=;Version=1.0;");
+builder.Services.AddSignalR().AddAzureSignalR("Endpoint=https://electronicmind1.service.signalr.net;AccessKey=6RcRxnjHWMPHujsFNdlUl+YtwzPVjiFTyYfwh6pBMK4=;Version=1.0;");
 builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
     builder =>
     {
