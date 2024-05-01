@@ -751,13 +751,42 @@ namespace BLL.Services
 
                 };
             }
-            List<string > ImagesSamplesUrls = new List<string>();
+            List<ImageSamplesWithInstractions > ImagesSamplesUrls = new List<ImageSamplesWithInstractions>();
             for (int i = Family.NumberOfTrainingImage + 1; i < 6; i++)
             {
                 var pathOfImage = Path.Combine(_env.WebRootPath, "FaceExmaple", $"{i}.jpg");
+                string Instruction = "";
+                if (i == 1)
+                {
+                    Instruction = "Front View: Directly facing the camera, eyes looking straight ahead";
+                }
+                else if (i == 2)
+                {
+                    Instruction = "3/4 Right View: The head turned slightly so the right side is more visible than the left";
+                }
+                else if (i == 3)
+                {
+                    Instruction = "Fully Right View: Turn your head to the right until your profile aligns with the camera";
+
+                }
+                else if (i == 4)
+                {
+                    Instruction = "3/4 Left View: The head turned slightly so the left side is more visible than the right.";
+                }
+                else if (i == 5)
+                {
+                    Instruction = "Fully Left View: Turn your head to the left until your profile aligns with the camera.";
+                }
                 var image = GetMediaUrl(pathOfImage);
-                ImagesSamplesUrls.Add(image);
+                var imageWithInstruction = new ImageSamplesWithInstractions()
+                {
+                    ImageSampleUrl = image,
+                    Instraction = Instruction
+                };
+                ImagesSamplesUrls.Add(imageWithInstruction);
+                
             }
+
             return new NeedATrainingImageDto()
             {
                 GlobalResponse = new GlobalResponse
@@ -765,7 +794,7 @@ namespace BLL.Services
                     HasError = false,
                     message = "Succes"
                 },
-                ImagesSamplesUrl = ImagesSamplesUrls,
+                ImagesSamplesWithInstractions = ImagesSamplesUrls,
                 NeedATraining = true
                 
             };
@@ -877,9 +906,9 @@ namespace BLL.Services
 
             };
             await _personWithoutAccount.AddAsync(Person);
-            for (int i = 0; i < addPersonWithoutAccountDto.TraningImage.Count; i++)
+            for (int i = 0; i < addPersonWithoutAccountDto.TraningImage.Count(); i++)
             {
-                var result = await RegisterFamilyToAi(Person.PatientId, Person.Id, addPersonWithoutAccountDto.TraningImage[0], i + 1);
+                var result = await RegisterFamilyToAi(Person.PatientId, Person.Id, addPersonWithoutAccountDto.TraningImage[i], i + 1);
                 if (result.Item1 == "400" || result.Item1 == "500")
                 {
                     File.Delete(Path.Combine(_env.WebRootPath, filePath));

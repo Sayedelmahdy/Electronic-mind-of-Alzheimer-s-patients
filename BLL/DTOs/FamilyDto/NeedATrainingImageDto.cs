@@ -12,6 +12,6 @@ namespace BLL.DTOs.FamilyDto
         [JsonIgnore]
         public GlobalResponse GlobalResponse { get; set; }
         public bool NeedATraining { get; set; } 
-        public List<string>? ImagesSamplesUrl { get; set; }
+        public List<ImageSamplesWithInstractions>? ImagesSamplesWithInstractions { get; set; }
     }
 }
