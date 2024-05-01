@@ -11,6 +11,7 @@ namespace DAL.Model
     {
         public string? Relationility { get; set; }
         public string? DescriptionForPatient { get; set; }
+        public int NumberOfTrainingImage { get; set; } = 0;
 
         #region Navigation Prop
         [ForeignKey(nameof(Patient))]

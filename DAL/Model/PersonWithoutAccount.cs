@@ -15,8 +15,9 @@ namespace DAL.Model
         [Required]
         public string PhoneNumber { get; set; }
         [Required]
-        public string imageUrl { get; set; }
+        public string ImageUrl { get; set; }
         [Required]
+
         public double MainLongitude { get; set; } = 0;
         [Required]
         public double MainLatitude { get; set; } = 0;
