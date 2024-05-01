@@ -64,8 +64,8 @@ This project incorporates a variety of technologies, each chosen for their speci
 
 ## Setup and Installation
 1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/yourusername/ElectronicMind.git
+   ```bash 
+   git clone https://github.com/Sayedelmahdy/Electronic-mind-of-Alzheimer-s-patients/.git
    ```
 2. **Navigate to the project directory**:
    ```bash
