@@ -85,5 +85,3 @@ This project incorporates a variety of technologies, each chosen for their speci
 ## Contributing
 We welcome contributions to improve application functionalities or fix issues. Please discuss potential changes via issues before submitting a pull request.
 
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
