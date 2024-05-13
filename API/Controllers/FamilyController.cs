@@ -24,6 +24,52 @@ namespace API.Controllers
             _familyService = familyService;
         }
         /// <summary>
+        /// Retrieves a list of URLs to training images for families identified by a token. This endpoint is intended
+        /// for families with an incomplete set of training images (fewer than 5 images). The method ensures that the token
+        /// provided is valid and contains a user ID. If the family associated with the ID needs more training images,
+        /// the server generates URLs for the required images and returns them. Validation checks include verifying the token
+        /// for a valid family ID and checking if the associated family has less than 5 training images.
+        /// </summary>
+        /// <returns>An IActionResult containing either a BadRequest with an error message (e.g., invalid token or token without a valid ID) or an Ok with the list of image URLs.</returns>
+        [HttpGet("FamilyNeedATrainingImages")]
+        public async Task<IActionResult> FamilyNeedATrainingImages()
+        {
+            string? token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Token invaild");
+            }
+            var res = await _familyService.FamilyNeedATraining(token);
+            if (res.GlobalResponse.HasError)
+            {
+                return BadRequest(res.GlobalResponse.message);
+            }
+            return Ok(res);
+        }
+        /// <summary>
+        /// Accepts training images submitted by clients and assigns them to a specific family's record based on the provided token.
+        /// This method validates the token to ensure it contains a valid family ID and that the associated family has a patient. 
+        /// Each image is registered incrementally, updating the count of training images for the family. If any image fails during the registration process (e.g., due to server errors or invalid image format), 
+        /// the method instructs the user to resubmit all images. Validation checks ensure the token contains a family ID, the family has a patient, and handles registration errors for the images.
+        /// </summary>
+        /// <param name="addTrainingImageDto">Data transfer object containing the list of training images to be uploaded.</param>
+        /// <returns>An IActionResult containing either a BadRequest with an error message (e.g., invalid token, family without a patient, or image registration failure) or an Ok with a success message confirming the registration of the images.</returns>
+        [HttpPost("FamilyTrainingImages")]
+        public async Task<IActionResult> FamilyTrainingImages([FromForm] AddTrainingImageDto addTrainingImageDto)
+        {
+            string? token = HttpContextHelper.GetToken(this.HttpContext);
+            if (token == null)
+            {
+                return BadRequest("Token invaild");
+            }
+            var res = await _familyService.TrainingImage(token,addTrainingImageDto);
+            if (res.HasError)
+            {
+                return BadRequest(res.message);
+            }
+            return Ok(res);
+        }
+        /// <summary>
         /// Retrieves the patient code associated with the provided token.
         /// </summary>
         /// <returns>
@@ -109,7 +155,7 @@ namespace API.Controllers
         /// <returns>
         /// If successful, returns a message indicating successful assignment. If the token is invalid, the family ID is invalid, the family already has a patient assigned, or the provided patient code is invalid, returns a BadRequest response.
         /// </returns>
-
+        
         [HttpPut("AssignPatientToFamily")]
         public async Task<IActionResult> AssignPatientToFamily(AssignPatientDto assignPatientDto)
         {

@@ -15,7 +15,7 @@ namespace BLL.DTOs.FamilyDto
         [Required]
         public string PhoneNumber { get; set; }
         [Required]
-        public IFormFile AvatarImage { get; set; }
+        public List<IFormFile> TraningImage { get; set; }
         [Required]
         public double MainLongitude { get; set; } 
         [Required]

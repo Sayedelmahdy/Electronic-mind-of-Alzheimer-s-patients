@@ -169,7 +169,6 @@ namespace BLL.Services
         }
         public async Task<GlobalResponse> AddPatientAsync(string token, AddPatientDto addPatientDto)
         {
-
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
             if (FamilyId == null)
             {
@@ -368,7 +367,7 @@ namespace BLL.Services
             
             await _family.UpdateAsync(family);
 
-            var Result = await RegisterFamilyToAi(family.PatientId, family.Id, family.imageUrl);
+           /* var Result = await RegisterFamilyToAi(family.PatientId, family.Id, family.imageUrl);
             if (!Result)
             {
                 File.Delete(Path.Combine(_env.WebRootPath, filePath));
@@ -378,11 +377,11 @@ namespace BLL.Services
                     HasError = true,
                     message = "something went wrong now get back after sometime ,Ai Service is down"
                 };
-            }
+            }*/
             return new GlobalResponse
             {
                 HasError = false,
-                message = "Patient Added Succsfully"
+                message = "Patient Added Succsfully, and you need to send a training images"
             };
         }
 
@@ -429,7 +428,7 @@ namespace BLL.Services
             family.DescriptionForPatient = assignPatientDto.DescriptionForPatient;
             await  _family.UpdateAsync(family) ;
 
-            var result = await RegisterFamilyToAi(family.PatientId, family.Id, family.imageUrl);
+           /* var result = await RegisterFamilyToAi(family.PatientId, family.Id, family.imageUrl);
             if (!result)
             {
 
@@ -438,11 +437,11 @@ namespace BLL.Services
                     HasError = true,
                     message = "something went wrong now get back after sometime ,Ai Service is down"
                 };
-            }
+            }*/
             return new GlobalResponse
             {
                 HasError = false,
-                message = "Patient Assigned to this family succesfully"
+                message = "Patient Assigned to this family succesfully, and you need to send a training images"
             };
         }
         public async Task<IEnumerable<GetAppointmentDto>> GetPatientAppointmentsAsync(string token)
@@ -590,7 +589,6 @@ namespace BLL.Services
                 };
             }
             string MediaId = Guid.NewGuid().ToString();
-
             string filePath = Path.Combine(PateintId, $"{FamilyId}_{MediaId}{Path.GetExtension(addMediaDto.MediaFile.FileName)}");
             string directoryPath = Path.Combine(_env.WebRootPath, PateintId);
             if (!Directory.Exists(directoryPath))
@@ -622,16 +620,7 @@ namespace BLL.Services
             }
 
 
-        private string GetMediaUrl(string imagePath)
-        {
-            // Assuming imagePath contains the relative path to the Media within the web root
-            // Construct the URL based on your application's routing configuration
-            string baseUrl = _mail.ServerLink; // Replace with your actual base URL
-            string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
-
-            return $"{baseUrl}/{relativePath}";
-        }
-
+        
         public async Task<GlobalResponse> AssignPatientToCaregiver(string token, string CaregiverCode)
         {
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
@@ -722,6 +711,139 @@ namespace BLL.Services
             }).ToList();
 
         }
+        public async Task<NeedATrainingImageDto> FamilyNeedATraining(string token)
+        {
+            string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
+            if (FamilyId == null)
+            {
+                return new NeedATrainingImageDto
+                {
+                    GlobalResponse = new GlobalResponse
+                    {
+                        HasError = true,
+                        message = "Token Not Have ID"
+                    }
+                };
+            }
+            var Family = _family.GetById(FamilyId);
+            if (Family.PatientId == null)
+            {
+                return new NeedATrainingImageDto
+                {
+                    NeedATraining = false,
+                    GlobalResponse = new GlobalResponse()
+                    {
+                        HasError = true,
+                        message = "This Family doesn't have patient yet"
+                    }
+                };
+            }
+            if (Family.NumberOfTrainingImage>=5)
+            {
+                return new NeedATrainingImageDto
+                {
+                    GlobalResponse = new GlobalResponse
+                    {
+                        HasError = false,
+                        message = "Already have 5 images"
+                    },
+                    NeedATraining = false,
+
+                };
+            }
+            List<ImageSamplesWithInstractions > ImagesSamplesUrls = new List<ImageSamplesWithInstractions>();
+            for (int i = Family.NumberOfTrainingImage + 1; i < 6; i++)
+            {
+                var pathOfImage = Path.Combine(_env.WebRootPath, "FaceExmaple", $"{i}.jpg");
+                string Instruction = "";
+                if (i == 1)
+                {
+                    Instruction = "Front View: Directly facing the camera, eyes looking straight ahead";
+                }
+                else if (i == 2)
+                {
+                    Instruction = "3/4 Right View: The head turned slightly so the right side is more visible than the left";
+                }
+                else if (i == 3)
+                {
+                    Instruction = "Fully Right View: Turn your head to the right until your profile aligns with the camera";
+
+                }
+                else if (i == 4)
+                {
+                    Instruction = "3/4 Left View: The head turned slightly so the left side is more visible than the right.";
+                }
+                else if (i == 5)
+                {
+                    Instruction = "Fully Left View: Turn your head to the left until your profile aligns with the camera.";
+                }
+                var image = GetMediaUrl(pathOfImage);
+                var imageWithInstruction = new ImageSamplesWithInstractions()
+                {
+                    ImageSampleUrl = image,
+                    Instraction = Instruction
+                };
+                ImagesSamplesUrls.Add(imageWithInstruction);
+                
+            }
+
+            return new NeedATrainingImageDto()
+            {
+                GlobalResponse = new GlobalResponse
+                {
+                    HasError = false,
+                    message = "Succes"
+                },
+                ImagesSamplesWithInstractions = ImagesSamplesUrls,
+                NeedATraining = true
+                
+            };
+        }
+
+        public async Task<GlobalResponse> TrainingImage(string token, AddTrainingImageDto addTrainingImageDto)
+        {
+            string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
+            if (FamilyId == null)
+            {
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "Token Not Have ID"
+                };
+            }
+            var Family = _family.GetById(FamilyId);
+            if (Family.PatientId == null)
+            {
+
+                return new GlobalResponse
+                {
+                    HasError = true,
+                    message = "This Family doesn't have patient yet"
+
+                };
+            }
+            foreach (var item in addTrainingImageDto.TrainingImages)
+            {
+                var result = await RegisterFamilyToAi(Family.PatientId, Family.Id, item,Family.NumberOfTrainingImage+1);
+               if (result.Item1=="400" || result.Item1=="500")
+                {
+                    return new GlobalResponse()
+                    {
+                        HasError= true,
+                        message = result.Item2+"\n Please send all image again after change the photo with wronged face"
+                    };
+                }
+               Family.NumberOfTrainingImage +=1;
+                await _family.UpdateAsync(Family);
+
+
+            }
+            return new GlobalResponse()
+            {
+                HasError = false,
+                message = "Training image successfully"
+            };
+        }
         public async Task<GlobalResponse> AddPersonWithoutAccount(string token, AddPersonWithoutAccountDto addPersonWithoutAccountDto)
         {
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
@@ -750,9 +872,17 @@ namespace BLL.Services
                    message = "This Family doesn't have patient yet"
                 };
             }
+            if (addPersonWithoutAccountDto.TraningImage.Count <5)
+            {
+                return new GlobalResponse()
+                {
+                    HasError = true,
+                    message = "Please send at least 5 image for training with Different angles like face samples"
+                };
+            }
             string MediaId = Guid.NewGuid().ToString();
 
-            string filePath = Path.Combine("User Avatar", $"{MediaId}{Path.GetExtension(addPersonWithoutAccountDto.AvatarImage.FileName)}");
+            string filePath = Path.Combine("User Avatar", $"{MediaId}{Path.GetExtension(addPersonWithoutAccountDto.TraningImage[0].FileName)}");
             string directoryPath = Path.Combine(_env.WebRootPath, "User Avatar");
             if (!Directory.Exists(directoryPath))
             {
@@ -760,7 +890,7 @@ namespace BLL.Services
             }
             using (FileStream filestream = File.Create(Path.Combine(_env.WebRootPath, filePath)))
             {
-                addPersonWithoutAccountDto.AvatarImage.CopyTo(filestream);
+                addPersonWithoutAccountDto.TraningImage[0].CopyTo(filestream);
                 filestream.Flush();
             }
             var Person = new PersonWithoutAccount
@@ -771,36 +901,41 @@ namespace BLL.Services
                 MainLatitude = addPersonWithoutAccountDto.MainLatitude,
                 MainLongitude = addPersonWithoutAccountDto.MainLongitude,
                 PhoneNumber = addPersonWithoutAccountDto.PhoneNumber,
-                imageUrl = filePath,
+                ImageUrl = filePath,
                 Relationility = addPersonWithoutAccountDto.Relationility,
 
             };
             await _personWithoutAccount.AddAsync(Person);
-            var result = await RegisterFamilyToAi(Person.PatientId, Person.Id, Person.imageUrl);
-            if (result == false)
+            for (int i = 0; i < addPersonWithoutAccountDto.TraningImage.Count(); i++)
             {
-                File.Delete(Path.Combine(_env.WebRootPath, filePath));
-              await _personWithoutAccount.DeleteAsync(Person);
-                return new GlobalResponse()
+                var result = await RegisterFamilyToAi(Person.PatientId, Person.Id, addPersonWithoutAccountDto.TraningImage[i], i + 1);
+                if (result.Item1 == "400" || result.Item1 == "500")
                 {
-                    HasError = true,
-                    message = "something went wrong now get back after sometime ,Ai Service is down"
-                };
+                    File.Delete(Path.Combine(_env.WebRootPath, filePath));
+                    await _personWithoutAccount.DeleteAsync(Person);
+                    return new GlobalResponse()
+                    {
+                        HasError = true,
+                        message = result.Item2 + "\n Please add person again and send all image again after change the photo with wronged face"
+                    };
+                }
             }
+
+            
             return new GlobalResponse
             {
                 HasError = false,
-                message = "Person Added Succesfully"
+                message = "Person Added Succesfully, and training image successfully"
             };
         }
-        private async Task< bool> RegisterFamilyToAi(string PatientId,string UserId,string ImagePath)
+        private async Task<Tuple<string, string> > RegisterFamilyToAi(string PatientId,string UserId, IFormFile Image,int idx)
         {
             string endpoint = "https://evident-moving-bonefish.ngrok-free.app/register_image";
 
             using (HttpClient httpClient = new HttpClient())
             {
                 // Read the image bytes
-                byte[] imageBytes = File.ReadAllBytes(Path.Combine(_env.WebRootPath, ImagePath));
+             
 
                 // Create multipart form-data content
                 var multipartContent = new MultipartFormDataContent();
@@ -809,11 +944,12 @@ namespace BLL.Services
                 var queryParameters = new System.Collections.Generic.Dictionary<string, string>
             {
                 { "patient_id", PatientId },
+                { "idx", idx.ToString() },
                 { "family_member_id", UserId }
             };
 
                 // Add the image as a stream content
-                multipartContent.Add(new StreamContent(new MemoryStream(imageBytes)), "image", "image.jpg");
+                multipartContent.Add(new StreamContent(Image.OpenReadStream()), "image", "image.jpg");
 
                 // Build query string
                 var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
@@ -830,16 +966,30 @@ namespace BLL.Services
                 // Handle the response
                 if (response.IsSuccessStatusCode)
                 {
-                    Console.WriteLine("Image registered successfully.");
-                    return true;
+                   
+                    return new Tuple<string, string>("200", "Image registered successfully");
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    return new Tuple<string, string>("400", $"No face detected or more than one face in the uploaded image number {idx}");
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to register image. Status code: {response.StatusCode}");
-                    return false;
+                    return new Tuple<string, string>("500", "Something went wrong, Ai server is down Please Try Again later");
                 }
+
             }
         }
+        private string GetMediaUrl(string imagePath)
+        {
+            // Assuming imagePath contains the relative path to the Media within the web root
+            // Construct the URL based on your application's routing configuration
+            string baseUrl = _mail.ServerLink; // Replace with your actual base URL
+            string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
+
+            return $"{baseUrl}/{relativePath}";
+        }
+
         private async Task<bool> RegisterPatientToAi(string PatientId, IFormFile Image)
         {
             string endpoint = "https://evident-moving-bonefish.ngrok-free.app/register_patient";
@@ -887,6 +1037,7 @@ namespace BLL.Services
             }
         }
 
+      
     }
 
 }

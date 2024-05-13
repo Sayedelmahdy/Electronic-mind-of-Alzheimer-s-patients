@@ -722,7 +722,7 @@ namespace BLL.Services
                     FamilyId = s.Id,
                     FamilyName = s.FullName,
                     Relationility = s.Relationility,
-                    HisImageUrl = (s.imageUrl == null) ? "" : GetMediaUrl(s.imageUrl),
+                    HisImageUrl = (s.ImageUrl == null) ? "" : GetMediaUrl(s.ImageUrl),
                     FamilyDescriptionForPatient = s.DescriptionForPatient
                 } ).ToList();
                 result.AddRange(persons);
@@ -906,7 +906,7 @@ namespace BLL.Services
                                     FamilyLongitude = person.MainLongitude,
                                     FamilyPhoneNumber = person.PhoneNumber,
                                     RelationalityOfThisPatient = person.Relationility,
-                                    FamilyAvatarUrl = GetMediaUrl(person.imageUrl),
+                                    FamilyAvatarUrl = GetMediaUrl(person.ImageUrl),
                                     DescriptionForPatient = person.DescriptionForPatient
                                 };
                                 graphics.DrawString(realName, font, brush, x, y, format);
