@@ -1,32 +1,21 @@
-﻿using Azure;
-using BLL.DTOs.AuthenticationDto;
-using BLL.DTOs.FamilyDto;
-using BLL.DTOs.PatientDto;
+﻿using BLL.DTOs.AuthenticationDto;
 using BLL.Helper;
 using BLL.Interfaces;
 using DAL.Interfaces;
 using DAL.Model;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace BLL.Services
 {
-    public class AuthService:IAuthService
+    public class AuthService : IAuthService
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -38,7 +27,7 @@ namespace BLL.Services
         private readonly Mail _mail;
         public AuthService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IOptions<JWT> jwt,
             IOptions<Mail> Mail
-            ,IMailService mailService
+            , IMailService mailService
             , IWebHostEnvironment env
             , IBaseRepository<Patient> patient
 
@@ -47,9 +36,9 @@ namespace BLL.Services
             _patient = patient;
             _userManager = userManager;
             _roleManager = roleManager;
-           _mailService = mailService;
+            _mailService = mailService;
             _mail = Mail.Value;
-            _env = env; 
+            _env = env;
             _jwt = jwt.Value;
 
         }
@@ -58,13 +47,13 @@ namespace BLL.Services
             if (await _userManager.FindByEmailAsync(model.Email) is not null)
                 return new RegisterAuthDto { Message = "Email is already registered!" };
 
-           
+
             IdentityResult? result = null;
-       
+
             if (model.Role != string.Empty)
             {
 
-                        string htmlContent = @"<!DOCTYPE html>
+                string htmlContent = @"<!DOCTYPE html>
                 <html lang=""en"">
 
                 <head>
@@ -169,8 +158,8 @@ namespace BLL.Services
 
 
         ";
-                    if (model.Role.ToLower() == "family")
-                    {
+                if (model.Role.ToLower() == "family")
+                {
                     Family family = new Family
                     {
 
@@ -181,68 +170,68 @@ namespace BLL.Services
                         UserName = model.Email.Split('@')[0],
                         MainLatitude = model.MainLatitude,
                         MainLongitude = model.MainLongitude,
-                        };
-                   
-                             result = await _userManager.CreateAsync(family, model.Password);
-                            if (result == null || !result.Succeeded)
-                            {
-                                var errors = string.Empty;
-                                foreach (var error in result.Errors)
-                                    errors += $"{error.Description},";
-                                return new RegisterAuthDto { Message = errors };
-                            }
-                            await _userManager.AddToRoleAsync(family, "family");
-                            string MediaId = Guid.NewGuid().ToString();
+                    };
 
-                            string filePath = Path.Combine("User Avatar", $"{family.Id}_{MediaId}{Path.GetExtension(model.Avatar.FileName)}");
-                            string directoryPath = Path.Combine(_env.WebRootPath, "User Avatar");
-                            if (!Directory.Exists(directoryPath))
-                            {
-                                Directory.CreateDirectory(directoryPath);
-                            }
-                            using (FileStream filestream = File.Create(Path.Combine(_env.WebRootPath, filePath)))
-                            {
-                                model.Avatar.CopyTo(filestream);
-                                filestream.Flush();
-                            }
-                            family.imageUrl =  filePath;
-                            await _userManager.UpdateAsync(family);
-                            
-                            var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(family);
-                            
-                            var encodedEmailToken = Encoding.UTF8.GetBytes(confirmEmailToken);
-                            var validEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
-                    
-                            string url = $"{_mail.ServerLink}/api/Authentication/confirmemail?userid={family.Id}&token={validEmailToken}";
-                           htmlContent = htmlContent.Replace("{FullName}", family.FullName).Replace("{url}", url);
-                            //await _mailService.SendEmailAsync(family.Email, _mail.FromMail, _mail.Password,"Confirm your email", htmlContent);
-                            //Todo: send email when project is ready
-                   
-                    }
-
-                    else if (model.Role.ToLower() == "caregiver")
+                    result = await _userManager.CreateAsync(family, model.Password);
+                    if (result == null || !result.Succeeded)
                     {
-                        Caregiver caregiver = new Caregiver
-                        {
-                          
-                            Email = model.Email,
-                            PhoneNumber = model.PhoneNumber,
-                            FullName = model.FullName,
-                            Age = model.Age,
-                            UserName = model.Email.Split('@')[0],
-                            MainLatitude = model.MainLatitude,
-                            MainLongitude = model.MainLongitude,
+                        var errors = string.Empty;
+                        foreach (var error in result.Errors)
+                            errors += $"{error.Description},";
+                        return new RegisterAuthDto { Message = errors };
+                    }
+                    await _userManager.AddToRoleAsync(family, "family");
+                    string MediaId = Guid.NewGuid().ToString();
 
-                        };
-                        result = await _userManager.CreateAsync(caregiver, model.Password);
-                        if (result == null || !result.Succeeded)
-                        {
-                            var errors = string.Empty;
+                    string filePath = Path.Combine("User Avatar", $"{family.Id}_{MediaId}{Path.GetExtension(model.Avatar.FileName)}");
+                    string directoryPath = Path.Combine(_env.WebRootPath, "User Avatar");
+                    if (!Directory.Exists(directoryPath))
+                    {
+                        Directory.CreateDirectory(directoryPath);
+                    }
+                    using (FileStream filestream = File.Create(Path.Combine(_env.WebRootPath, filePath)))
+                    {
+                        model.Avatar.CopyTo(filestream);
+                        filestream.Flush();
+                    }
+                    family.imageUrl = filePath;
+                    await _userManager.UpdateAsync(family);
 
-                            foreach (var error in result.Errors)
-                                errors += $"{error.Description},";
+                    var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(family);
 
-                            return new RegisterAuthDto { Message = errors };
+                    var encodedEmailToken = Encoding.UTF8.GetBytes(confirmEmailToken);
+                    var validEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
+
+                    string url = $"{_mail.ServerLink}/api/Authentication/confirmemail?userid={family.Id}&token={validEmailToken}";
+                    htmlContent = htmlContent.Replace("{FullName}", family.FullName).Replace("{url}", url);
+                    //await _mailService.SendEmailAsync(family.Email, _mail.FromMail, _mail.Password,"Confirm your email", htmlContent);
+                    //Todo: send email when project is ready
+
+                }
+
+                else if (model.Role.ToLower() == "caregiver")
+                {
+                    Caregiver caregiver = new Caregiver
+                    {
+
+                        Email = model.Email,
+                        PhoneNumber = model.PhoneNumber,
+                        FullName = model.FullName,
+                        Age = model.Age,
+                        UserName = model.Email.Split('@')[0],
+                        MainLatitude = model.MainLatitude,
+                        MainLongitude = model.MainLongitude,
+
+                    };
+                    result = await _userManager.CreateAsync(caregiver, model.Password);
+                    if (result == null || !result.Succeeded)
+                    {
+                        var errors = string.Empty;
+
+                        foreach (var error in result.Errors)
+                            errors += $"{error.Description},";
+
+                        return new RegisterAuthDto { Message = errors };
                     }
                     await _userManager.AddToRoleAsync(caregiver, "caregiver");
                     string MediaId = Guid.NewGuid().ToString();
@@ -258,19 +247,19 @@ namespace BLL.Services
                         model.Avatar.CopyTo(filestream);
                         filestream.Flush();
                     }
-                    caregiver.imageUrl =  filePath;
+                    caregiver.imageUrl = filePath;
                     await _userManager.UpdateAsync(caregiver);
                     var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(caregiver);
-                    
-                        var encodedEmailToken = Encoding.UTF8.GetBytes(confirmEmailToken);
-                        var validEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
 
-                        string url = $"{_mail.ServerLink}/api/Authentication/confirmemail?userid={caregiver.Id}&token={validEmailToken}";
-                      htmlContent = htmlContent.Replace("{FullName}", caregiver.FullName).Replace("{url}", url);
+                    var encodedEmailToken = Encoding.UTF8.GetBytes(confirmEmailToken);
+                    var validEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
+
+                    string url = $"{_mail.ServerLink}/api/Authentication/confirmemail?userid={caregiver.Id}&token={validEmailToken}";
+                    htmlContent = htmlContent.Replace("{FullName}", caregiver.FullName).Replace("{url}", url);
                     //  await _mailService.SendEmailAsync(caregiver.Email, _mail.FromMail, _mail.Password, "Confirm your email", htmlContent);
                     //Todo: send email when project is ready
                 }
-                    else
+                else
                     return new RegisterAuthDto { Message = "Invalid Role" };
 
 
@@ -278,19 +267,19 @@ namespace BLL.Services
             }
             else return new RegisterAuthDto { Message = "Error,You need to add role" };
 
-            
 
-            
+
+
 
             return new RegisterAuthDto
             {
-                Message = $"User Created Successfully,Confirmation Mail was send to his Email please confirm your email",               
-                NeedToConfirm = true ,
-                
+                Message = $"User Created Successfully,Confirmation Mail was send to his Email please confirm your email",
+                NeedToConfirm = true,
+
             };
 
 
-            
+
         }
 
 
@@ -306,7 +295,7 @@ namespace BLL.Services
                 AuthDto.Message = "Email or Password is incorrect!";
                 return AuthDto;
             }
-          
+
             //todo: check if email is confirmed when project is ready
             /*if (user.EmailConfirmed == false)
             {
@@ -317,10 +306,10 @@ namespace BLL.Services
 
             var jwtSecurityToken = await CreateJwtToken(user);
             var rolesList = await _userManager.GetRolesAsync(user);
-            
+
             AuthDto.IsAuthenticated = true;
             AuthDto.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
-            
+
             await _userManager.UpdateAsync(user);
 
             return AuthDto;
@@ -354,7 +343,7 @@ namespace BLL.Services
                 Message = "Email did not confirm",
             };
         }
-        
+
 
 
         private async Task<JwtSecurityToken> CreateJwtToken(User user)
@@ -367,15 +356,15 @@ namespace BLL.Services
             foreach (var role in roles)
                 roleClaims.Add(new Claim("roles", role));
 
-            var patient = _patient.Find(i=>i.Id==user.Id);
+            var patient = _patient.Find(i => i.Id == user.Id);
             var patientClaims = new List<Claim>();
             if (patient != null)
             {
-                 patientClaims = new List<Claim>
+                patientClaims = new List<Claim>
                 {
                      new Claim("MaxDistance",patient.MaximumDistance.ToString())
                 };
-               
+
             }
             var claims = new[]
             {
@@ -387,14 +376,14 @@ namespace BLL.Services
                 new Claim ("UserAvatar",GetMediaUrl(user.imageUrl)),
                 new Claim("MainLatitude",user.MainLatitude.ToString()),
                 new Claim("MainLongitude",user.MainLongitude.ToString()),
-                 
-                
+
+
             }
             .Union(userClaims)
             .Union(roleClaims)
             .Union(patientClaims);
 
-            
+
             var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
             var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
 
@@ -407,7 +396,7 @@ namespace BLL.Services
 
             return jwtSecurityToken;
         }
-       
+
         public async Task<ForgetPassword> ForgetPasswordAsync(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
@@ -529,7 +518,7 @@ namespace BLL.Services
 
 
             string url = $"{_mail.ServerLink}/ResetPassword?email={email}&token={validToken}";
-            
+
             htmlContent = htmlContent.Replace("{FullName}", email).Replace("{url}", url);
             await _mailService.SendEmailAsync(email, _mail.FromMail, _mail.Password, "forget password email", htmlContent);
 
@@ -579,10 +568,11 @@ namespace BLL.Services
 
             };
         }
-        public async Task <ChangePassword> ChangePasswordAsync (ChangePasswordDto model)
+        public async Task<ChangePassword> ChangePasswordAsync(ChangePasswordDto model)
         {
-            var user = await _userManager.FindByEmailAsync (model.Email);
-            if (user == null) {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
                 return new ChangePassword
                 {
                     Message = "Email Not Found",
@@ -591,7 +581,7 @@ namespace BLL.Services
                 };
 
             }
-            if (model.NewPassword!=model.ConfirmNewPassword)
+            if (model.NewPassword != model.ConfirmNewPassword)
             {
                 return new ChangePassword
                 {
@@ -601,7 +591,8 @@ namespace BLL.Services
                 };
             }
             var result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
-            if (result.Succeeded) {
+            if (result.Succeeded)
+            {
 
                 return new ChangePassword
                 {
@@ -609,7 +600,7 @@ namespace BLL.Services
                     PasswordIsChanged = true,
                 };
 
-             
+
             }
             return new ChangePassword
             {
@@ -620,10 +611,10 @@ namespace BLL.Services
         }
         private string GetMediaUrl(string imagePath)
         {
-          
-            string baseUrl = _mail.ServerLink; 
+
+            string baseUrl = _mail.ServerLink;
             string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
-            
+
             return $"{baseUrl}/{relativePath}";
         }
 
@@ -670,16 +661,16 @@ namespace BLL.Services
                     };
                 }
                 //todo: check if email is confirmed when project is ready
-               /* if (user.EmailConfirmed == false)
-                {
-                    return new AuthDto()
-                    {
-                        IsAuthenticated = false,
-                        Message = "Please confirm your email first to login with FaceId",
-                    };
+                /* if (user.EmailConfirmed == false)
+                 {
+                     return new AuthDto()
+                     {
+                         IsAuthenticated = false,
+                         Message = "Please confirm your email first to login with FaceId",
+                     };
 
-                }
-*/              
+                 }
+ */
 
                 var jwtSecurityToken = await CreateJwtToken(user);
                 var rolesList = await _userManager.GetRolesAsync(user);
@@ -695,20 +686,20 @@ namespace BLL.Services
                 IsAuthenticated = false,
                 Message = "Something went wrong while login with FaceId ,Ai Server has some problem",
             };
-            
+
 
         }
         private async Task<string?> FaceIDAi(LoginWithFaceIdDto model)
         {
-            string endpoint = "https://evident-moving-bonefish.ngrok-free.app/login_patient";
+            string endpoint = "https://excited-hound-vastly.ngrok-free.app/login_patient";
 
             using (HttpClient httpClient = new HttpClient())
             {
 
                 var multipartContent = new MultipartFormDataContent();
 
-                multipartContent.Add(new StreamContent(model.Image.OpenReadStream()), "image", "image.jpg");    
-                
+                multipartContent.Add(new StreamContent(model.Image.OpenReadStream()), "image", "image.jpg");
+
 
 
                 var response = await httpClient.PostAsync(endpoint, multipartContent);

@@ -1,7 +1,5 @@
 ﻿using BLL.DTOs;
-using BLL.DTOs.AuthenticationDto;
 using BLL.DTOs.FamilyDto;
-using BLL.DTOs.PatientDto;
 using BLL.Helper;
 using BLL.Hubs;
 using BLL.Interfaces;
@@ -13,19 +11,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace BLL.Services
 {
-    public class FamilyService:IFamilyService
+    public class FamilyService : IFamilyService
     {
         private readonly IBaseRepository<Family> _family;
         private readonly IBaseRepository<Patient> _patient;
@@ -45,13 +37,13 @@ namespace BLL.Services
 
         public FamilyService(
             IBaseRepository<Media> Media,
-            IBaseRepository<Family>family,
-            IBaseRepository<Patient>patient,     
-            IBaseRepository<Caregiver>caregiver,     
+            IBaseRepository<Family> family,
+            IBaseRepository<Patient> patient,
+            IBaseRepository<Caregiver> caregiver,
 
-            IBaseRepository<Appointment>appointment,
-            IBaseRepository<Location>location,
-            IDecodeJwt jwtDecode,  
+            IBaseRepository<Appointment> appointment,
+            IBaseRepository<Location> location,
+            IDecodeJwt jwtDecode,
             IWebHostEnvironment env,
               IOptions<Mail> Mail,
               IOptions<JWT> JWT,
@@ -68,7 +60,7 @@ namespace BLL.Services
             _patient = patient;
             _caregiver = caregiver;
             _mail = Mail.Value;
-            _Appointments=appointment;
+            _Appointments = appointment;
             _jwtDecode = jwtDecode;
             _env = env;
             _jwt = JWT.Value;
@@ -106,8 +98,8 @@ namespace BLL.Services
             {
                 return null;
             }
-            var Family = await _family.Include(p => p.patient).FirstOrDefaultAsync(p=>p.Id==FamilyId);
-            if (Family.patient.FamilyCreatedId!=FamilyId)
+            var Family = await _family.Include(p => p.patient).FirstOrDefaultAsync(p => p.Id == FamilyId);
+            if (Family.patient.FamilyCreatedId != FamilyId)
             {
                 return new GetPatientProfile
                 {
@@ -116,11 +108,11 @@ namespace BLL.Services
                 };
             }
             var patient = await _patient.GetByIdAsync(Family.patient.Id);
-            patient.Age=updatePatientProfileDto.Age;
-            patient.PhoneNumber=updatePatientProfileDto.PhoneNumber;
+            patient.Age = updatePatientProfileDto.Age;
+            patient.PhoneNumber = updatePatientProfileDto.PhoneNumber;
             patient.DiagnosisDate = updatePatientProfileDto.DiagnosisDate.ToDateTime(TimeOnly.MinValue);
             patient.MaximumDistance = updatePatientProfileDto.MaximumDistance;
-            await  _patient.UpdateAsync(patient);
+            await _patient.UpdateAsync(patient);
             return new GetPatientProfile
             {
                 ErrorAppear = false,
@@ -132,7 +124,7 @@ namespace BLL.Services
                 FullName = patient.FullName,
                 relationality = Family.Relationility,
             };
-            
+
         }
         public async Task<GetPatientProfile> GetPatientProfile(string token)
         {
@@ -145,7 +137,7 @@ namespace BLL.Services
                     Message = "Token Doesn't have FamilyId"
                 };
             }
-            if (_family.GetById(FamilyId).PatientId==null)
+            if (_family.GetById(FamilyId).PatientId == null)
             {
                 return new GetPatientProfile
                 {
@@ -298,7 +290,7 @@ namespace BLL.Services
                 UserName = addPatientDto.Email.Split('@')[0],
                 DiagnosisDate = addPatientDto.DiagnosisDate.ToDateTime(TimeOnly.MinValue),
                 PhoneNumber = addPatientDto.PhoneNumber,
-                FamilyCreatedId=FamilyId,
+                FamilyCreatedId = FamilyId,
                 MaximumDistance = addPatientDto.MaximumDistance,
                 MainLatitude = addPatientDto.MainLatitude,
                 MainLongitude = addPatientDto.MainLongitude,
@@ -309,10 +301,12 @@ namespace BLL.Services
                 var errors = string.Empty;
                 foreach (var error in Created.Errors)
                     errors += $"{error.Description},";
-                return new GlobalResponse {
-                    
-                    HasError= true,
-                    message = errors };
+                return new GlobalResponse
+                {
+
+                    HasError = true,
+                    message = errors
+                };
             }
             await _userManager.AddToRoleAsync(patient, "patient");
             string MediaId = Guid.NewGuid().ToString();
@@ -328,13 +322,13 @@ namespace BLL.Services
                 addPatientDto.Avatar.CopyTo(filestream);
                 filestream.Flush();
             }
-            patient.imageUrl =  filePath;
+            patient.imageUrl = filePath;
             await _userManager.UpdateAsync(patient);
             var ResultOfAi = await RegisterPatientToAi(patient.Id, addPatientDto.Avatar);
             if (!ResultOfAi)
             {
-               File.Delete(Path.Combine(_env.WebRootPath, filePath));
-               await  _userManager.DeleteAsync(patient);
+                File.Delete(Path.Combine(_env.WebRootPath, filePath));
+                await _userManager.DeleteAsync(patient);
                 return new GlobalResponse
                 {
                     HasError = true,
@@ -349,7 +343,7 @@ namespace BLL.Services
             string url = $"{_mail.ServerLink}/api/Authentication/confirmemail?userid={patient.Id}&token={validEmailToken}";
             htmlContent = htmlContent.Replace("{FullName}", patient.FullName).Replace("{url}", url);
             //var res=  await _mailService.SendEmailAsync(patient.Email, _mail.FromMail, _mail.Password, "Confirm your email", htmlContent);
-           //Todo: send email when project is ready
+            //Todo: send email when project is ready
             var family = await _family.GetByIdAsync(FamilyId);
             /* if (!res || family==null)
              {
@@ -360,24 +354,24 @@ namespace BLL.Services
                      message = "something went wrong now get back after sometime"
                  };
              }*/
-           
+
             family.Relationility = addPatientDto.relationality;
             family.PatientId = patient.Id;
             family.DescriptionForPatient = addPatientDto.DescriptionForPatient;
-            
+
             await _family.UpdateAsync(family);
 
-           /* var Result = await RegisterFamilyToAi(family.PatientId, family.Id, family.imageUrl);
-            if (!Result)
-            {
-                File.Delete(Path.Combine(_env.WebRootPath, filePath));
-                await _userManager.DeleteAsync(patient);
-                return new GlobalResponse()
-                {
-                    HasError = true,
-                    message = "something went wrong now get back after sometime ,Ai Service is down"
-                };
-            }*/
+            /* var Result = await RegisterFamilyToAi(family.PatientId, family.Id, family.imageUrl);
+             if (!Result)
+             {
+                 File.Delete(Path.Combine(_env.WebRootPath, filePath));
+                 await _userManager.DeleteAsync(patient);
+                 return new GlobalResponse()
+                 {
+                     HasError = true,
+                     message = "something went wrong now get back after sometime ,Ai Service is down"
+                 };
+             }*/
             return new GlobalResponse
             {
                 HasError = false,
@@ -385,7 +379,7 @@ namespace BLL.Services
             };
         }
 
-        public async Task<GlobalResponse> AssignPatientToFamily(string token ,AssignPatientDto assignPatientDto)
+        public async Task<GlobalResponse> AssignPatientToFamily(string token, AssignPatientDto assignPatientDto)
         {
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
             if (FamilyId == null)
@@ -397,7 +391,7 @@ namespace BLL.Services
                 };
             }
             Family? family = await _family.GetByIdAsync(FamilyId);
-            if (family.PatientId!=null)
+            if (family.PatientId != null)
             {
                 return new GlobalResponse
                 {
@@ -406,7 +400,7 @@ namespace BLL.Services
                 };
 
             }
-            if (family==null)
+            if (family == null)
             {
                 return new GlobalResponse
                 {
@@ -414,7 +408,7 @@ namespace BLL.Services
                     message = "invalid Family ID"
                 };
             }
-            if (await _patient.GetByIdAsync(assignPatientDto.PatientCode)==null)
+            if (await _patient.GetByIdAsync(assignPatientDto.PatientCode) == null)
             {
                 return new GlobalResponse
                 {
@@ -422,22 +416,22 @@ namespace BLL.Services
                     message = "invalid Patient Code"
                 };
             }
-            
+
             family.PatientId = assignPatientDto.PatientCode;
             family.Relationility = assignPatientDto.relationility;
             family.DescriptionForPatient = assignPatientDto.DescriptionForPatient;
-            await  _family.UpdateAsync(family) ;
+            await _family.UpdateAsync(family);
 
-           /* var result = await RegisterFamilyToAi(family.PatientId, family.Id, family.imageUrl);
-            if (!result)
-            {
+            /* var result = await RegisterFamilyToAi(family.PatientId, family.Id, family.imageUrl);
+             if (!result)
+             {
 
-                return new GlobalResponse()
-                {
-                    HasError = true,
-                    message = "something went wrong now get back after sometime ,Ai Service is down"
-                };
-            }*/
+                 return new GlobalResponse()
+                 {
+                     HasError = true,
+                     message = "something went wrong now get back after sometime ,Ai Service is down"
+                 };
+             }*/
             return new GlobalResponse
             {
                 HasError = false,
@@ -449,25 +443,26 @@ namespace BLL.Services
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
             if (FamilyId == null)
             {
-               return Enumerable.Empty<GetAppointmentDto>();
+                return Enumerable.Empty<GetAppointmentDto>();
             }
-            var family =await _family.GetByIdAsync(FamilyId);
-            if (family==null || family.PatientId==null ) {
-            
-            return Enumerable.Empty<GetAppointmentDto>();
+            var family = await _family.GetByIdAsync(FamilyId);
+            if (family == null || family.PatientId == null)
+            {
+
+                return Enumerable.Empty<GetAppointmentDto>();
             }
             var appointment = _Appointments.Where(p => p.PatientId == family.PatientId).ToList().Select(p => new GetAppointmentDto
             {
-                AppointmentId=p.AppointmentId,
-                Date=p.Date,
-                Location=p.Location,
-                Notes=p.Notes,
-                FamilyNameWhoCreatedAppointemnt=_family.GetById(p.FamilyId).FullName,
-                CanDeleted = (p.FamilyId==FamilyId)?true:false
+                AppointmentId = p.AppointmentId,
+                Date = p.Date,
+                Location = p.Location,
+                Notes = p.Notes,
+                FamilyNameWhoCreatedAppointemnt = _family.GetById(p.FamilyId).FullName,
+                CanDeleted = (p.FamilyId == FamilyId) ? true : false
             });
             return appointment;
         }
-        public async Task<GlobalResponse> AddAppointmentAsync(string token , AddAppointmentDto addAppointmentDto)
+        public async Task<GlobalResponse> AddAppointmentAsync(string token, AddAppointmentDto addAppointmentDto)
         {
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
             if (FamilyId == null)
@@ -479,7 +474,7 @@ namespace BLL.Services
                 };
             }
             var family = await _family.GetByIdAsync(FamilyId);
-            if (family.PatientId== null)
+            if (family.PatientId == null)
             {
                 return new GlobalResponse
                 {
@@ -506,7 +501,7 @@ namespace BLL.Services
             };
             var Json = JsonConvert.SerializeObject(JsonAppointment);
             await _Appointments.AddAsync(appointment);
-            await _appointmentHub.Clients.Group(family.PatientId).SendAsync("ReceiveAppointment", "Appointment Added",Json);
+            await _appointmentHub.Clients.Group(family.PatientId).SendAsync("ReceiveAppointment", "Appointment Added", Json);
             return new GlobalResponse
             {
                 HasError = false,
@@ -525,7 +520,7 @@ namespace BLL.Services
                 };
             }
             var Appointemnt = await _Appointments.GetByIdAsync(AppointmentId);
-            if (Appointemnt.FamilyId!=FamilyId)
+            if (Appointemnt.FamilyId != FamilyId)
             {
                 return new GlobalResponse
                 {
@@ -534,9 +529,9 @@ namespace BLL.Services
                 };
 
             }
-           
+
             await _Appointments.DeleteAsync(Appointemnt);
-            var AppointmentJson = "{\"AppointmentId\":\""+Appointemnt.AppointmentId+"\"}";
+            var AppointmentJson = "{\"AppointmentId\":\"" + Appointemnt.AppointmentId + "\"}";
             var Json = JsonConvert.SerializeObject(AppointmentJson);
             await _appointmentHub.Clients.Group(Appointemnt.PatientId).SendAsync("ReceiveAppointment", "Appointment deleted", Json);
             return new GlobalResponse
@@ -544,7 +539,7 @@ namespace BLL.Services
                 HasError = false,
                 message = "Appointment Deleted Successfully"
             };
-            
+
         }
         public async Task<IEnumerable<GetMediaDto>> GetMediaForFamilyAsync(string token)
         {
@@ -552,7 +547,7 @@ namespace BLL.Services
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
             if (FamilyId == null)
             {
-               return Enumerable.Empty<GetMediaDto>();
+                return Enumerable.Empty<GetMediaDto>();
             }
             var Media = await _Media.Include(p => p.patient).Where(p => p.FamilyId == FamilyId).ToListAsync();
             var res = Media.Select(p => new GetMediaDto
@@ -562,7 +557,7 @@ namespace BLL.Services
                 MediaUrl = GetMediaUrl(p.Image_Path),
                 MediaId = p.Media_Id,
                 Uploaded_date = p.Upload_Date,
-                MediaExtension= p.Extension
+                MediaExtension = p.Extension
             }).ToList();
             return res;
         }
@@ -611,16 +606,16 @@ namespace BLL.Services
                 PatientId = PateintId,
 
             };
-              await  _Media.AddAsync(media);
-                return new GlobalResponse
-                {
-                    HasError = false,
-                    message = "Media Added Succesfully"
-                };
-            }
+            await _Media.AddAsync(media);
+            return new GlobalResponse
+            {
+                HasError = false,
+                message = "Media Added Succesfully"
+            };
+        }
 
 
-        
+
         public async Task<GlobalResponse> AssignPatientToCaregiver(string token, string CaregiverCode)
         {
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
@@ -643,7 +638,7 @@ namespace BLL.Services
 
                 };
             }
-            if (_caregiver.GetById(CaregiverCode)== null)
+            if (_caregiver.GetById(CaregiverCode) == null)
             {
                 return new GlobalResponse
                 {
@@ -652,7 +647,7 @@ namespace BLL.Services
 
                 };
             }
-            var patient =await  _patient.GetByIdAsync(Family.PatientId);
+            var patient = await _patient.GetByIdAsync(Family.PatientId);
             patient.CaregiverID = CaregiverCode;
             await _patient.UpdateAsync(patient);
             return new GlobalResponse
@@ -662,7 +657,7 @@ namespace BLL.Services
             };
         }
 
-       
+
         public async Task<IEnumerable<LocationDto>> GetPatientLocationsTodayAsync(string token)
         {
             string? FamilyId = _jwtDecode.GetUserIdFromToken(token);
@@ -681,7 +676,7 @@ namespace BLL.Services
                 Latitude = p.Latitude,
                 Longitude = p.Longitude,
                 TimeStamp = p.Timestamp,
-               
+
             }).ToList();
         }
 
@@ -698,7 +693,7 @@ namespace BLL.Services
                 return Enumerable.Empty<GetReportDto>();
             }
             var result = await _report.WhereAsync(p => p.PatientId == Family.PatientId);
-            if (result==null || !result.Any())
+            if (result == null || !result.Any())
             {
                 return Enumerable.Empty<GetReportDto>();
             }
@@ -738,7 +733,7 @@ namespace BLL.Services
                     }
                 };
             }
-            if (Family.NumberOfTrainingImage>=5)
+            if (Family.NumberOfTrainingImage >= 5)
             {
                 return new NeedATrainingImageDto
                 {
@@ -751,7 +746,7 @@ namespace BLL.Services
 
                 };
             }
-            List<ImageSamplesWithInstractions > ImagesSamplesUrls = new List<ImageSamplesWithInstractions>();
+            List<ImageSamplesWithInstractions> ImagesSamplesUrls = new List<ImageSamplesWithInstractions>();
             for (int i = Family.NumberOfTrainingImage + 1; i < 6; i++)
             {
                 var pathOfImage = Path.Combine(_env.WebRootPath, "FaceExmaple", $"{i}.jpg");
@@ -784,7 +779,7 @@ namespace BLL.Services
                     Instraction = Instruction
                 };
                 ImagesSamplesUrls.Add(imageWithInstruction);
-                
+
             }
 
             return new NeedATrainingImageDto()
@@ -796,7 +791,7 @@ namespace BLL.Services
                 },
                 ImagesSamplesWithInstractions = ImagesSamplesUrls,
                 NeedATraining = true
-                
+
             };
         }
 
@@ -824,16 +819,16 @@ namespace BLL.Services
             }
             foreach (var item in addTrainingImageDto.TrainingImages)
             {
-                var result = await RegisterFamilyToAi(Family.PatientId, Family.Id, item,Family.NumberOfTrainingImage+1);
-               if (result.Item1=="400" || result.Item1=="500")
+                var result = await RegisterFamilyToAi(Family.PatientId, Family.Id, item, Family.NumberOfTrainingImage + 1);
+                if (result.Item1 == "400" || result.Item1 == "500")
                 {
                     return new GlobalResponse()
                     {
-                        HasError= true,
-                        message = result.Item2+"\n Please send all image again after change the photo with wronged face"
+                        HasError = true,
+                        message = result.Item2 + "\n Please send all image again after change the photo with wronged face"
                     };
                 }
-               Family.NumberOfTrainingImage +=1;
+                Family.NumberOfTrainingImage += 1;
                 await _family.UpdateAsync(Family);
 
 
@@ -868,11 +863,11 @@ namespace BLL.Services
             {
                 return new GlobalResponse()
                 {
-                   HasError = true,
-                   message = "This Family doesn't have patient yet"
+                    HasError = true,
+                    message = "This Family doesn't have patient yet"
                 };
             }
-            if (addPersonWithoutAccountDto.TraningImage.Count <5)
+            if (addPersonWithoutAccountDto.TraningImage.Count < 5)
             {
                 return new GlobalResponse()
                 {
@@ -921,21 +916,21 @@ namespace BLL.Services
                 }
             }
 
-            
+
             return new GlobalResponse
             {
                 HasError = false,
                 message = "Person Added Succesfully, and training image successfully"
             };
         }
-        private async Task<Tuple<string, string> > RegisterFamilyToAi(string PatientId,string UserId, IFormFile Image,int idx)
+        private async Task<Tuple<string, string>> RegisterFamilyToAi(string PatientId, string UserId, IFormFile Image, int idx)
         {
-            string endpoint = "https://evident-moving-bonefish.ngrok-free.app/register_image";
+            string endpoint = "https://excited-hound-vastly.ngrok-free.app/register_image";
 
             using (HttpClient httpClient = new HttpClient())
             {
                 // Read the image bytes
-             
+
 
                 // Create multipart form-data content
                 var multipartContent = new MultipartFormDataContent();
@@ -966,7 +961,7 @@ namespace BLL.Services
                 // Handle the response
                 if (response.IsSuccessStatusCode)
                 {
-                   
+
                     return new Tuple<string, string>("200", "Image registered successfully");
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
@@ -992,11 +987,11 @@ namespace BLL.Services
 
         private async Task<bool> RegisterPatientToAi(string PatientId, IFormFile Image)
         {
-            string endpoint = "https://evident-moving-bonefish.ngrok-free.app/register_patient";
+            string endpoint = "https://excited-hound-vastly.ngrok-free.app/register_patient";
 
             using (HttpClient httpClient = new HttpClient())
             {
-              
+
 
                 // Create multipart form-data content
                 var multipartContent = new MultipartFormDataContent();
@@ -1005,7 +1000,7 @@ namespace BLL.Services
                 var queryParameters = new System.Collections.Generic.Dictionary<string, string>
                 {
                     { "patient_id", PatientId },
-                   
+
                 };
 
                 // Add the image as a stream content
@@ -1037,7 +1032,7 @@ namespace BLL.Services
             }
         }
 
-      
+
     }
 
 }

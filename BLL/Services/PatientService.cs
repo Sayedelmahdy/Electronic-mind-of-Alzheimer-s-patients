@@ -958,7 +958,7 @@ namespace BLL.Services
         }
         private async Task< string> RecognizeImage(PostImageRecognitionDto postImageRecognitionDto,string PatinetId)
         {
-            string endpoint = "https://evident-moving-bonefish.ngrok-free.app/recognize_faces";
+            string endpoint = "https://excited-hound-vastly.ngrok-free.app/recognize_faces";
 
             using (HttpClient httpClient = new HttpClient())
             {

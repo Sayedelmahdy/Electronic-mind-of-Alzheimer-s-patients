@@ -1,35 +1,37 @@
-﻿using BLL.Helper;
-using BLL.DTOs.FamilyDto;
+﻿using BLL.DTOs.FamilyDto;
+using BLL.Helper;
 using BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles ="Family")]
+    [Authorize(Roles = "Family")]
     public class FamilyController : ControllerBase
     {
-      
+
         public IFamilyService _familyService { get; }
 
         public FamilyController
             (
-            IFamilyService familyService 
+            IFamilyService familyService
             )
         {
-         
+
             _familyService = familyService;
         }
         /// <summary>
+        /// Checks if a family needs training images to be uploaded.
+        /// </summary>
+        /// <remarks>
         /// Retrieves a list of URLs to training images for families identified by a token. This endpoint is intended
         /// for families with an incomplete set of training images (fewer than 5 images). The method ensures that the token
         /// provided is valid and contains a user ID. If the family associated with the ID needs more training images,
         /// the server generates URLs for the required images and returns them. Validation checks include verifying the token
         /// for a valid family ID and checking if the associated family has less than 5 training images.
-        /// </summary>
+        /// </remarks>
         /// <returns>An IActionResult containing either a BadRequest with an error message (e.g., invalid token or token without a valid ID) or an Ok with the list of image URLs.</returns>
         [HttpGet("FamilyNeedATrainingImages")]
         public async Task<IActionResult> FamilyNeedATrainingImages()
@@ -47,12 +49,15 @@ namespace API.Controllers
             return Ok(res);
         }
         /// <summary>
+        /// Registers training images submitted by clients for a specific family.
+        /// </summary>
+        /// <param name="addTrainingImageDto">Data transfer object containing the list of training images to be uploaded.</param>
+        /// <remarks>
         /// Accepts training images submitted by clients and assigns them to a specific family's record based on the provided token.
         /// This method validates the token to ensure it contains a valid family ID and that the associated family has a patient. 
         /// Each image is registered incrementally, updating the count of training images for the family. If any image fails during the registration process (e.g., due to server errors or invalid image format), 
         /// the method instructs the user to resubmit all images. Validation checks ensure the token contains a family ID, the family has a patient, and handles registration errors for the images.
-        /// </summary>
-        /// <param name="addTrainingImageDto">Data transfer object containing the list of training images to be uploaded.</param>
+        /// </remarks>
         /// <returns>An IActionResult containing either a BadRequest with an error message (e.g., invalid token, family without a patient, or image registration failure) or an Ok with a success message confirming the registration of the images.</returns>
         [HttpPost("FamilyTrainingImages")]
         public async Task<IActionResult> FamilyTrainingImages([FromForm] AddTrainingImageDto addTrainingImageDto)
@@ -62,7 +67,7 @@ namespace API.Controllers
             {
                 return BadRequest("Token invaild");
             }
-            var res = await _familyService.TrainingImage(token,addTrainingImageDto);
+            var res = await _familyService.TrainingImage(token, addTrainingImageDto);
             if (res.HasError)
             {
                 return BadRequest(res.message);
@@ -104,7 +109,7 @@ namespace API.Controllers
         /// Returns an Ok response if the person is added successfully.
         /// </returns>
         [HttpPost("AddPersonWithoutAccount")]
-        public async Task<IActionResult> AddPersonWithoutAccount([FromForm]AddPersonWithoutAccountDto addPersonWithoutAccountDto)
+        public async Task<IActionResult> AddPersonWithoutAccount([FromForm] AddPersonWithoutAccountDto addPersonWithoutAccountDto)
         {
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
@@ -155,7 +160,7 @@ namespace API.Controllers
         /// <returns>
         /// If successful, returns a message indicating successful assignment. If the token is invalid, the family ID is invalid, the family already has a patient assigned, or the provided patient code is invalid, returns a BadRequest response.
         /// </returns>
-        
+
         [HttpPut("AssignPatientToFamily")]
         public async Task<IActionResult> AssignPatientToFamily(AssignPatientDto assignPatientDto)
         {
@@ -366,7 +371,7 @@ namespace API.Controllers
         /// Returns an Ok response with a success message if the appointment is added successfully. If the authentication token is invalid or if the family does not have a patient associated with it, a BadRequest response with an appropriate error message is returned.
         /// </returns>
         [HttpPost("AddAppointment")]
-        public async Task<IActionResult> AddAppointment (AddAppointmentDto addAppointmentDto)
+        public async Task<IActionResult> AddAppointment(AddAppointmentDto addAppointmentDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -375,7 +380,7 @@ namespace API.Controllers
             {
                 return BadRequest("Token invaild");
             }
-            var res = await _familyService.AddAppointmentAsync(token,addAppointmentDto);
+            var res = await _familyService.AddAppointmentAsync(token, addAppointmentDto);
             if (res.HasError)
                 return BadRequest(res);
             return Ok(res);
@@ -422,17 +427,17 @@ namespace API.Controllers
         /// Returns an Ok response with a success message upon successfully deleting the appointment. If the authentication token is invalid or if the appointment does not belong to the authenticated family, an appropriate error message is returned.
         /// </returns>
         [HttpDelete("DeleteAppointment/{AppointmentId}")]
-        public async Task<IActionResult> DeleteAppointment(string AppointmentId )
+        public async Task<IActionResult> DeleteAppointment(string AppointmentId)
         {
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
             {
                 return BadRequest("Token invaild");
             }
-            var res = await _familyService.DeleteAppointmentAsync(token,AppointmentId);
+            var res = await _familyService.DeleteAppointmentAsync(token, AppointmentId);
             if (res.HasError)
                 return BadRequest(res);
-            return Ok(res); 
+            return Ok(res);
         }
         /// <summary>
         /// Retrieves the reports associated with the patient of the authenticated family.
@@ -440,7 +445,7 @@ namespace API.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("GetPatientReports")]
-       public async Task<IActionResult> GetPatientReports()
+        public async Task<IActionResult> GetPatientReports()
         {
             string? token = HttpContextHelper.GetToken(this.HttpContext);
             if (token == null)
