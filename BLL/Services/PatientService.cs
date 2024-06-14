@@ -251,7 +251,7 @@ namespace BLL.Services
                 else
                 {
                     score = (3 - gameScoreDto.PatientScore) * -10;
-                    if (score < 0) score = 0;
+
                 }
 
 
@@ -265,7 +265,7 @@ namespace BLL.Services
                 else
                 {
                     score = (6 - gameScoreDto.PatientScore) * -10;
-                    if (score < 0) score = 0;
+
                 }
 
             }
@@ -278,11 +278,15 @@ namespace BLL.Services
                 else
                 {
                     score = (9 - gameScoreDto.PatientScore) * -10;
-                    if (score < 0) score = 0;
+
 
                 }
             }
             patient.CurrentScore += score;
+            if (patient.CurrentScore < 0)
+            {
+                patient.CurrentScore = 0;
+            }
             patient.MaximumScore = (patient.CurrentScore > patient.MaximumScore) ? patient.CurrentScore : patient.MaximumScore;
             await _patient.UpdateAsync(patient);
             var message = $"Your score is {score} and your current score is {patient.CurrentScore} and your maximum score is {patient.MaximumScore}";
