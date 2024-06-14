@@ -13,14 +13,9 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BLL.Services
 {
@@ -56,8 +51,8 @@ namespace BLL.Services
             IMailService mailService,
             IBaseRepository<SecretAndImportantFile> secret,
             IBaseRepository<GameScore> gameScore,
-            IBaseRepository<Mark_Medicine_Reminder>Mark_Medicine_Reminder,
-            IBaseRepository<PersonWithoutAccount>person
+            IBaseRepository<Mark_Medicine_Reminder> Mark_Medicine_Reminder,
+            IBaseRepository<PersonWithoutAccount> person
 
             )
         {
@@ -184,7 +179,7 @@ namespace BLL.Services
             }
             patient.Age = updatePatientProfile.Age;
             patient.PhoneNumber = updatePatientProfile.PhoneNumber;
-           
+
             await _patient.UpdateAsync(patient);
             return new GlobalResponse
             {
@@ -216,7 +211,7 @@ namespace BLL.Services
             }).ToList();
             return res;
         }
-       
+
         public async Task<GlobalResponse> AddGameScoreAsync(string token, PostGameScoreDto gameScoreDto)
         {
             string? PatientId = _jwtDecode.GetUserIdFromToken(token);
@@ -248,17 +243,18 @@ namespace BLL.Services
             int score = 0;
             if (gameScoreDto.DifficultyGame == Difficulty.Easy)
             {
-               
+
                 if (gameScoreDto.PatientScore >= 3)
                 {
-                    score = gameScoreDto.PatientScore*10;
+                    score = gameScoreDto.PatientScore * 10;
                 }
                 else
                 {
-                    score = (3-gameScoreDto.PatientScore)*-10 ;
+                    score = (3 - gameScoreDto.PatientScore) * -10;
+                    if (score < 0) score = 0;
                 }
 
-                
+
             }
             else if (gameScoreDto.DifficultyGame == Difficulty.Meduim)
             {
@@ -269,6 +265,7 @@ namespace BLL.Services
                 else
                 {
                     score = (6 - gameScoreDto.PatientScore) * -10;
+                    if (score < 0) score = 0;
                 }
 
             }
@@ -281,6 +278,7 @@ namespace BLL.Services
                 else
                 {
                     score = (9 - gameScoreDto.PatientScore) * -10;
+                    if (score < 0) score = 0;
 
                 }
             }
@@ -294,7 +292,7 @@ namespace BLL.Services
                 message = message
             };
         }
-       
+
 
         public async Task<CurrentAndMaxScoreDto?> GetRecommendedScoreAsync(string token)
         {
@@ -364,7 +362,7 @@ namespace BLL.Services
                 PatientScore = s.PatientScore,
                 GameDate = s.GameDate,
             }).ToList();
-            if (Patient.CurrentScore >=200 && Patient.CurrentScore < 400)
+            if (Patient.CurrentScore >= 200 && Patient.CurrentScore < 400)
             {
                 return new GetGameScoresDto
                 {
@@ -389,7 +387,7 @@ namespace BLL.Services
                 };
             }
         }
-       
+
 
         public async Task<GlobalResponse> AddSecretFileAsync(string token, PostSecretFileDto secretFileDto)
 
@@ -404,10 +402,10 @@ namespace BLL.Services
                         HasError = true,
                         message = "Invalid patient ID"
                     };
-                }           
+                }
                 string fileID = Guid.NewGuid().ToString();
-                string filepath = Path.Combine( patientId, $"{patientId }_{fileID}{Path.GetExtension(secretFileDto.File.FileName)}");
-                string directorypath = Path.Combine(_env.WebRootPath, patientId,"SecretFiles");
+                string filepath = Path.Combine(patientId, $"{patientId}_{fileID}{Path.GetExtension(secretFileDto.File.FileName)}");
+                string directorypath = Path.Combine(_env.WebRootPath, patientId, "SecretFiles");
                 if (!Directory.Exists(directorypath))
                 {
                     Directory.CreateDirectory(directorypath);
@@ -417,21 +415,21 @@ namespace BLL.Services
                     await secretFileDto.File.CopyToAsync(filestream);
                     filestream.Flush();
                 }
-                
-                
+
+
                 var secretFile = new SecretAndImportantFile
                 {
                     File_Id = fileID,
                     FileName = secretFileDto.FileName,
                     File_Description = secretFileDto.File_Description,
-                    DocumentPath =  filepath,
+                    DocumentPath = filepath,
                     DocumentExtension = Path.GetExtension(secretFileDto.File.FileName),
                     permissionEndDate = DateTime.Now.AddDays(1),
-                   
-                    PatientId=patientId
+
+                    PatientId = patientId
                 };
 
-                
+
                 await _secret.AddAsync(secretFile);
 
                 return new GlobalResponse
@@ -442,12 +440,12 @@ namespace BLL.Services
             }
             catch
             {
-              
+
                 return new GlobalResponse
                 {
                     HasError = true,
                     message = "An error occurred while adding the secret file",
-                  
+
                 };
             }
         }
@@ -457,7 +455,7 @@ namespace BLL.Services
             try
             {
                 string patientId = _jwtDecode.GetUserIdFromToken(token);
-                
+
                 if (patientId == null)
                 {
                     return new GlobalResponse
@@ -483,7 +481,7 @@ namespace BLL.Services
                 if (filepath != null)
                 {
                     // Video saved successfully, return the File_Id for further processing
-                  var result =   await _mailService.SendEmailAsync("hazemzizo@gmail.com", _mail.FromMail, _mail.Password, $"Patient{patient.FullName} has sent a request to view his secret files", $"Video uploaded successfully for review. video Link: {GetMediaUrl(filepath)}");
+                    var result = await _mailService.SendEmailAsync("hazemzizo@gmail.com", _mail.FromMail, _mail.Password, $"Patient{patient.FullName} has sent a request to view his secret files", $"Video uploaded successfully for review. video Link: {GetMediaUrl(filepath)}");
                     if (result == true)
                     {
                         return new GlobalResponse
@@ -500,7 +498,7 @@ namespace BLL.Services
                             message = "Failed to save the video, Try again later"
                         };
                     }
-                   
+
                 }
                 else
                 {
@@ -511,13 +509,13 @@ namespace BLL.Services
                     };
                 }
             }
-            catch 
+            catch
             {
                 // Handle exceptions
                 return new GlobalResponse
                 {
                     HasError = true,
-                    message = "An error occurred " 
+                    message = "An error occurred "
                 };
             }
         }
@@ -530,7 +528,7 @@ namespace BLL.Services
                 string fileID = Guid.NewGuid().ToString();
                 string fileName = $"{patientId}_{fileID}{Path.GetExtension(videoFile.FileName)}";
 
-                string directoryPath = Path.Combine(_env.WebRootPath, patientId,"VideoForReview");
+                string directoryPath = Path.Combine(_env.WebRootPath, patientId, "VideoForReview");
 
                 if (!Directory.Exists(directoryPath))
                 {
@@ -542,11 +540,11 @@ namespace BLL.Services
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await videoFile.CopyToAsync(stream);
-                    stream.Flush(); 
+                    stream.Flush();
                 }
                 return filePath;
             }
-            catch 
+            catch
             {
                 return "Error saving video file";
             }
@@ -564,9 +562,9 @@ namespace BLL.Services
                         message = "Secret file not found"
                     };
                 }
-               
+
                 secretFile.permissionEndDate = DateTime.Now.AddDays(1);
-                
+
                 await _secret.UpdateAsync(secretFile);
 
                 return new GlobalResponse
@@ -575,9 +573,9 @@ namespace BLL.Services
                     message = "Secret file permission updated successfully"
                 };
             }
-            catch 
+            catch
             {
-                
+
                 return new GlobalResponse
                 {
                     HasError = true,
@@ -588,63 +586,63 @@ namespace BLL.Services
 
         public async Task<GetAllSecretFileDto?> GetSecretFilesAsync(string token)
         {
-            
-                if (string.IsNullOrEmpty(token))
-                {
-                    return new GetAllSecretFileDto
-                    {
-                        Code = StatusCodes.Status400BadRequest,
-                    };
-                }
 
-                string patientId = _jwtDecode.GetUserIdFromToken(token);
-
-                if (string.IsNullOrEmpty(patientId))
-                {
-                    return new GetAllSecretFileDto
-                    {
-                        Code = StatusCodes.Status400BadRequest,
-                    };
-                }
-
-                var patient = await _patient.GetByIdAsync(patientId);
-
-                if (patient == null)
-                {
-                    return new GetAllSecretFileDto
-                    {
-                        Code = StatusCodes.Status400BadRequest,
-                    };
-                }
-
-                var secretFiles = await _secret.WhereAsync(s => s.PatientId == patientId);
-
-                if (secretFiles == null || !secretFiles.Any())
-                {
-                    return new GetAllSecretFileDto
-                    {
-                        Code = StatusCodes.Status404NotFound,
-                    };
-                }
-               
-
-                var result = secretFiles.Select(s => new GetSecretFileDto
-                {
-                    SecretId = s.File_Id,
-                    FileName = s.FileName,
-                    File_Description = s.File_Description,
-                    NeedToConfirm = !s.hasPermission,
-                    DocumentUrl = s.hasPermission==true? GetMediaUrl(s.DocumentPath) : null,
-                    DocumentExtension = s.hasPermission==true? s.DocumentExtension : null,
-                  
-                }).ToList();
-
+            if (string.IsNullOrEmpty(token))
+            {
                 return new GetAllSecretFileDto
                 {
-                    Code = StatusCodes.Status200OK,
-                    SecretFiles = result,
+                    Code = StatusCodes.Status400BadRequest,
                 };
-            
+            }
+
+            string patientId = _jwtDecode.GetUserIdFromToken(token);
+
+            if (string.IsNullOrEmpty(patientId))
+            {
+                return new GetAllSecretFileDto
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                };
+            }
+
+            var patient = await _patient.GetByIdAsync(patientId);
+
+            if (patient == null)
+            {
+                return new GetAllSecretFileDto
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                };
+            }
+
+            var secretFiles = await _secret.WhereAsync(s => s.PatientId == patientId);
+
+            if (secretFiles == null || !secretFiles.Any())
+            {
+                return new GetAllSecretFileDto
+                {
+                    Code = StatusCodes.Status404NotFound,
+                };
+            }
+
+
+            var result = secretFiles.Select(s => new GetSecretFileDto
+            {
+                SecretId = s.File_Id,
+                FileName = s.FileName,
+                File_Description = s.File_Description,
+                NeedToConfirm = !s.hasPermission,
+                DocumentUrl = s.hasPermission == true ? GetMediaUrl(s.DocumentPath) : null,
+                DocumentExtension = s.hasPermission == true ? s.DocumentExtension : null,
+
+            }).ToList();
+
+            return new GetAllSecretFileDto
+            {
+                Code = StatusCodes.Status200OK,
+                SecretFiles = result,
+            };
+
         }
 
 
@@ -657,8 +655,8 @@ namespace BLL.Services
             {
                 return new GlobalResponse()
                 {
-                        HasError = true,
-                        message = "Invalid Patient Id"
+                    HasError = true,
+                    message = "Invalid Patient Id"
                 };
             }
             var reminder = await _medicines.FindAsync(i => i.Reminder_ID == markMedictaionDto.MedictaionId && i.Patient_Id == PatientId);
@@ -673,11 +671,11 @@ namespace BLL.Services
 
             var MarkMedctaion = new Mark_Medicine_Reminder
             {
-                
+
                 MedicationReminderId = markMedictaionDto.MedictaionId,
                 IsTaken = markMedictaionDto.IsTaken,
                 MarkTime = DateTime.Now,
-                
+
             };
 
             await _Mark_Medicine_Reminder.AddAsync(MarkMedctaion);
@@ -687,8 +685,8 @@ namespace BLL.Services
                 HasError = false,
                 message = "Medication Reminder Marked Successfully ."
             };
-           
-            
+
+
         }
 
         public async Task<IEnumerable<GetFamiliesDto>> GetPatientRelatedMembersAsync(string token)
@@ -703,7 +701,7 @@ namespace BLL.Services
             {
                 return Enumerable.Empty<GetFamiliesDto>();
             }
-            List<GetFamiliesDto>result = new List<GetFamiliesDto>();
+            List<GetFamiliesDto> result = new List<GetFamiliesDto>();
             var Families = families.Select(s => new GetFamiliesDto
             {
                 FamilyId = s.Id,
@@ -714,7 +712,7 @@ namespace BLL.Services
 
             }).ToList();
             result.AddRange(Families);
-          var person= await _person.WhereAsync(i=>i.PatientId==PatientId);
+            var person = await _person.WhereAsync(i => i.PatientId == PatientId);
             if (person != null)
             {
                 var persons = person.Select(s => new GetFamiliesDto()
@@ -724,7 +722,7 @@ namespace BLL.Services
                     Relationility = s.Relationility,
                     HisImageUrl = (s.ImageUrl == null) ? "" : GetMediaUrl(s.ImageUrl),
                     FamilyDescriptionForPatient = s.DescriptionForPatient
-                } ).ToList();
+                }).ToList();
                 result.AddRange(persons);
             }
             return result;
@@ -737,7 +735,7 @@ namespace BLL.Services
             {
                 return new GetFamilyLocationDto()
                 {
-                    Code= StatusCodes.Status400BadRequest,
+                    Code = StatusCodes.Status400BadRequest,
                     Message = "Invalid Patient Id"
                 };
             }
@@ -779,7 +777,7 @@ namespace BLL.Services
                     Message = "Patient Id Not Found"
                 };
             }
-           if (family.MainLatitude == null || family.MainLongitude == null)
+            if (family.MainLatitude == null || family.MainLongitude == null)
             {
                 return new GetFamilyLocationDto()
                 {
@@ -794,19 +792,19 @@ namespace BLL.Services
                 Latitude = family.MainLatitude,
                 Longitude = family.MainLongitude
             };
-    
-        }
-        
-       
 
-        public async Task<RecognitionResult> ImageRecognition(PostImageRecognitionDto postImageRecognitionDto,string token)
+        }
+
+
+
+        public async Task<RecognitionResult> ImageRecognition(PostImageRecognitionDto postImageRecognitionDto, string token)
         {
             var Response = await RecognizeImage(postImageRecognitionDto, _jwtDecode.GetUserIdFromToken(token));
-           
+
             JObject jsonObject = JObject.Parse(Response);
             JArray recognitionResults = (JArray)jsonObject["recognition_results"];
             RecognitionResult recognitionResult = new RecognitionResult();
-      
+
             if (postImageRecognitionDto.Image != null && postImageRecognitionDto.Image.Length > 0)
             {
                 using (var memoryStream = new MemoryStream())
@@ -819,7 +817,7 @@ namespace BLL.Services
                     Bitmap image = new Bitmap(memoryStream);
                     using (Graphics graphics = Graphics.FromImage(image))
                     {
-                        
+
                         Font font = new Font("Arial", 30, FontStyle.Bold);
                         SolidBrush brush = new SolidBrush(Color.Cyan);
                         List<PersonInImage> personsInImage = new List<PersonInImage>();
@@ -830,12 +828,12 @@ namespace BLL.Services
                             string identifiedName = result.Value<string>("identified_name");
                             Family? familyMember = null;
                             PersonWithoutAccount? person = null;
-                            if (identifiedName!="Unknown")
+                            if (identifiedName != "Unknown")
                             {
                                 familyMember = _family.Find(i => i.Id == identifiedName);
                                 if (familyMember == null)
                                 {
-                                     person = _person.Find(i => i.Id == identifiedName);
+                                    person = _person.Find(i => i.Id == identifiedName);
                                     realName = person?.FullName;
                                     IsPersonWithoutAccount = true;
                                 }
@@ -848,7 +846,7 @@ namespace BLL.Services
                             {
                                 realName = "Unknown";
                             }
-                           
+
                             JArray faceLocation = (JArray)result["face_location"];
 
                             // Calculate the rectangle coordinates
@@ -857,12 +855,12 @@ namespace BLL.Services
                             int width = faceLocation[2].Value<int>() - faceLocation[0].Value<int>();
                             int height = faceLocation[1].Value<int>() - faceLocation[3].Value<int>();
 
-                            Color fillColor = Color.FromArgb(30, Color.Cyan); 
+                            Color fillColor = Color.FromArgb(30, Color.Cyan);
                             SolidBrush fillBrush = new SolidBrush(fillColor);
 
                             // Create a dashed or dotted pen for the border
-                            Pen borderPen = new Pen(Color.Cyan, 1.5f); 
-                            borderPen.DashStyle = DashStyle.Dash; 
+                            Pen borderPen = new Pen(Color.Cyan, 1.5f);
+                            borderPen.DashStyle = DashStyle.Dash;
 
                             graphics.FillRectangle(fillBrush, left, top, width, height);
 
@@ -879,11 +877,11 @@ namespace BLL.Services
                             // Create font with adjusted size
                             font = new Font("Arial", fontSize, FontStyle.Bold);
 
-                          
-                            
-                            if (IsPersonWithoutAccount == false && realName!="Unknown")
+
+
+                            if (IsPersonWithoutAccount == false && realName != "Unknown")
                             {
-                             
+
                                 var PersonInImage = new PersonInImage
                                 {
                                     FamilyName = familyMember.FullName,
@@ -924,7 +922,7 @@ namespace BLL.Services
                                     FamilyAvatarUrl = "Unknown",
 
                                 };
-                               
+
                                 graphics.DrawString("Unknown", font, brush, x, y, format);
                                 personsInImage.Add(PersonInImage);
                             }
@@ -951,31 +949,31 @@ namespace BLL.Services
                         recognitionResult.GlobalResponse = new GlobalResponse { HasError = false, message = "Image recognition successful" };
                     }
                 }
-               
+
             }
             return recognitionResult;
 
         }
-        private async Task< string> RecognizeImage(PostImageRecognitionDto postImageRecognitionDto,string PatinetId)
+        private async Task<string> RecognizeImage(PostImageRecognitionDto postImageRecognitionDto, string PatinetId)
         {
             string endpoint = "https://excited-hound-vastly.ngrok-free.app/recognize_faces";
 
             using (HttpClient httpClient = new HttpClient())
             {
-               
+
                 var multipartContent = new MultipartFormDataContent();
 
-                
+
                 var queryParameters = new System.Collections.Generic.Dictionary<string, string>
                 {
                     { "patient_id", PatinetId },
-               
+
                 };
 
-                
+
                 multipartContent.Add(new StreamContent(postImageRecognitionDto.Image.OpenReadStream()), "image", "image.jpg");
 
-             
+
                 var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
                 foreach (var param in queryParameters)
                 {
@@ -984,26 +982,26 @@ namespace BLL.Services
 
                 var fullUrl = endpoint + "?" + queryString;
 
-             
+
                 var response = await httpClient.PostAsync(fullUrl, multipartContent);
                 string responseBody = await response.Content.ReadAsStringAsync();
-                
+
                 if (response.IsSuccessStatusCode)
                 {
-                   
+
                     return responseBody;
                 }
                 else
                 {
-                    
+
                     return responseBody;
                 }
             }
         }
         private string GetMediaUrl(string imagePath)
         {
-            
-            string baseUrl = _mail.ServerLink; 
+
+            string baseUrl = _mail.ServerLink;
             string relativePath = imagePath.Replace(_env.WebRootPath, "").Replace("\\", "/");
 
             return $"{baseUrl}/{relativePath}";
@@ -1012,7 +1010,7 @@ namespace BLL.Services
         {
             SizeF textSize = graphics.MeasureString(text, font);
             float ratio = width / textSize.Width;
-            float newSize = (font.Size * ratio)+8;
+            float newSize = (font.Size * ratio) + 8;
             return newSize;
         }
         private ImageCodecInfo GetEncoderInfo(ImageFormat format)
