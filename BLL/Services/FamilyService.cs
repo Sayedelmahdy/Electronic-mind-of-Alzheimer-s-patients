@@ -34,6 +34,7 @@ namespace BLL.Services
         private readonly UserManager<User> _userManager;
         private readonly IBaseRepository<Report> _report;
         private readonly Mail _mail;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public FamilyService(
             IBaseRepository<Media> Media,
@@ -52,6 +53,9 @@ namespace BLL.Services
             UserManager<User> user,
             IBaseRepository<Report> report,
             IBaseRepository<PersonWithoutAccount> personWithoutAccount
+            ,
+
+            IWebHostEnvironment webHostEnvironment
             )
         {
             _personWithoutAccount = personWithoutAccount;
@@ -70,6 +74,7 @@ namespace BLL.Services
             _userManager = user;
             _location = location;
             _report = report;
+            _webHostEnvironment = webHostEnvironment;
         }
         /// <summary>
         /// Retrieves the patient code associated with the provided token.
@@ -177,111 +182,8 @@ namespace BLL.Services
             IdentityResult? result = null;
 
 
-            string htmlContent = @"<!DOCTYPE html>
-                <html lang=""en"">
-
-                <head>
-                    <meta charset=""utf-8"" />
-                    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-                    <title>Email Confirmation</title>
-                        <style>
-                            body {
-                         font-family: 'Arial', sans-serif;
-                         background-color: #f8f8f8;
-                    margin: 0;
-                    padding: 0;
-                }
-
-                .container {
-                    position: relative;
-                    width: 80%;
-                    max-width: 600px;
-                    margin: 20px auto;
-                    background-color: #fff;
-                    padding: 20px;
-                    border-radius: 8px;
-                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                    border: 1px solid #ddd; /* Add border for an elegant frame */
-                    overflow: hidden; /* Clear the float */
-                }
-
-                h1 {
-                    color: #3498db;
-                    margin-bottom: 20px;
-                }
-
-                p {
-                    font-size: 16px;
-                    color: #333;
-                    margin-bottom: 10px;
-                }
-
-                a {
-                    text-decoration: none;
-                    color: #3498db;
-                    font-weight: bold;
-                }
-
-                a:hover {
-                    text-decoration: underline;
-                }
-
-                .button {
-                    display: inline-block;
-                    padding: 10px 20px;
-                    font-size: 14px;
-                    font-weight: bold;
-                    text-align: center;
-                    text-decoration: none;
-                    background-color: #3498db;
-                    color: #fff;
-                    border-radius: 5px;
-                }
-
-                .footer {
-                    margin-top: 20px;
-                    font-size: 12px;
-                    color: #777;
-                }
-
-                /* Emotes on the side */
-                .emotes {
-                    position: absolute;
-                    top: 0;
-                    right: 0;
-                    padding: 10px;
-                }
-
-                .emotes img {
-                    width: 30px;
-                    height: 30px;
-                    margin-left: 10px;
-                }
-            </style>
-        </head>
-
-        <body>
-            <div class=""container"">
-                <div class=""emotes"">
-                    <img src=""https://drive.google.com/uc?export=view&id=1j1q86kEhug5VC18WGIrL1U_m9vlPAjxU"" alt=""Congratulations Emote 1"">
-                    <img src=""https://drive.google.com/uc?export=view&id=1dn-moFQyJ_hlehjv4-9Mc5I6L6VhAe7Q"" alt=""Congratulations Emote 2"">
-                </div>
-                <h1>Welcome to the Electronic Mind of Alzheimer Patient</h1>
-                <p>Dear {FullName},</p>
-                <p>We are thrilled to have you on board! To ensure the security of your account, please confirm your email address by clicking the link below:</p>
-                <p><a class=""button"" href='{url}'>Confirm Your Email</a></p>
-                <p>If you did not create an account or need further assistance, please disregard this email.</p>
-                <div class=""footer"">
-                    <p>Best regards,</p>
-                    <p>The Electronic Mind Team</p>
-                </div>
-            </div>
-        </body>
-
-        </html>
-
-
-        ";
+            string htmlFilePath = $"{_webHostEnvironment.WebRootPath}/EmailTemplates/RegisterEmailTemplete.html";
+            string htmlContent = System.IO.File.ReadAllText(htmlFilePath);
             Patient patient = new Patient
             {
                 Email = addPatientDto.Email,
@@ -360,18 +262,6 @@ namespace BLL.Services
             family.DescriptionForPatient = addPatientDto.DescriptionForPatient;
 
             await _family.UpdateAsync(family);
-
-            /* var Result = await RegisterFamilyToAi(family.PatientId, family.Id, family.imageUrl);
-             if (!Result)
-             {
-                 File.Delete(Path.Combine(_env.WebRootPath, filePath));
-                 await _userManager.DeleteAsync(patient);
-                 return new GlobalResponse()
-                 {
-                     HasError = true,
-                     message = "something went wrong now get back after sometime ,Ai Service is down"
-                 };
-             }*/
             return new GlobalResponse
             {
                 HasError = false,
@@ -416,22 +306,10 @@ namespace BLL.Services
                     message = "invalid Patient Code"
                 };
             }
-
             family.PatientId = assignPatientDto.PatientCode;
             family.Relationility = assignPatientDto.relationility;
             family.DescriptionForPatient = assignPatientDto.DescriptionForPatient;
             await _family.UpdateAsync(family);
-
-            /* var result = await RegisterFamilyToAi(family.PatientId, family.Id, family.imageUrl);
-             if (!result)
-             {
-
-                 return new GlobalResponse()
-                 {
-                     HasError = true,
-                     message = "something went wrong now get back after sometime ,Ai Service is down"
-                 };
-             }*/
             return new GlobalResponse
             {
                 HasError = false,

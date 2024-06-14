@@ -3,18 +3,18 @@
   <Class Name="DAL.Model.GameScore">
     <Position X="14.25" Y="7.5" Width="2.5" />
     <TypeIdentifier>
-      <HashCode>CAAIAAAAAQAAAAAEAAAAAAACAAAAAAAAAAAAAAAAAAI=</HashCode>
+      <HashCode>CAAIAAAAAQAAAAAEAAAAAAAAAAAAAAAAAAAQAAAAAAI=</HashCode>
       <FileName>Model\GameScore.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
-      <Property Name="patient" />
       <Property Name="DifficultyGame" />
+      <Property Name="patient" />
     </ShowAsAssociation>
   </Class>
   <Class Name="DAL.Model.Family">
     <Position X="16.5" Y="5.75" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>AAQIAAAAAQAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAQIAAAAAQAAAAAAAAgAACAAAAAAAAAAAAAAAAAEAAA=</HashCode>
       <FileName>Model\Family.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -42,24 +42,21 @@
       <FileName>Model\Caregiver.cs</FileName>
     </TypeIdentifier>
     <ShowAsCollectionAssociation>
-      <Property Name="Reports" />
       <Property Name="Patients" />
+      <Property Name="Reports" />
     </ShowAsCollectionAssociation>
   </Class>
   <Class Name="DAL.Model.Location">
     <Position X="14.25" Y="3.25" Width="2" />
     <TypeIdentifier>
-      <HashCode>AAAIAAAAAEAAAAAAAAAKAAgAAAAAAAAAAAAAAAAAAQA=</HashCode>
+      <HashCode>AAAIAAAAAUAAAAAAAAAKAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Model\Location.cs</FileName>
     </TypeIdentifier>
-    <ShowAsAssociation>
-      <Property Name="user" />
-    </ShowAsAssociation>
   </Class>
   <Class Name="DAL.Model.Mark_Medicine_Reminder">
     <Position X="7" Y="9.5" Width="3.25" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAEAAQAIAAAAAkAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAACAAAAAAAAAAEAAQAIAAAAAEAAAAAAA=</HashCode>
       <FileName>Model\Mark_Medicine_Reminder.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -73,48 +70,38 @@
       <FileName>Model\Media.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
-      <Property Name="family" />
       <Property Name="patient" />
+      <Property Name="family" />
     </ShowAsAssociation>
   </Class>
   <Class Name="DAL.Model.Medication_Reminders">
     <Position X="2.25" Y="9.75" Width="2" />
     <TypeIdentifier>
-      <HashCode>AACIAAAAAAAAAAAAAAAAAAAAQIAAAABAgAQAAEAALAA=</HashCode>
+      <HashCode>AAAIAAAAAAAAAAAAAAAAAAAgQIAAAABAgAwAAEAALAA=</HashCode>
       <FileName>Model\Medication_Reminders.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
+      <Property Name="Repeater" />
       <Property Name="caregiver" />
       <Property Name="patient" />
-      <Property Name="Repeater" />
     </ShowAsAssociation>
     <ShowAsCollectionAssociation>
       <Property Name="Mark_Medicines" />
     </ShowAsCollectionAssociation>
   </Class>
-  <Class Name="DAL.Model.Note">
-    <Position X="9" Y="0.5" Width="2" />
-    <TypeIdentifier>
-      <HashCode>AAAKAAAAAwAAAEAAAAAAAAAAAAAAAAAgAAAAAAAAAAA=</HashCode>
-      <FileName>Model\Note.cs</FileName>
-    </TypeIdentifier>
-    <ShowAsAssociation>
-      <Property Name="patient" />
-    </ShowAsAssociation>
-  </Class>
   <Class Name="DAL.Model.Patient">
     <Position X="7.75" Y="4.75" Width="2.75" />
     <TypeIdentifier>
-      <HashCode>IAAABAAEAAAAAAAAAIAAAAAAAABAABAAACAAAAAACAA=</HashCode>
+      <HashCode>IAAABAAEAAAAAAgAAIIAAAAAAABAABAAACACAAIICAA=</HashCode>
       <FileName>Model\Patient.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
       <Property Name="caregiver" />
     </ShowAsAssociation>
     <ShowAsCollectionAssociation>
-      <Property Name="GameScores" />
-      <Property Name="Reports" />
       <Property Name="families" />
+      <Property Name="Reports" />
+      <Property Name="GameScores" />
     </ShowAsCollectionAssociation>
   </Class>
   <Class Name="DAL.Model.Report">
@@ -131,7 +118,7 @@
   <Class Name="DAL.Model.SecretAndImportantFile">
     <Position X="0.5" Y="7.5" Width="2" />
     <TypeIdentifier>
-      <HashCode>AAAIAAQAAQAAAAAAAAgAAAAAAAAAAIAAAAAAAABABIA=</HashCode>
+      <HashCode>AAAIAAQAAQAAAAAAAAgAAAAAAAAAAIAAAAAAACBABIA=</HashCode>
       <FileName>Model\SecretAndImportantFile.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -141,7 +128,7 @@
   <Class Name="DAL.Model.User">
     <Position X="6.5" Y="0.5" Width="2" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAIAAAEAAQAAAAAAAAAAAAQAAAAAAAEA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAIAAIEAAQAAAAAABAAAAAQAAAAAAAEA=</HashCode>
       <FileName>Model\User.cs</FileName>
     </TypeIdentifier>
   </Class>
