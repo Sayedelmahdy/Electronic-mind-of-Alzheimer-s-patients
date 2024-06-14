@@ -22,6 +22,7 @@ namespace BLL.Services
         private readonly IMailService _mailService;
         private readonly IWebHostEnvironment _env;
         private readonly IBaseRepository<Patient> _patient;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         private readonly JWT _jwt;
         private readonly Mail _mail;
@@ -29,11 +30,13 @@ namespace BLL.Services
             IOptions<Mail> Mail
             , IMailService mailService
             , IWebHostEnvironment env
-            , IBaseRepository<Patient> patient
+            , IBaseRepository<Patient> patient,
+            IWebHostEnvironment webHostEnvironment
 
             )
         {
             _patient = patient;
+            _webHostEnvironment = webHostEnvironment;
             _userManager = userManager;
             _roleManager = roleManager;
             _mailService = mailService;
@@ -52,112 +55,8 @@ namespace BLL.Services
 
             if (model.Role != string.Empty)
             {
-
-                string htmlContent = @"<!DOCTYPE html>
-                <html lang=""en"">
-
-                <head>
-                    <meta charset=""utf-8"" />
-                    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-                    <title>Email Confirmation</title>
-                        <style>
-                            body {
-                         font-family: 'Arial', sans-serif;
-                         background-color: #f8f8f8;
-                    margin: 0;
-                    padding: 0;
-                }
-
-                .container {
-                    position: relative;
-                    width: 80%;
-                    max-width: 600px;
-                    margin: 20px auto;
-                    background-color: #fff;
-                    padding: 20px;
-                    border-radius: 8px;
-                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                    border: 1px solid #ddd; /* Add border for an elegant frame */
-                    overflow: hidden; /* Clear the float */
-                }
-
-                h1 {
-                    color: #3498db;
-                    margin-bottom: 20px;
-                }
-
-                p {
-                    font-size: 16px;
-                    color: #333;
-                    margin-bottom: 10px;
-                }
-
-                a {
-                    text-decoration: none;
-                    color: #3498db;
-                    font-weight: bold;
-                }
-
-                a:hover {
-                    text-decoration: underline;
-                }
-
-                .button {
-                    display: inline-block;
-                    padding: 10px 20px;
-                    font-size: 14px;
-                    font-weight: bold;
-                    text-align: center;
-                    text-decoration: none;
-                    background-color: #3498db;
-                    color: #fff;
-                    border-radius: 5px;
-                }
-
-                .footer {
-                    margin-top: 20px;
-                    font-size: 12px;
-                    color: #777;
-                }
-
-                /* Emotes on the side */
-                .emotes {
-                    position: absolute;
-                    top: 0;
-                    right: 0;
-                    padding: 10px;
-                }
-
-                .emotes img {
-                    width: 30px;
-                    height: 30px;
-                    margin-left: 10px;
-                }
-            </style>
-        </head>
-
-        <body>
-            <div class=""container"">
-                <div class=""emotes"">
-                    <img src=""https://drive.google.com/uc?export=view&id=1j1q86kEhug5VC18WGIrL1U_m9vlPAjxU"" alt=""Congratulations Emote 1"">
-                    <img src=""https://drive.google.com/uc?export=view&id=1dn-moFQyJ_hlehjv4-9Mc5I6L6VhAe7Q"" alt=""Congratulations Emote 2"">
-                </div>
-                <h1>Welcome to the Electronic Mind of Alzheimer Patient</h1>
-                <p>Dear {FullName},</p>
-                <p>We are thrilled to have you on board! To ensure the security of your account, please confirm your email address by clicking the link below:</p>
-                <p><a class=""button"" href='{url}'>Confirm Your Email</a></p>
-                <p>If you did not create an account or need further assistance, please disregard this email.</p>
-                <div class=""footer"">
-                    <p>Best regards,</p>
-                    <p>The Electronic Mind Team</p>
-                </div>
-            </div>
-        </body>
-
-        </html>
-
-
-        ";
+                string htmlFilePath = $"{_webHostEnvironment.WebRootPath}/EmailTemplates/RegisterEmailTemplete.html";
+                string htmlContent = System.IO.File.ReadAllText(htmlFilePath);
                 if (model.Role.ToLower() == "family")
                 {
                     Family family = new Family
@@ -410,111 +309,8 @@ namespace BLL.Services
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var encodedToken = Encoding.UTF8.GetBytes(token);
             var validToken = WebEncoders.Base64UrlEncode(encodedToken);
-            string htmlContent = @"<!DOCTYPE html>
-                    <html lang=""en"">
-
-                    <head>
-                        <meta charset=""utf-8"" />
-                        <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-                        <title>Password Reset</title>
-                        <style>
-                            body {
-                                font-family: 'Arial', sans-serif;
-                                background-color: #f8f8f8;
-                                margin: 0;
-                                padding: 0;
-                            }
-
-                            .container {
-                                position: relative;
-                                width: 80%;
-                                max-width: 600px;
-                                margin: 20px auto;
-                                background-color: #fff;
-                                padding: 20px;
-                                border-radius: 8px;
-                                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                                border: 1px solid #ddd;
-                                /* Add border for an elegant frame */
-                                overflow: hidden;
-                                /* Clear the float */
-                            }
-
-                            h1 {
-                                color: #3498db;
-                                margin-bottom: 20px;
-                            }
-
-                            p {
-                                font-size: 16px;
-                                color: #333;
-                                margin-bottom: 10px;
-                            }
-
-                            a {
-                                text-decoration: none;
-                                color: #3498db;
-                                font-weight: bold;
-                            }
-
-                            a:hover {
-                                text-decoration: underline;
-                            }
-
-                            .button {
-                                display: inline-block;
-                                padding: 10px 20px;
-                                font-size: 14px;
-                                font-weight: bold;
-                                text-align: center;
-                                text-decoration: none;
-                                background-color: #3498db;
-                                color: #fff;
-                                border-radius: 5px;
-                            }
-
-                            .footer {
-                                margin-top: 20px;
-                                font-size: 12px;
-                                color: #777;
-                            }
-
-                            /* Emotes on the side */
-                            .emotes {
-                                position: absolute;
-                                top: 0;
-                                right: 0;
-                                padding: 10px;
-                            }
-
-                            .emotes img {
-                                width: 30px;
-                                height: 30px;
-                                margin-left: 10px;
-                            }
-                        </style>
-                    </head>
-
-                    <body>
-                        <div class=""container"">
-
-                            <h1>Password Reset</h1>
-                            <p>Dear {FullName},</p>
-                            <p>We've received a request to reset your password. If you didn't make this request, you can safely ignore this email.</p>
-                            <p>To reset your password, please click the link below:</p>
-                            <p><a class=""button"" href='{url}'>Reset Password</a></p>
-                            <p>If you need further assistance, please don't hesitate to contact us.</p>
-                            <div class=""footer"">
-                                <p>Best regards,</p>
-                                <p>The Electronic Mind Team</p>
-                            </div>
-                        </div>
-                    </body>
-
-                    </html>
-
-
-            ";
+            string htmlFilePath = $"{_webHostEnvironment.WebRootPath}/EmailTemplates/ForgetPasswordEmailTemplete.html";
+            string htmlContent = System.IO.File.ReadAllText(htmlFilePath);
 
 
             string url = $"{_mail.ServerLink}/ResetPassword?email={email}&token={validToken}";

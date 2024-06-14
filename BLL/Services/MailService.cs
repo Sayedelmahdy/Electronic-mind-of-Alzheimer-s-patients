@@ -1,18 +1,13 @@
 ﻿using BLL.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Mail;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BLL.Services
 {
     public class MailService : IMailService
     {
 
-        public async  Task<bool> SendEmailAsync(string toEmail,string FromEmail,string Password, string subject, string content)
+        public async Task<bool> SendEmailAsync(string toEmail, string FromEmail, string Password, string subject, string content)
         {
             try
             {
@@ -32,8 +27,8 @@ namespace BLL.Services
             }
             catch (Exception ex)
             {
-               return false;    
+                return false;
             }
-            }
+        }
     }
 }

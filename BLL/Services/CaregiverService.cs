@@ -2,21 +2,12 @@
 using BLL.DTOs;
 using BLL.DTOs.CaregiverDto;
 using BLL.DTOs.PatientDto;
-using BLL.Helper;
 using BLL.Hubs;
 using BLL.Interfaces;
 using DAL.Interfaces;
 using DAL.Model;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 
 namespace BLL.Services
@@ -32,7 +23,7 @@ namespace BLL.Services
         private readonly IBaseRepository<Report> _report;
         private readonly IHubContext<MedicineReminderHub> _medicineHub;
 
-      
+
 
         public CaregiverService
             (
@@ -58,8 +49,8 @@ namespace BLL.Services
 
         public async Task<string?> GetCaregiverCode(string token)
         {
-            string CaregiverCode= _jwtDecode.GetUserIdFromToken(token);
-            if(CaregiverCode == null )
+            string CaregiverCode = _jwtDecode.GetUserIdFromToken(token);
+            if (CaregiverCode == null)
             {
                 return null;
             }
@@ -68,17 +59,17 @@ namespace BLL.Services
         public async Task<GlobalResponse> AddMedicationReminder(string token, string patientId, MedicationReminderPostDto mediceneDto)
         {
             string? caregiverId = _jwtDecode.GetUserIdFromToken(token);
-            if( caregiverId == null )
+            if (caregiverId == null)
             {
                 return new GlobalResponse
                 {
                     HasError = true,
                     message = "Invalid CaregiverId"
                 };
-                
+
             }
-            var patient = await _patient.GetByIdAsync( patientId );
-            if( patient == null || patient.CaregiverID !=caregiverId)
+            var patient = await _patient.GetByIdAsync(patientId);
+            if (patient == null || patient.CaregiverID != caregiverId)
             {
                 return new GlobalResponse
                 {
@@ -96,8 +87,8 @@ namespace BLL.Services
                 StartDate = mediceneDto.StartDate,
                 EndDate = mediceneDto.EndDate,
                 Medcine_Type = mediceneDto.MedcineType,
-                
-               
+
+
             };
             var JsonMedicationData = new
             {
@@ -112,7 +103,7 @@ namespace BLL.Services
             };
             var JsonMedication = JsonConvert.SerializeObject(JsonMedicationData); // serialize the medication
             await _medication_Reminders.AddAsync(medication);
-            await _medicineHub.Clients.Group(patientId).SendAsync("ReceiveMedicineReminder","Medication Added" ,JsonMedication);
+            await _medicineHub.Clients.Group(patientId).SendAsync("ReceiveMedicineReminder", "Medication Added", JsonMedication);
             return new GlobalResponse
             {
                 HasError = false,
@@ -124,7 +115,7 @@ namespace BLL.Services
 
         public async Task<GlobalResponse> DeleteMedicationReminderAsync(string token, string reminderId)
         {
-            string? caregiverId= _jwtDecode.GetUserIdFromToken(token);
+            string? caregiverId = _jwtDecode.GetUserIdFromToken(token);
             var reminder = await _medication_Reminders.FindAsync(i => i.Reminder_ID == reminderId);
             if (reminder == null)
             {
@@ -134,7 +125,7 @@ namespace BLL.Services
                     message = "Medication Reminder with This Id is Not found "
                 };
             }
-            
+
             await _medication_Reminders.DeleteAsync(reminder);
             await _medicineHub.Clients.Group(reminder.Patient_Id).SendAsync("ReceiveMedicineReminder", "Medication Deleted", reminderId);
             return new GlobalResponse
@@ -146,22 +137,22 @@ namespace BLL.Services
 
         public async Task<IEnumerable<GetPatientsDto>> GetAssignedPatientsAsync(string token)
         {
-            var caregiverId  = _jwtDecode.GetUserIdFromToken(token);
-            if(caregiverId == null)
+            var caregiverId = _jwtDecode.GetUserIdFromToken(token);
+            if (caregiverId == null)
             {
                 return Enumerable.Empty<GetPatientsDto>();
             }
-            var patients =await _patient.WhereAsync(f => f.CaregiverID == caregiverId);
-            if(patients == null)
+            var patients = await _patient.WhereAsync(f => f.CaregiverID == caregiverId);
+            if (patients == null)
             {
                 return Enumerable.Empty<GetPatientsDto>();
             }
-                var res = patients.Select(s=>new GetPatientsDto
-                {
-                    PatientId=s.Id,
-                    PatientName=s.FullName
-                }).ToList();
-            if(!patients.Any())
+            var res = patients.Select(s => new GetPatientsDto
+            {
+                PatientId = s.Id,
+                PatientName = s.FullName
+            }).ToList();
+            if (!patients.Any())
             {
                 return Enumerable.Empty<GetPatientsDto>();
             }
@@ -171,30 +162,30 @@ namespace BLL.Services
         public async Task<IEnumerable<MedicationReminderGetDto>> GetMedicationRemindersAsync(string token, string patientId)
         {
             string? caregiverId = _jwtDecode.GetUserIdFromToken(token);
-            if( caregiverId == null)
+            if (caregiverId == null)
             {
                 return Enumerable.Empty<MedicationReminderGetDto>();
             }
-            var reminders =await _medication_Reminders.WhereAsync(s => s.Patient_Id == patientId);
+            var reminders = await _medication_Reminders.WhereAsync(s => s.Patient_Id == patientId);
             var patient = await _patient.GetByIdAsync(patientId);
-            if( patient == null || patient.CaregiverID!=caregiverId)
+            if (patient == null || patient.CaregiverID != caregiverId)
             {
                 return Enumerable.Empty<MedicationReminderGetDto>();
             }
-            if ( reminders == null)
+            if (reminders == null)
             {
-                return Enumerable.Empty<MedicationReminderGetDto> ();
+                return Enumerable.Empty<MedicationReminderGetDto>();
             }
-            var res=reminders.Select(s=> new MedicationReminderGetDto
-                {
-                    ReminderId=s.Reminder_ID,
-                    Medication_Name=s.Medication_Name,
-                    StartDate=s.StartDate,
-                    Dosage=s.Dosage,
-                    Repeater=s.Repeater,
-                   EndDate=s.EndDate,
-                   MedcineType=s.Medcine_Type,
-                }).ToList();
+            var res = reminders.Select(s => new MedicationReminderGetDto
+            {
+                ReminderId = s.Reminder_ID,
+                Medication_Name = s.Medication_Name,
+                StartDate = s.StartDate,
+                Dosage = s.Dosage,
+                Repeater = s.Repeater,
+                EndDate = s.EndDate,
+                MedcineType = s.Medcine_Type,
+            }).ToList();
             if (!res.Any())
             {
                 return Enumerable.Empty<MedicationReminderGetDto>();
@@ -204,9 +195,9 @@ namespace BLL.Services
 
         public async Task<GlobalResponse> UpdateMedicationReminderAsync(string token, string reminderId, MedicationReminderUpdateDto UpdateMedicationReminderDto)
         {
-            string? caregiverId= _jwtDecode.GetUserIdFromToken(token);
-            var medicine = await _medication_Reminders.FindAsync(r=>r.Reminder_ID == reminderId);
-            if(medicine==null)
+            string? caregiverId = _jwtDecode.GetUserIdFromToken(token);
+            var medicine = await _medication_Reminders.FindAsync(r => r.Reminder_ID == reminderId);
+            if (medicine == null)
             {
                 return new GlobalResponse
                 {
@@ -216,15 +207,15 @@ namespace BLL.Services
             }
             medicine.Medication_Name = UpdateMedicationReminderDto.Medication_Name;
             medicine.StartDate = UpdateMedicationReminderDto.StartDate;
-            medicine.Dosage= UpdateMedicationReminderDto.Dosage;
-            medicine.Repeater= UpdateMedicationReminderDto.Repeater;
+            medicine.Dosage = UpdateMedicationReminderDto.Dosage;
+            medicine.Repeater = UpdateMedicationReminderDto.Repeater;
             medicine.EndDate = UpdateMedicationReminderDto.EndDate;
             medicine.Medcine_Type = UpdateMedicationReminderDto.MedcineType;
-            
+
             await _medication_Reminders.UpdateAsync(medicine);
             return new GlobalResponse
             {
-                HasError=false,
+                HasError = false,
                 message = "Medication Reminder Updated Successfully ."
             };
         }
@@ -235,7 +226,7 @@ namespace BLL.Services
             var patient = await _patient.FindAsync(p => p.Id == patientId);
 
             if (patient == null)
-            { 
+            {
                 return Enumerable.Empty<GameScoreDto>();
             }
             var gameScores = await _gameScoreRepository.WhereAsync(gs => gs.PatientId == patientId);
@@ -251,7 +242,7 @@ namespace BLL.Services
                 GameDate = gs.GameDate,
                 DifficultyGame = gs.DifficultyGame,
                 PatientScore = gs.PatientScore,
-                
+
             });
 
             return gameScoreDtos;
@@ -260,7 +251,7 @@ namespace BLL.Services
 
         public async Task<GlobalResponse> CreateReportCardAsync(string token, ReportCardDto reportCardDto)
         {
-            // Check if caregiverId is valid or extract it from token based on your application logic
+
             string? caregiverId = _jwtDecode.GetUserIdFromToken(token);
             var patient = await _patient.GetByIdAsync(reportCardDto.patientid);
             if (patient == null || patient.CaregiverID != caregiverId)
@@ -286,10 +277,11 @@ namespace BLL.Services
             // Add the report card entity to the database using Entity Framework Core
             await _report.AddAsync(reportCard);
 
-            
-            return new GlobalResponse {
-                HasError =false,
-                message = "Report Created Succuessfully ." 
+
+            return new GlobalResponse
+            {
+                HasError = false,
+                message = "Report Created Succuessfully ."
             };
         }
         public async Task<IEnumerable<GetReportDto>> getallReport(string token, string patientid)
