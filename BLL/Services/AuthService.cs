@@ -485,7 +485,7 @@ namespace BLL.Services
 
 
         }
-        private async Task<string?> FaceIDAi(LoginWithFaceIdDto model)
+      public async Task<string?> FaceIDAi(LoginWithFaceIdDto model)
         {
             string endpoint = "https://excited-hound-vastly.ngrok-free.app/login_patient";
 
