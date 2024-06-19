@@ -1,32 +1,27 @@
-﻿using DAL.Model;
-using Microsoft.AspNetCore.Identity;
+﻿using DAL.EntityTest;
+using DAL.Model;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DAL.Context
 {
-    public class DBContext: IdentityDbContext<User>
+    public class DBContext : IdentityDbContext<User>
     {
-        public DBContext() {
-           
+        public DBContext()
+        {
+
         }
         public DBContext(DbContextOptions options)
        : base(options)
         {
             this.ChangeTracker.LazyLoadingEnabled = false;
         }
-       
+
         public virtual DbSet<Patient> Patients { get; set; }
         public virtual DbSet<Family> Families { get; set; }
         public virtual DbSet<Caregiver> Caregivers { get; set; }
         public virtual DbSet<Appointment> Appointments { get; set; }
-        
+
         public virtual DbSet<Location> Locations { get; set; }
         public virtual DbSet<Mark_Medicine_Reminder> MarkMedicineReminders { get; set; }
         public virtual DbSet<Medication_Reminders> Medication_Reminders { get; set; }
@@ -35,10 +30,12 @@ namespace DAL.Context
         public virtual DbSet<GameScore> GameScores { get; set; }
         public virtual DbSet<Report> Reports { get; set; } // يااااااااااااارب
         public virtual DbSet<PersonWithoutAccount> PersonWithoutAccounts { get; set; }
+        public DbSet<TestEntity> TestEntities { get; set; }
+        public DbSet<RelatedEntity> RelatedEntities { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            
+
 
 
         }

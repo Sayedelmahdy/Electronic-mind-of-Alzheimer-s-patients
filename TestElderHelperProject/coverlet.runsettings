@@ -1,0 +1,21 @@
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura,json,lcov,opencover</Format>
+          <Include>
+            <Module>Elder Helper API Test</Module>
+          </Include>
+          <Exclude>
+            <Module>*.Tests</Module>
+            <Module>*.Test</Module>
+            <Module>testhost.exe</Module>
+            <Module>coverlet.collector.dll</Module>
+          </Exclude>
+          <IncludeDirectory>./</IncludeDirectory>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
