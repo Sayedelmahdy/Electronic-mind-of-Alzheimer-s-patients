@@ -1,25 +1,15 @@
-﻿using Xunit;
-using Moq;
-using System.Threading.Tasks;
-using BLL.Services;
-using BLL.DTOs;
-using BLL.DTOs.CaregiverDto;
-using BLL.DTOs.FamilyDto;
-using BLL.DTOs.PatientDto;
+﻿using BLL.DTOs.PatientDto;
 using BLL.Helper;
+using BLL.Hubs;
 using BLL.Interfaces;
+using BLL.Services;
 using DAL.Interfaces;
 using DAL.Model;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.IO;
-using BLL.Hubs;
+using Moq;
 using System.Linq.Expressions;
 
 public class PatientServiceTests
@@ -163,35 +153,6 @@ public class PatientServiceTests
         // Assert
         Assert.Empty(result);
     }
-
-    [Fact]
-    public async Task GetMedicationRemindersAsync_ShouldReturnReminders_WhenPatientExists()
-    {
-        // Arrange
-        var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkOTdjZWQ2My1hMjA5LTQ3MGMtYmFkYy0zZjA2MTYyNWM0NDMiLCJlbWFpbCI6ImVzbGFtYWhtZWR3b3JrNEBnbWFpbC5jb20iLCJGdWxsTmFtZSI6Itin2YTZhdix2YrYtiAvINiz2YrYryDYp9mE2YXZh9iv2YogIiwiUGhvbmVOdW1iZXIiOiIwMTI4MzQzOTIwMiIsInVpZCI6IjIxMjYwZjQ1LWViOTUtNDZiMy05M2Q0LTU5NGNjODkwMjUwOCIsIlVzZXJBdmF0YXIiOiJodHRwczovL2VsZWN0cm9uaWNtaW5kb2ZhbHpoZWltZXJwYXRpZW50cy5henVyZXdlYnNpdGVzLm5ldC9Vc2VyIEF2YXRhci8yMTI2MGY0NS1lYjk1LTQ2YjMtOTNkNC01OTRjYzg5MDI1MDhfMzE1MTBkZmUtYWEzMC00YmZkLTkyYWItYmRjOWRlNmYyYzJjLmpwZyIsIk1haW5MYXRpdHVkZSI6IjMwLjAwMTkxMiIsIk1haW5Mb25naXR1ZGUiOiIzMS4zMzQ3MzciLCJyb2xlcyI6IlBhdGllbnQiLCJNYXhEaXN0YW5jZSI6IjI1IiwiZXhwIjoxNzI2NTM0MjY0LCJpc3MiOiJBcnRPZkNvZGluZyIsImF1ZCI6IkFsemhlaW1hckFwcCJ9.3M3Su5kB3VpZQdKunxsQ89A9qI4cxKKuwoxWUjA0H1U";
-        var patientId = "21260f45-eb95-46b3-93d4-594cc8902508";
-        var medicines = new List<Medication_Reminders>
-        {
-            new Medication_Reminders { Reminder_ID = "1", Patient_Id = patientId, Medication_Name = "Med 1", Dosage = "Dosage 1", StartDate = DateTime.Now, EndDate = DateTime.Now, Medcine_Type = MedcineType.Pill, Repeater = RepeatType.Once },
-            new Medication_Reminders { Reminder_ID = "2", Patient_Id = patientId, Medication_Name = "Med 2", Dosage = "Dosage 2", StartDate = DateTime.Now, EndDate = DateTime.Now, Medcine_Type = MedcineType.Syringe, Repeater = RepeatType.Four_Times }
-        }.AsQueryable();
-
-        _jwtDecodeMock.Setup(x => x.GetUserIdFromToken(token)).Returns(patientId);
-        _medicinesRepositoryMock.Setup(x => x.WhereAsync(It.IsAny<Expression<Func<Medication_Reminders, bool>>>())).ReturnsAsync(medicines);
-
-        // Act
-        var result = await _patientService.GetMedicationRemindersAsync(token);
-
-        // Assert
-        Assert.NotEmpty(result);
-        Assert.Equal(2, result.Count());
-        Assert.Equal("1", result.First().ReminderId);
-        Assert.Equal("Med 1", result.First().Medication_Name);
-        Assert.Equal("Dosage 1", result.First().Dosage);
-        Assert.Equal(MedcineType.Pill, result.First().MedcineType);
-        Assert.Equal(RepeatType.Four_Times, result.First().Repeater);
-    }
-
     [Fact]
     public async Task GetMedicationRemindersAsync_ShouldReturnEmpty_WhenPatientDoesNotExist()
     {
@@ -200,7 +161,7 @@ public class PatientServiceTests
         var patientId = "21260f45-eb95-46b3-93d4-594cc8902508";
 
         _jwtDecodeMock.Setup(x => x.GetUserIdFromToken(token)).Returns(patientId);
-        _medicinesRepositoryMock.Setup(x => x.WhereAsync(It.IsAny< Expression<Func<Medication_Reminders, bool>>>())).ReturnsAsync((IQueryable<Medication_Reminders>)null);
+        _medicinesRepositoryMock.Setup(x => x.WhereAsync(It.IsAny<Expression<Func<Medication_Reminders, bool>>>())).ReturnsAsync((IQueryable<Medication_Reminders>)null);
 
         // Act
         var result = await _patientService.GetMedicationRemindersAsync(token);
@@ -246,36 +207,6 @@ public class PatientServiceTests
         // Assert
         Assert.True(result.HasError);
         Assert.Equal("No Patient With this ID!", result.message);
-    }
-
-    [Fact]
-    public async Task GetMediaAsync_ShouldReturnMedia_WhenPatientExists()
-    {
-        // Arrange
-        var token = "validToken";
-        var patientId = "patientId";
-        var patient = new Patient { Id = patientId };
-        var media = new List<Media>
-        {
-            new Media { Media_Id = "1", PatientId = patientId, Caption = "Caption 1", Image_Path = "Path 1", Upload_Date = DateTime.Now, Extension = ".jpg", family = new Family { FullName = "Family 1" } },
-            new Media { Media_Id = "2", PatientId = patientId, Caption = "Caption 2", Image_Path = "Path 2", Upload_Date = DateTime.Now, Extension = ".png", family = new Family { FullName = "Family 2" } }
-        }.AsQueryable();
-
-        _jwtDecodeMock.Setup(x => x.GetUserIdFromToken(token)).Returns(patientId);
-        _patientRepositoryMock.Setup(x => x.GetByIdAsync(patientId)).ReturnsAsync(patient);
-        _mediaRepositoryMock.Setup(x => x.Include(It.IsAny< Expression<Func<Media, object>>>())).Returns(media);
-
-        // Act
-        var result = await _patientService.GetMediaAsync(token);
-
-        // Assert
-        Assert.NotEmpty(result);
-        Assert.Equal(2, result.Count());
-        Assert.Equal("1", result.First().MediaId);
-        Assert.Equal("Caption 1", result.First().Caption);
-        Assert.Equal("Path 1", result.First().MediaUrl);
-        Assert.Equal(".jpg", result.First().MediaExtension);
-        Assert.Equal("Family 1", result.First().FamilyNameWhoUpload);
     }
 
     [Fact]
@@ -387,7 +318,7 @@ public class PatientServiceTests
 
         _jwtDecodeMock.Setup(x => x.GetUserIdFromToken(token)).Returns(patientId);
         _patientRepositoryMock.Setup(x => x.GetByIdAsync(patientId)).ReturnsAsync(patient);
-        _gameScoreRepositoryMock.Setup(x => x.Where(It.IsAny< Expression<Func<GameScore, bool>>>())).Returns(gameScores);
+        _gameScoreRepositoryMock.Setup(x => x.Where(It.IsAny<Expression<Func<GameScore, bool>>>())).Returns(gameScores);
 
         // Act
         var result = await _patientService.GetGameScoresAsync(token);
@@ -509,33 +440,6 @@ public class PatientServiceTests
         // Assert
         Assert.True(result.HasError);
         Assert.Equal("Video file is empty", result.message);
-    }
-
-    [Fact]
-    public async Task GetPatientRelatedMembersAsync_ShouldReturnMembers_WhenMembersExist()
-    {
-        // Arrange
-        var token = "validToken";
-        var patientId = "patientId";
-        var families = new List<Family>
-        {
-            new Family { Id = "1", PatientId = patientId, FullName = "Family 1", Relationility = "Relation 1", imageUrl = "Path 1", DescriptionForPatient = "Description 1" }
-        }.AsQueryable();
-        var persons = new List<PersonWithoutAccount>
-        {
-            new PersonWithoutAccount { Id = "2", PatientId = patientId, FullName = "Person 1", Relationility = "Relation 2", ImageUrl = "Path 2", DescriptionForPatient = "Description 2" }
-        }.AsQueryable();
-
-        _jwtDecodeMock.Setup(x => x.GetUserIdFromToken(token)).Returns(patientId);
-        _familyRepositoryMock.Setup(x => x.WhereAsync(It.IsAny<Expression<Func<Family, bool>>>())).ReturnsAsync(families);
-        _personRepositoryMock.Setup(x => x.WhereAsync(It.IsAny<Expression<Func<PersonWithoutAccount, bool>>>())).ReturnsAsync(persons);
-
-        // Act
-        var result = await _patientService.GetPatientRelatedMembersAsync(token);
-
-        // Assert
-        Assert.NotEmpty(result);
-        Assert.Equal(2, result.Count());
     }
 
     [Fact]

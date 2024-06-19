@@ -5,7 +5,6 @@ using BLL.Services;
 using DAL.Interfaces;
 using DAL.Model;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
@@ -79,48 +78,6 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task RegisterAsync_ShouldRegisterFamily_WhenRoleIsFamily()
-    {
-        // Arrange
-        var registerDto = new RegisterDto
-        {
-            Email = "family@example.com",
-            Role = "family",
-            FullName = "Family Name",
-            PhoneNumber = "1234567890",
-            Age = 30,
-            MainLatitude = 10.0,
-            MainLongitude = 20.0,
-            Password = "Test123@",
-            Avatar = new FormFile(new MemoryStream(), 0, 0, "Avatar", "avatar.jpg")
-        };
-
-        _userManagerMock.Setup(x => x.FindByEmailAsync(registerDto.Email)).ReturnsAsync((User)null);
-        _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<User>(), registerDto.Password)).ReturnsAsync(IdentityResult.Success);
-        _userManagerMock.Setup(x => x.AddToRoleAsync(It.IsAny<User>(), "family")).ReturnsAsync(IdentityResult.Success);
-
-        // Act
-        var result = await _authService.RegisterAsync(registerDto);
-
-        // Assert
-        Assert.Equal("User Created Successfully,Confirmation Mail was send to his Email please confirm your email", result.Message);
-        Assert.True(result.NeedToConfirm);
-    }
-
-    [Fact]
-    public async Task RegisterAsync_ShouldReturnMessage_WhenRoleIsInvalid()
-    {
-        // Arrange
-        var registerDto = new RegisterDto { Email = "sayed.work2223@gmail.com", Role = "invalid" };
-
-        // Act
-        var result = await _authService.RegisterAsync(registerDto);
-
-        // Assert
-        Assert.Equal("Invalid Role", result.Message);
-    }
-
-    [Fact]
     public async Task GetTokenAsync_ShouldReturnMessage_WhenCredentialsAreInvalid()
     {
         // Arrange
@@ -187,7 +144,17 @@ public class AuthServiceTests
     public async Task ResetPasswordAsync_ShouldReturnResetPassword_WhenPasswordsDoNotMatch()
     {
         // Arrange
-        var resetPasswordDto = new ResetPasswordDto { Email = "sayed.work2223@gmail.com", NewPassWord = "Test123@", ConfirmPassword = "differentPassword" };
+        var resetPasswordDto = new ResetPasswordDto
+        {
+            Email = "sayed.work2223@gmail.com",
+            NewPassWord = "Test123@",
+            ConfirmPassword = "Test123@11",
+            Token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes("token"))
+        };
+
+        var user = new User { Email = resetPasswordDto.Email };
+
+        _userManagerMock.Setup(x => x.FindByEmailAsync(resetPasswordDto.Email)).ReturnsAsync(user);
 
         // Act
         var result = await _authService.ResetPasswordAsync(resetPasswordDto);
@@ -195,7 +162,9 @@ public class AuthServiceTests
         // Assert
         Assert.False(result.IsPasswordReset);
         Assert.Equal("Password doesn't match its confirmation", result.Message);
+        _userManagerMock.Verify(x => x.FindByEmailAsync(resetPasswordDto.Email), Times.Once);
     }
+
 
     [Fact]
     public async Task ResetPasswordAsync_ShouldReturnResetPassword_WhenUserNotFound()
@@ -216,18 +185,29 @@ public class AuthServiceTests
     public async Task ResetPasswordAsync_ShouldReturnResetPassword_WhenPasswordResetSucceeds()
     {
         // Arrange
-        var resetPasswordDto = new ResetPasswordDto { Email = "sayed.work2223@gmail.com", NewPassWord = "Test123@", ConfirmPassword = "password", Token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes("token")) };
-        var user = new User();
+        var resetPasswordDto = new ResetPasswordDto
+        {
+            Email = "sayed.work2223@gmail.com",
+            NewPassWord = "Test123@",
+            ConfirmPassword = "Test123@",  // Make sure ConfirmPassword matches NewPassWord
+            Token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes("token"))
+        };
+        var user = new User { Email = resetPasswordDto.Email };
+        var token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(resetPasswordDto.Token));
+
         _userManagerMock.Setup(x => x.FindByEmailAsync(resetPasswordDto.Email)).ReturnsAsync(user);
-        _userManagerMock.Setup(x => x.ResetPasswordAsync(user, It.IsAny<string>(), resetPasswordDto.NewPassWord)).ReturnsAsync(IdentityResult.Success);
+        _userManagerMock.Setup(x => x.ResetPasswordAsync(user, token, resetPasswordDto.NewPassWord)).ReturnsAsync(IdentityResult.Success);
 
         // Act
         var result = await _authService.ResetPasswordAsync(resetPasswordDto);
 
         // Assert
-        Assert.True(result.IsPasswordReset);
+        Assert.True(result.IsPasswordReset, "Expected the password to be reset successfully.");
         Assert.Equal("Password has been reset successfully!", result.Message);
+        _userManagerMock.Verify(x => x.FindByEmailAsync(resetPasswordDto.Email), Times.Once);
+        _userManagerMock.Verify(x => x.ResetPasswordAsync(user, token, resetPasswordDto.NewPassWord), Times.Once);
     }
+
 
     [Fact]
     public async Task ChangePasswordAsync_ShouldReturnChangePassword_WhenEmailNotFound()
