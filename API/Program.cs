@@ -1,5 +1,7 @@
 using API.CustomTokenProvider;
+using API.Middlewares;
 using BLL.Helper;
+using BLL.Hubs;
 using BLL.Interfaces;
 using BLL.Services;
 using DAL.Context;
@@ -14,12 +16,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
-using Microsoft.AspNetCore.SignalR;
+using System.Reflection;
 using System.Text;
 using System.Threading.RateLimiting;
-using BLL.Hubs;
-using System.Reflection;
-using API.Middlewares;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -77,27 +76,27 @@ builder.Services.AddDbContext<DBContext>(option =>
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 
 });
-builder.Services.AddIdentity<User, IdentityRole>(option=>
+builder.Services.AddIdentity<User, IdentityRole>(option =>
 {
-     //option.SignIn.RequireConfirmedEmail= false; //Todo: Enable it when Prodcution Done
+    //option.SignIn.RequireConfirmedEmail= false; //Todo: Enable it when Prodcution Done
     //option.Tokens.EmailConfirmationTokenProvider = "emailconfirmation";
-    
+
 }).AddEntityFrameworkStores<DBContext>().AddDefaultTokenProviders().AddTokenProvider<EmailTokenProvider<User>>("emailconfirmation");
 builder.Services.AddIdentityCore<Patient>(option =>
 {
-   
+
 }).AddEntityFrameworkStores<DBContext>();
 builder.Services.AddIdentityCore<Family>(option =>
 {
-   
+
 }).AddEntityFrameworkStores<DBContext>();
 builder.Services.AddIdentityCore<Caregiver>(option =>
 {
-   
+
 }).AddEntityFrameworkStores<DBContext>();
 builder.Services.Configure<DataProtectionTokenProviderOptions>(option =>
 {
-    option.TokenLifespan=TimeSpan.FromHours(2);
+    option.TokenLifespan = TimeSpan.FromHours(2);
 });
 builder.Services.Configure<EmailConfirmationTokenProviderOptions>(option =>
 {
@@ -106,7 +105,7 @@ builder.Services.Configure<EmailConfirmationTokenProviderOptions>(option =>
 builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IFamilyService, FamilyService>();
-builder.Services.AddScoped<ICaregiverService,CaregiverService>();
+builder.Services.AddScoped<ICaregiverService, CaregiverService>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddSingleton<IMailService, MailService>();
 builder.Services.AddSingleton<IDecodeJwt, DecodeJwt>();
@@ -148,12 +147,12 @@ builder.Services.Configure<IISServerOptions>(options =>
 });
 builder.Services.Configure<KestrelServerOptions>(options =>
 {
-    options.Limits.MaxRequestBodySize = int.MaxValue; 
+    options.Limits.MaxRequestBodySize = int.MaxValue;
 });
 builder.Services.Configure<FormOptions>(x =>
 {
     x.ValueLengthLimit = int.MaxValue;
-    x.MultipartBodyLengthLimit = int.MaxValue; 
+    x.MultipartBodyLengthLimit = int.MaxValue;
     x.MultipartHeadersLengthLimit = int.MaxValue;
 });
 builder.Services.AddRazorPages();
@@ -166,7 +165,6 @@ builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
         .AllowAnyMethod()
         .AllowAnyHeader()
         .AllowCredentials();
-        
     }));
 var app = builder.Build();
 

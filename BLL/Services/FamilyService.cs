@@ -49,7 +49,7 @@ namespace BLL.Services
               IOptions<Mail> Mail,
               IOptions<JWT> JWT,
               IMailService mailService,
-              IHubContext<AppointmentHub> appointmentHub,
+            IHubContext<AppointmentHub> appointmentHub,
             UserManager<User> user,
             IBaseRepository<Report> report,
             IBaseRepository<PersonWithoutAccount> personWithoutAccount

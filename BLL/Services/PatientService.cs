@@ -40,7 +40,8 @@ namespace BLL.Services
 
         public PatientService
             (
-            IHubContext<MedicineReminderHub> hubContext, IDecodeJwt jwtDecode,
+            IHubContext<MedicineReminderHub> hubContext,
+            IDecodeJwt jwtDecode,
             IBaseRepository<Patient> patient,
             IBaseRepository<Medication_Reminders> medicines,
             IBaseRepository<Appointment> appointments,
@@ -918,12 +919,12 @@ namespace BLL.Services
                 return new PersonInImage
                 {
                     FamilyName = person?.FullName ?? "Unknown",
-                    FamilyLatitude = person?.MainLatitude,
-                    FamilyLongitude = person?.MainLongitude,
+                    FamilyLatitude = person?.MainLatitude ?? 0,
+                    FamilyLongitude = person?.MainLongitude ?? 0,
                     FamilyPhoneNumber = person?.PhoneNumber ?? "Unknown",
                     RelationalityOfThisPatient = person?.Relationility ?? "Unknown",
-                    FamilyAvatarUrl = GetMediaUrl(person?.ImageUrl),
-                    DescriptionForPatient = person?.DescriptionForPatient
+                    FamilyAvatarUrl = person?.ImageUrl == null ? "No image" : GetMediaUrl(person?.ImageUrl),
+                    DescriptionForPatient = person?.DescriptionForPatient ?? "No description"
                 };
             }
             else
@@ -931,12 +932,12 @@ namespace BLL.Services
                 return new PersonInImage
                 {
                     FamilyName = familyMember?.FullName ?? "Unknown",
-                    FamilyLatitude = familyMember?.MainLatitude,
-                    FamilyLongitude = familyMember?.MainLongitude,
+                    FamilyLatitude = familyMember?.MainLatitude ?? 0,
+                    FamilyLongitude = familyMember?.MainLongitude ?? 0,
                     FamilyPhoneNumber = familyMember?.PhoneNumber ?? "Unknown",
                     RelationalityOfThisPatient = familyMember?.Relationility ?? "Unknown",
-                    FamilyAvatarUrl = GetMediaUrl(familyMember?.imageUrl),
-                    DescriptionForPatient = familyMember?.DescriptionForPatient
+                    FamilyAvatarUrl = familyMember?.imageUrl == null ? "No Image" : GetMediaUrl(familyMember?.imageUrl),
+                    DescriptionForPatient = familyMember?.DescriptionForPatient ?? "No description"
                 };
             }
         }
